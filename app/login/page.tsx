@@ -1,7 +1,16 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const router = useRouter();
+
+  const handleGoogleAuth = () => {
+    router.push("/dashboard");
+  };
+
   return (
     <div className="flex min-h-screen bg-background">
       <section className="flex w-full flex-col items-center justify-center px-4 py-16 md:px-8 lg:w-1/2">
@@ -42,6 +51,7 @@ export default function LoginPage() {
 
           <button
             type="button"
+            onClick={handleGoogleAuth}
             className="mb-4 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-textPrimary transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 shadow-sm"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24">
