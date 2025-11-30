@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useState, use } from "react";
+import { useRealtimeVisitors } from "@/hooks/use-realtime-visitors";
 import {
   BarChart,
   Bar,
@@ -41,6 +42,10 @@ export default function WebsiteAnalyticsPage({
   const [mentionDialogOpen, setMentionDialogOpen] = useState(false);
   const [selectedMentionData, setSelectedMentionData] = useState<any>(null);
   const [showMentionsOnChart, setShowMentionsOnChart] = useState(true);
+
+  // Real-time visitors hook
+  const { visitorsNow: realtimeVisitorsNow, isConnected } =
+    useRealtimeVisitors(websiteId);
 
   // Dummy data for charts - matching the exact structure from the reference
   const chartData = [
@@ -435,7 +440,11 @@ export default function WebsiteAnalyticsPage({
 
   // Calculate totals
   const totalVisitors = "18.9k";
-  const visitorsNow = metricsData.visitorsNow.value;
+  // Use real-time data if available, otherwise fall back to static data
+  const visitorsNow =
+    realtimeVisitorsNow > 0
+      ? realtimeVisitorsNow
+      : metricsData.visitorsNow.value;
 
   return (
     <>
@@ -831,8 +840,16 @@ export default function WebsiteAnalyticsPage({
                             Visitors now
                           </div>
                           <span className="relative ml-1.5 inline-flex size-2">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-secondary opacity-75"></span>
-                            <span className="relative inline-flex size-2 rounded-full bg-secondary"></span>
+                            <span
+                              className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${
+                                isConnected ? "bg-green-500" : "bg-gray-400"
+                              }`}
+                            ></span>
+                            <span
+                              className={`relative inline-flex size-2 rounded-full ${
+                                isConnected ? "bg-green-500" : "bg-gray-400"
+                              }`}
+                            ></span>
                           </span>
                         </div>
                         <div className="relative flex flex-col items-start overflow-hidden">
