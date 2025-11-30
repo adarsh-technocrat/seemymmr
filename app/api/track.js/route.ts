@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
   // Track custom goal
   function trackGoal(data) {
     if (!data || !data.event) {
-      console.warn('DataFast: Goal event name required');
+      console.warn('seeMoreThanMMR: Goal event name required');
       return;
     }
     
@@ -105,18 +105,23 @@ export async function GET(request: NextRequest) {
       setCookie('_df_uid', userId, 365);
       
       // Send identification to server
-      var identifyUrl = TRACK_URL.replace('/api/track', '/api/visitor/identify') +
-        '&userId=' + encodeURIComponent(data.userId) +
-        (data.email ? '&email=' + encodeURIComponent(data.email) : '') +
-        '&_=' + Date.now();
-      
-      var img = new Image(1, 1);
-      img.src = identifyUrl;
+      fetch(TRACK_URL.replace('/api/track', '/api/identify'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          site: TRACKING_CODE,
+          userId: data.userId,
+          email: data.email,
+          name: data.name,
+          visitorId: getCookie('_df_vid'),
+          sessionId: getCookie('_df_sid')
+        })
+      }).catch(function() {}); // Silently fail
     }
   }
   
   // Main tracking function
-  function datafast(method, type, data) {
+  function seeMoreThanMMR(method, type, data) {
     if (method === 'track') {
       if (type === 'pageview') {
         trackPageview(data);
@@ -157,7 +162,7 @@ export async function GET(request: NextRequest) {
   });
   
   // Expose global function
-  window.datafast = datafast;
+  window.seeMoreThanMMR = seeMoreThanMMR;
   
   // Scroll tracking (if enabled)
   var scrollTracked = false;
