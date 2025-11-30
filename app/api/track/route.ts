@@ -52,8 +52,25 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
       });
     }
 
-    // Find website by tracking code
-    const website = await Website.findOne({ trackingCode });
+    // Find website by tracking code (with additional domain support)
+    const { getWebsiteByTrackingCode } = await import(
+      "@/utils/database/website"
+    );
+    // Get hostname early for domain validation
+    let hostnameForValidation =
+      request.nextUrl.searchParams.get("hostname") || "unknown";
+    if (method === "POST") {
+      try {
+        const body = await request.json();
+        hostnameForValidation = body.hostname || hostnameForValidation;
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
+    }
+    const website = await getWebsiteByTrackingCode(
+      trackingCode,
+      hostnameForValidation
+    );
     if (!website) {
       return new NextResponse(PIXEL, {
         status: 200,
@@ -87,7 +104,7 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
     // Parse request body for POST requests
     let path = request.nextUrl.searchParams.get("path") || "/";
     let title = request.nextUrl.searchParams.get("title") || undefined;
-    let hostname = request.nextUrl.searchParams.get("hostname") || "unknown";
+    let hostname = hostnameForValidation; // Use the hostname we already extracted
 
     if (method === "POST") {
       try {
@@ -110,6 +127,30 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
 
     // Get location (async, but we'll use default for now)
     const location = await getLocationFromIP(ip);
+
+    // Check attack mode protections
+    const { checkTrafficSpike, applyAttackModeProtections } = await import(
+      "@/utils/security/attack-mode"
+    );
+
+    // Check for traffic spike and activate attack mode if needed
+    await checkTrafficSpike(website._id.toString());
+
+    // Apply attack mode protections
+    const protection = await applyAttackModeProtections(
+      website._id.toString(),
+      ip
+    );
+
+    if (!protection.allowed) {
+      return new NextResponse(PIXEL, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/gif",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+      });
+    }
 
     // Check exclusion rules
     if (shouldExcludeVisit(website, ip, location.country, hostname, path)) {

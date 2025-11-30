@@ -14,6 +14,22 @@ export interface IWebsite extends Document {
     hashPaths?: boolean;
     trackScroll?: boolean;
     trackUserIdentification?: boolean;
+    // New settings
+    timezone?: string; // e.g., "America/New_York"
+    colorScheme?: string; // Hex color for charts, e.g., "#e78468"
+    nickname?: string; // Friendly nickname
+    additionalDomains?: string[]; // Other domains that can send data
+    publicDashboard?: {
+      enabled: boolean;
+      shareId?: string; // Unique ID for public sharing
+    };
+    attackMode?: {
+      enabled: boolean;
+      autoActivate: boolean; // Auto-activate on traffic spike
+      threshold?: number; // Traffic spike threshold
+      activatedAt?: Date;
+    };
+    primaryGoalId?: mongoose.Types.ObjectId; // #1 KPI goal
   };
   paymentProviders?: {
     stripe?: { webhookSecret: string };
@@ -88,6 +104,51 @@ const WebsiteSchema = new Schema<IWebsite>(
       trackUserIdentification: {
         type: Boolean,
         default: false,
+      },
+      timezone: {
+        type: String,
+        default: "UTC",
+      },
+      colorScheme: {
+        type: String,
+        default: "#e78468",
+      },
+      nickname: {
+        type: String,
+      },
+      additionalDomains: [String],
+      publicDashboard: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        shareId: {
+          type: String,
+          unique: true,
+          sparse: true,
+          index: true,
+        },
+      },
+      attackMode: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        autoActivate: {
+          type: Boolean,
+          default: false,
+        },
+        threshold: {
+          type: Number,
+          default: 1000, // Default: 1000 requests per hour
+        },
+        activatedAt: {
+          type: Date,
+        },
+      },
+      primaryGoalId: {
+        type: Schema.Types.ObjectId,
+        ref: "Goal",
       },
     },
     paymentProviders: {

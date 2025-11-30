@@ -13,6 +13,9 @@ export { default as VerificationToken } from "./VerificationToken";
 export { default as Mention } from "./Mention";
 export { default as GitHubCommit } from "./GitHubCommit";
 export { default as SearchConsoleData } from "./SearchConsoleData";
+export { default as ApiKey } from "./ApiKey";
+export { default as TeamMember } from "./TeamMember";
+export { default as EmailNotification } from "./EmailNotification";
 
 // Export types
 export type { IUser } from "./User";
@@ -29,3 +32,6 @@ export type { IVerificationToken } from "./VerificationToken";
 export type { IMention } from "./Mention";
 export type { IGitHubCommit } from "./GitHubCommit";
 export type { ISearchConsoleData } from "./SearchConsoleData";
+export type { IApiKey } from "./ApiKey";
+export type { ITeamMember } from "./TeamMember";
+export type { IEmailNotification } from "./EmailNotification";
