@@ -10,6 +10,9 @@ export { default as Funnel } from "./Funnel";
 export { default as FunnelEvent } from "./FunnelEvent";
 export { default as Profile } from "./Profile";
 export { default as VerificationToken } from "./VerificationToken";
+export { default as Mention } from "./Mention";
+export { default as GitHubCommit } from "./GitHubCommit";
+export { default as SearchConsoleData } from "./SearchConsoleData";
 
 // Export types
 export type { IUser } from "./User";
@@ -23,3 +26,6 @@ export type { IFunnel } from "./Funnel";
 export type { IFunnelEvent } from "./FunnelEvent";
 export type { IProfile } from "./Profile";
 export type { IVerificationToken } from "./VerificationToken";
+export type { IMention } from "./Mention";
+export type { IGitHubCommit } from "./GitHubCommit";
+export type { ISearchConsoleData } from "./SearchConsoleData";

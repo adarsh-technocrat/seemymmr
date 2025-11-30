@@ -21,6 +21,27 @@ export interface IWebsite extends Document {
     polar?: { webhookSecret: string };
     paddle?: { webhookSecret: string };
   };
+  integrations?: {
+    twitter?: {
+      enabled: boolean;
+      username?: string; // Twitter username to track mentions for
+      bearerToken?: string; // Twitter API bearer token
+    };
+    github?: {
+      enabled: boolean;
+      repositories?: Array<{
+        owner: string;
+        name: string;
+        accessToken?: string; // Repository-specific token
+      }>;
+    };
+    googleSearchConsole?: {
+      enabled: boolean;
+      propertyUrl?: string; // GSC property URL
+      accessToken?: string; // OAuth access token
+      refreshToken?: string; // OAuth refresh token
+    };
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -81,6 +102,38 @@ const WebsiteSchema = new Schema<IWebsite>(
       },
       paddle: {
         webhookSecret: String,
+      },
+    },
+    integrations: {
+      twitter: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        username: String,
+        bearerToken: String,
+      },
+      github: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        repositories: [
+          {
+            owner: String,
+            name: String,
+            accessToken: String,
+          },
+        ],
+      },
+      googleSearchConsole: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        propertyUrl: String,
+        accessToken: String,
+        refreshToken: String,
       },
     },
   },
