@@ -3,7 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signInWithPopup } from "firebase/auth";
+import { auth, googleProvider } from "@/lib/firebase/client";
 import { useState } from "react";
 
 export default function LoginPage() {
@@ -12,35 +13,48 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
-  const error = searchParams.get("error");
+  const [error, setError] = useState<string | null>(searchParams.get("error"));
 
   const handleGoogleAuth = async () => {
     setIsLoading(true);
-    await signIn("google", { callbackUrl: "/dashboard" });
+    setError(null);
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const idToken = await result.user.getIdToken();
+
+      // Verify token with backend
+      const response = await fetch("/api/auth/firebase/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (response.ok) {
+        const isSecure = window.location.protocol === "https:";
+        document.cookie = `firebaseToken=${idToken}; path=/; max-age=${
+          30 * 24 * 60 * 60
+        }; SameSite=Lax${isSecure ? "; Secure" : ""}`;
+        router.push("/dashboard");
+      } else {
+        const data = await response.json();
+        setError(data.error || "Authentication failed");
+      }
+    } catch (error: any) {
+      console.error("Error signing in with Google:", error);
+      setError(error.message || "Failed to sign in with Google");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
-
-    setIsLoading(true);
-    try {
-      const result = await signIn("email", {
-        email,
-        redirect: false,
-        callbackUrl: "/dashboard",
-      });
-
-      if (result?.ok) {
-        setEmailSent(true);
-      } else {
-        console.error("Error sending email:", result?.error);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setIsLoading(false);
-    }
+    setError(
+      "Email authentication is not yet implemented with Firebase. Please use Google sign-in."
+    );
   };
 
   return (

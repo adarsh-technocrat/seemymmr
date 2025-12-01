@@ -1,21 +1,61 @@
-import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { adminAuth } from "@/lib/firebase/admin";
 
-export default withAuth(
-  function proxy(req) {
+export default async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if route requires authentication
+  const isProtectedRoute =
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/api/websites") ||
+    pathname.startsWith("/api/goals");
+
+  // Skip authentication for public API routes
+  const isPublicApiRoute =
+    pathname.startsWith("/api/track") ||
+    pathname.startsWith("/api/identify") ||
+    (pathname.startsWith("/api/websites") && pathname.includes("/public")) ||
+    pathname.startsWith("/api/auth/firebase/verify");
+
+  if (isPublicApiRoute) {
     return NextResponse.next();
-  },
-  {
-    callbacks: {
-      authorized: ({ token, req }) => {
-        if (req.nextUrl.pathname.startsWith("/dashboard")) {
-          return !!token;
-        }
-        return true;
-      },
-    },
   }
-);
+
+  if (isProtectedRoute) {
+    // Get token from cookie or Authorization header
+    const token =
+      request.cookies.get("firebaseToken")?.value ||
+      request.headers.get("authorization")?.replace("Bearer ", "");
+
+    if (!token) {
+      if (pathname.startsWith("/api")) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      }
+      // Redirect to login for page routes
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    try {
+      // Verify the token
+      await adminAuth.verifyIdToken(token);
+      return NextResponse.next();
+    } catch (error) {
+      console.error("Token verification failed:", error);
+      if (pathname.startsWith("/api")) {
+        return NextResponse.json({ error: "Invalid token" }, { status: 401 });
+      }
+      // Redirect to login for page routes
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: [

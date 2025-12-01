@@ -3,7 +3,6 @@ import { getSession } from "@/lib/get-session";
 import connectDB from "@/db";
 import Website from "@/db/models/Website";
 import PageView from "@/db/models/PageView";
-import Session from "@/db/models/Session";
 import { parse } from "csv-parse/sync";
 
 /**
