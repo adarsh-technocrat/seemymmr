@@ -1,0 +1,92 @@
+---
+title: "Track conversion funnels"
+description: "Track conversion funnels to understand your user journey"
+---
+
+Track multi-step conversion funnels to understand where users drop off and optimize your conversion process.
+
+## What are funnels?
+
+Funnels track a series of steps that users take to complete a goal. For example:
+
+1. **Landing page** - User visits your landing page
+2. **Sign up** - User creates an account
+3. **Trial** - User starts a trial
+4. **Purchase** - User makes a purchase
+
+## Create a funnel
+
+1. Go to your website settings in the dashboard
+2. Click **"Funnels"** in the sidebar
+3. Click **"Create Funnel"**
+4. Enter:
+   - **Name** - A descriptive name (e.g., "Signup to Purchase")
+   - **Steps** - Add each step in order
+
+## Funnel steps
+
+Each funnel step can be:
+
+- **Page path** - A specific URL path (e.g., `/pricing`)
+- **Goal event** - A custom goal event (e.g., `signup_click`)
+- **Combination** - Both path and goal
+
+### Example funnel
+
+```
+Step 1: Landing Page (/)
+Step 2: Pricing Page (/pricing)
+Step 3: Signup Goal (signup_click)
+Step 4: Purchase Goal (purchase)
+```
+
+## Track funnel progress
+
+Funnels are automatically tracked when users complete steps. The tracking script detects:
+
+- Page views (for path-based steps)
+- Goal events (for goal-based steps)
+
+## View funnel data
+
+In your dashboard, you can view:
+
+- **Funnel visualization** - See the funnel flow
+- **Conversion rate** - Percentage of users who complete each step
+- **Drop-off points** - Where users leave the funnel
+- **Time between steps** - How long users take between steps
+- **Funnel by source** - Which traffic sources have the best conversion rates
+
+## Example: E-commerce funnel
+
+```
+Step 1: Homepage (/)
+Step 2: Product Page (/products)
+Step 3: Add to Cart Goal (add_to_cart)
+Step 4: Checkout Page (/checkout)
+Step 5: Purchase Goal (purchase)
+```
+
+## Example: SaaS signup funnel
+
+```
+Step 1: Landing Page (/)
+Step 2: Pricing Page (/pricing)
+Step 3: Signup Click Goal (signup_click)
+Step 4: Signup Form (/signup)
+Step 5: Trial Started Goal (trial_started)
+Step 6: Purchase Goal (purchase)
+```
+
+## Best practices
+
+1. **Keep it simple** - Start with 3-5 steps
+2. **Use clear step names** - Make it easy to understand each step
+3. **Track meaningful actions** - Focus on steps that matter to your business
+4. **Analyze drop-offs** - Identify where users leave and optimize those steps
+
+## Next steps
+
+<Card title="Track custom goals" icon="target" href="/get-started/track-goals">
+  Learn how to track individual goal events
+</Card>

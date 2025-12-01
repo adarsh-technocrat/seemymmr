@@ -7,8 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "docs:dev": "mintlify dev",
-    "docs:check": "mintlify broken-links"
+    "docs:dev": "cd docs && mintlify dev",
+    "docs:check": "cd docs && mintlify broken-links"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.15",

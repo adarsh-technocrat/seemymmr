@@ -1,0 +1,138 @@
+---
+title: "User identification"
+description: "Identify users to track authenticated sessions"
+---
+
+Identify users to link their sessions and track authenticated user behavior.
+
+## Why identify users?
+
+- **Link sessions** - Connect multiple sessions from the same user
+- **Track user journey** - See the complete user journey across sessions
+- **Revenue attribution** - Link payments to users via email
+- **User analytics** - See behavior by user segment
+
+## How it works
+
+When a user logs in, identify them with seeMoreThanMMR:
+
+```javascript
+seeMoreThanMMR("identify", {
+  userId: "user_123",
+  email: "user@example.com",
+  name: "John Doe",
+});
+```
+
+This links all future sessions to this user.
+
+## Implementation
+
+### When user logs in
+
+```javascript
+async function handleLogin(email, password) {
+  const user = await login(email, password);
+
+  // Identify user with seeMoreThanMMR
+  if (window.seeMoreThanMMR) {
+    window.seeMoreThanMMR("identify", {
+      userId: user.id,
+      email: user.email,
+      name: user.name,
+    });
+  }
+
+  return user;
+}
+```
+
+### React example
+
+```tsx
+function LoginButton() {
+  const handleLogin = async () => {
+    const user = await login();
+
+    if (typeof window !== "undefined" && window.seeMoreThanMMR) {
+      window.seeMoreThanMMR("identify", {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      });
+    }
+  };
+
+  return <button onClick={handleLogin}>Login</button>;
+}
+```
+
+### Vue example
+
+```vue
+<script>
+export default {
+  methods: {
+    async handleLogin() {
+      const user = await this.login();
+
+      if (window.seeMoreThanMMR) {
+        window.seeMoreThanMMR("identify", {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+        });
+      }
+    },
+  },
+};
+</script>
+```
+
+## Server-side identification
+
+You can also identify users server-side using the API:
+
+```bash
+curl -X POST https://your-domain.com/api/identify \
+  -H "Content-Type: application/json" \
+  -d '{
+    "site": "YOUR_TRACKING_CODE",
+    "userId": "user_123",
+    "email": "user@example.com",
+    "name": "John Doe",
+    "visitorId": "visitor_456",
+    "sessionId": "session_789"
+  }'
+```
+
+## Revenue attribution
+
+When user identification is enabled, payments can be linked to users via email matching:
+
+1. User is identified with email `user@example.com`
+2. Payment is made with customer email `user@example.com`
+3. Payment is automatically linked to the user
+
+## View user data
+
+Once users are identified, you can:
+
+- See user journey across sessions
+- Track user lifetime value
+- Analyze behavior by user segment
+- Link revenue to specific users
+
+## Privacy
+
+User identification is optional. You can use seeMoreThanMMR without identifying users. When users are identified, their data is stored securely and only accessible to you.
+
+## Next steps
+
+<Card
+  title="Connect payment providers"
+  icon="credit-card"
+  href="/get-started/connect-payment-providers"
+>
+  Learn how to link revenue to identified users
+</Card>

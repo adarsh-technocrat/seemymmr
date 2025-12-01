@@ -1,0 +1,54 @@
+---
+title: "Nginx"
+description: "Proxy seeMoreThanMMR with Nginx"
+---
+
+Proxy seeMoreThanMMR through your Nginx server.
+
+## Setup
+
+### Step 1: Add proxy configuration
+
+Add this to your Nginx configuration:
+
+```nginx
+location /api/track.js {
+    proxy_pass https://your-seemorethanmmr-domain.com/api/track.js;
+    proxy_set_header Host your-seemorethanmmr-domain.com;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    # Set content type
+    add_header Content-Type application/javascript;
+}
+
+location /api/track {
+    proxy_pass https://your-seemorethanmmr-domain.com/api/track;
+    proxy_set_header Host your-seemorethanmmr-domain.com;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+### Step 2: Reload Nginx
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### Step 3: Update tracking script URL
+
+Update your tracking script to use your domain:
+
+```html
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+## Next steps
+
+<Card title="Proxy setup guide" icon="shield" href="/proxy/get-started">
+  Learn more about proxying seeMoreThanMMR
+</Card>

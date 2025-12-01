@@ -1,0 +1,101 @@
+---
+title: "Get started in 4 steps"
+description: "Grow your business with seeMoreThanMMR in 4 steps"
+---
+
+Follow these 4 simple steps to start tracking your website visitors and revenue.
+
+## Step 1: Create an account
+
+Sign up for a seeMoreThanMMR account at [your-dashboard-url]. You'll get access to your dashboard where you can manage all your websites.
+
+## Step 2: Add your website
+
+1. Click **"Add Website"** in your dashboard
+2. Enter your website name and domain
+3. Click **"Create"**
+
+Your website will be created with a unique tracking code.
+
+## Step 3: Install the tracking script
+
+Copy the tracking script from your dashboard and add it to your website. The script will be generated automatically for your website.
+
+### Basic installation
+
+Add this script to the `<head>` section of your website:
+
+```html
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+Replace `YOUR_TRACKING_CODE` with the tracking code from your dashboard.
+
+### Next.js installation
+
+For Next.js projects, add the script to your `app/layout.tsx` or `pages/_app.tsx`:
+
+```tsx
+import Script from "next/script";
+
+export default function RootLayout({ children }) {
+  return (
+    <html>
+      <head>
+        <Script
+          src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"
+          strategy="afterInteractive"
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+<Note>
+  The tracking script automatically tracks page views and supports single-page
+  applications (SPA) out of the box.
+</Note>
+
+## Step 4: Verify tracking
+
+1. Visit your website
+2. Go back to your seeMoreThanMMR dashboard
+3. You should see your visit appear in real-time
+
+<Warning>
+  It may take a few seconds for visits to appear in your dashboard. If you don't
+  see your visit, check that the tracking script is correctly installed.
+</Warning>
+
+## Next steps
+
+Now that you're tracking visitors, explore these features:
+
+<CardGroup cols={2}>
+  <Card
+    title="Connect payment providers"
+    icon="credit-card"
+    href="/get-started/connect-payment-providers"
+  >
+    Link revenue to your marketing campaigns
+  </Card>
+  <Card
+    title="Track custom goals"
+    icon="target"
+    href="/get-started/track-goals"
+  >
+    Measure conversions and user actions
+  </Card>
+  <Card
+    title="Use tracking parameters"
+    icon="link"
+    href="/get-started/tracking-parameters"
+  >
+    Get better analytics with UTM parameters
+  </Card>
+  <Card title="Filter your data" icon="filter" href="/get-started/filter-data">
+    Analyze your data by date, source, and more
+  </Card>
+</CardGroup>

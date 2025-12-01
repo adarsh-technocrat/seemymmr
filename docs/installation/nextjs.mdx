@@ -1,0 +1,148 @@
+---
+title: "Next.js"
+description: "Add seeMoreThanMMR to your Next.js App Router project"
+---
+
+Add seeMoreThanMMR to your Next.js App Router project in minutes.
+
+## Installation
+
+### Step 1: Add the tracking script
+
+Add the tracking script to your root layout (`app/layout.tsx`):
+
+```tsx
+import Script from "next/script";
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <html lang="en">
+      <head>
+        <Script
+          src={`https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE`}
+          strategy="afterInteractive"
+        />
+      </head>
+      <body>{children}</body>
+    </html>
+  );
+}
+```
+
+Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
+
+### Step 2: Verify installation
+
+1. Start your development server: `npm run dev`
+2. Visit your website
+3. Check your seeMoreThanMMR dashboard - you should see your visit
+
+## Track custom goals
+
+Track custom goals in your Next.js components:
+
+```tsx
+"use client";
+
+export default function Button() {
+  const handleClick = () => {
+    if (typeof window !== "undefined" && window.seeMoreThanMMR) {
+      window.seeMoreThanMMR("track", "goal", {
+        event: "button_click",
+        value: 0,
+      });
+    }
+  };
+
+  return <button onClick={handleClick}>Click me</button>;
+}
+```
+
+## User identification
+
+Identify users when they log in:
+
+```tsx
+"use client";
+
+export default function LoginButton() {
+  const handleLogin = async () => {
+    // Your login logic here
+    const user = await login();
+
+    if (typeof window !== "undefined" && window.seeMoreThanMMR) {
+      window.seeMoreThanMMR("identify", {
+        userId: user.id,
+        email: user.email,
+        name: user.name,
+      });
+    }
+  };
+
+  return <button onClick={handleLogin}>Login</button>;
+}
+```
+
+## TypeScript types
+
+Add TypeScript types for better type safety:
+
+```typescript
+// types/seeMoreThanMMR.d.ts
+declare global {
+  interface Window {
+    seeMoreThanMMR: (
+      method: "track" | "identify",
+      type: "pageview" | "goal",
+      data?: {
+        event?: string;
+        value?: number;
+        userId?: string;
+        email?: string;
+        name?: string;
+      }
+    ) => void;
+  }
+}
+
+export {};
+```
+
+## Server-side tracking
+
+For server-side tracking, use the API directly:
+
+```tsx
+// app/api/track-goal/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
+export async function POST(request: NextRequest) {
+  const { event, value, visitorId, sessionId } = await request.json();
+
+  const response = await fetch("https://your-domain.com/api/v1/goal", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.SEEMORETHANMMR_API_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      event,
+      value,
+      visitorId,
+      sessionId,
+    }),
+  });
+
+  return NextResponse.json(await response.json());
+}
+```
+
+## Next steps
+
+<Card title="Track custom goals" icon="target" href="/get-started/track-goals">
+  Learn how to track custom user actions
+</Card>

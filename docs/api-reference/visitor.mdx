@@ -1,0 +1,141 @@
+---
+title: "GET Visitor"
+description: "Get visitor data using API key authentication"
+---
+
+Get detailed visitor data including sessions, page views, and behavior.
+
+## Endpoint
+
+```
+GET /api/v1/visitor
+```
+
+## Authentication
+
+Requires API key authentication.
+
+## Parameters
+
+| Parameter   | Type   | Required | Description                         |
+| ----------- | ------ | -------- | ----------------------------------- |
+| `visitorId` | string | Yes      | The visitor ID to retrieve data for |
+
+## Request example
+
+```bash
+curl -X GET "https://your-domain.com/api/v1/visitor?visitorId=visitor_123" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Response
+
+### Success response (200)
+
+```json
+{
+  "status": "success",
+  "data": {
+    "visitorId": "visitor_123",
+    "sessionCount": 5,
+    "pageViewCount": 42,
+    "firstVisit": "2024-01-15T10:30:00Z",
+    "lastVisit": "2024-01-20T14:22:00Z",
+    "sessions": [
+      {
+        "sessionId": "session_456",
+        "firstVisitAt": "2024-01-15T10:30:00Z",
+        "lastSeenAt": "2024-01-15T10:45:00Z",
+        "pageViews": 8,
+        "duration": 900,
+        "device": "desktop",
+        "browser": "chrome",
+        "os": "windows",
+        "country": "US"
+      }
+    ],
+    "pageViews": [
+      {
+        "path": "/",
+        "title": "Homepage",
+        "timestamp": "2024-01-15T10:30:00Z",
+        "referrer": "https://google.com"
+      }
+    ]
+  }
+}
+```
+
+### Error responses
+
+#### Missing visitorId (400)
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 400,
+    "message": "visitorId parameter is required"
+  }
+}
+```
+
+#### Unauthorized (401)
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 401,
+    "message": "Unauthorized. Invalid or missing API key."
+  }
+}
+```
+
+## Response fields
+
+| Field           | Type   | Description                       |
+| --------------- | ------ | --------------------------------- |
+| `visitorId`     | string | The visitor ID                    |
+| `sessionCount`  | number | Total number of sessions          |
+| `pageViewCount` | number | Total number of page views        |
+| `firstVisit`    | string | ISO 8601 timestamp of first visit |
+| `lastVisit`     | string | ISO 8601 timestamp of last visit  |
+| `sessions`      | array  | Array of session objects          |
+| `pageViews`     | array  | Array of page view objects        |
+
+## Session object
+
+| Field          | Type   | Description                           |
+| -------------- | ------ | ------------------------------------- |
+| `sessionId`    | string | The session ID                        |
+| `firstVisitAt` | string | ISO 8601 timestamp                    |
+| `lastSeenAt`   | string | ISO 8601 timestamp                    |
+| `pageViews`    | number | Number of page views in session       |
+| `duration`     | number | Session duration in seconds           |
+| `device`       | string | Device type (desktop, mobile, tablet) |
+| `browser`      | string | Browser name                          |
+| `os`           | string | Operating system                      |
+| `country`      | string | Country code                          |
+
+## Page view object
+
+| Field       | Type   | Description        |
+| ----------- | ------ | ------------------ |
+| `path`      | string | Page path          |
+| `title`     | string | Page title         |
+| `timestamp` | string | ISO 8601 timestamp |
+| `referrer`  | string | Referrer URL       |
+
+## Use cases
+
+- **User journey analysis** - See complete visitor journey
+- **Support tickets** - Get visitor context for support
+- **Personalization** - Use visitor data for personalization
+- **Debugging** - Debug tracking issues
+
+## Next steps
+
+<Card title="POST Goal" icon="target" href="/api-reference/goal">
+  Learn how to track goal events via API
+</Card>

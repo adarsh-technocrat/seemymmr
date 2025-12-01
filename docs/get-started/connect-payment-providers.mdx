@@ -1,0 +1,108 @@
+---
+title: "Connect payment providers"
+description: "Connect your payment provider to link revenue to your marketing campaigns"
+---
+
+Connect your payment provider to see which marketing channels drive revenue, not just traffic.
+
+## Supported providers
+
+seeMoreThanMMR supports the following payment providers:
+
+- **Stripe** - Checkout API, PaymentIntent API, Payment Links
+- **LemonSqueezy** - Checkout API, Payment Links
+- **Custom API** - Record payments via our API
+
+## How it works
+
+When a payment is completed, seeMoreThanMMR links it to the visitor who made the purchase. This allows you to:
+
+- See which marketing channels drive revenue
+- Calculate ROI for your campaigns
+- Track conversion rates by source
+- Identify your most valuable traffic sources
+
+## Setup methods
+
+### Method 1: Webhooks (Recommended)
+
+Webhooks automatically send payment data to seeMoreThanMMR when a payment is completed.
+
+<CardGroup cols={2}>
+  <Card
+    title="Stripe webhooks"
+    icon="stripe"
+    href="/revenue-attribution/stripe"
+  >
+    Set up Stripe webhooks
+  </Card>
+  <Card
+    title="LemonSqueezy webhooks"
+    icon="lemon"
+    href="/revenue-attribution/lemonsqueezy"
+  >
+    Set up LemonSqueezy webhooks
+  </Card>
+</CardGroup>
+
+### Method 2: API
+
+Record payments manually using our API:
+
+```bash
+curl -X POST https://your-domain.com/api/v1/payment \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "stripe",
+    "providerPaymentId": "pi_1234567890",
+    "amount": 99.99,
+    "currency": "USD",
+    "visitorId": "visitor_123",
+    "sessionId": "session_456",
+    "customerEmail": "customer@example.com"
+  }'
+```
+
+See our [Payment API documentation](/api-reference/payment) for more details.
+
+## Linking payments to visitors
+
+seeMoreThanMMR uses three methods to link payments to visitors, in order of preference:
+
+1. **Metadata method** (most reliable) - Include `visitorId` or `sessionId` in your payment metadata
+2. **Email matching** - Match customer email to identified users
+3. **Timestamp correlation** - Link payments to recent sessions (fallback)
+
+<Note>
+  For best results, use the metadata method by including visitor/session IDs in
+  your payment metadata.
+</Note>
+
+## View revenue data
+
+Once payments are linked, you can view revenue data in your dashboard:
+
+- Revenue over time
+- Revenue by source/channel
+- Conversion rates
+- Average order value by source
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Stripe integration"
+    icon="stripe"
+    href="/revenue-attribution/stripe"
+  >
+    Detailed Stripe setup guide
+  </Card>
+  <Card
+    title="LemonSqueezy integration"
+    icon="lemon"
+    href="/revenue-attribution/lemonsqueezy"
+  >
+    Detailed LemonSqueezy setup guide
+  </Card>
+</CardGroup>

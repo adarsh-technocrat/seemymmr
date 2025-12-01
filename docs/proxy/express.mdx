@@ -1,0 +1,66 @@
+---
+title: "Express.js"
+description: "Proxy seeMoreThanMMR with Express.js"
+---
+
+Proxy seeMoreThanMMR through your Express.js application.
+
+## Setup
+
+### Step 1: Install dependencies
+
+```bash
+npm install express http-proxy-middleware
+```
+
+### Step 2: Create proxy middleware
+
+```javascript
+const express = require("express");
+const { createProxyMiddleware } = require("http-proxy-middleware");
+
+const app = express();
+
+// Proxy tracking script
+app.get(
+  "/api/track.js",
+  createProxyMiddleware({
+    target: "https://your-seemorethanmmr-domain.com",
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/track.js": "/api/track.js",
+    },
+    onProxyRes: function (proxyRes, req, res) {
+      proxyRes.headers["content-type"] = "application/javascript";
+    },
+  })
+);
+
+// Proxy tracking endpoint
+app.all(
+  "/api/track",
+  createProxyMiddleware({
+    target: "https://your-seemorethanmmr-domain.com",
+    changeOrigin: true,
+    pathRewrite: {
+      "^/api/track": "/api/track",
+    },
+  })
+);
+
+app.listen(3000);
+```
+
+### Step 3: Update tracking script URL
+
+Update your tracking script to use your domain:
+
+```html
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+## Next steps
+
+<Card title="Proxy setup guide" icon="shield" href="/proxy/get-started">
+  Learn more about proxying seeMoreThanMMR
+</Card>

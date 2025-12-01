@@ -1,0 +1,119 @@
+---
+title: "LemonSqueezy"
+description: "Connect LemonSqueezy Checkout and Payment Links"
+---
+
+Connect LemonSqueezy to automatically track revenue and link it to your marketing campaigns.
+
+## Supported LemonSqueezy methods
+
+- **LemonSqueezy Checkout** - Hosted checkout pages
+- **Payment Links** - Shareable payment links
+- **Other LemonSqueezy methods** - Any LemonSqueezy payment method
+
+## Setup
+
+### Step 1: Get your webhook URL
+
+Your webhook URL is:
+
+```
+https://your-domain.com/api/webhooks/lemonsqueezy
+```
+
+### Step 2: Configure LemonSqueezy webhook
+
+1. Go to your [LemonSqueezy Dashboard](https://app.lemonsqueezy.com/settings/webhooks)
+2. Click **"Create webhook"**
+3. Enter your webhook URL: `https://your-domain.com/api/webhooks/lemonsqueezy`
+4. Select events to listen for:
+   - `order_created`
+   - `order_updated`
+   - `subscription_created`
+   - `subscription_updated`
+5. Copy the **Signing secret** (you'll need this for verification)
+
+### Step 3: Add webhook secret to environment
+
+Add your LemonSqueezy webhook secret to your environment variables:
+
+```env
+LEMONSQUEEZY_WEBHOOK_SECRET=your-secret-key
+```
+
+## LemonSqueezy Checkout
+
+### Include website ID in product options
+
+When creating a checkout, include the website ID in product options:
+
+```javascript
+const checkout = await lemonSqueezy.checkouts.create({
+  store_id: "your-store-id",
+  variant_id: "your-variant-id",
+  product_options: {
+    websiteId: "your-website-id",
+    // You can also include visitor/session IDs if available
+    visitorId: visitorId,
+    sessionId: sessionId,
+  },
+});
+```
+
+### Redirect to checkout
+
+```javascript
+window.location.href = checkout.data.attributes.url;
+```
+
+## Payment Links
+
+For Payment Links, include the website ID in the product options when creating the link:
+
+1. Go to your LemonSqueezy Dashboard
+2. Create a Payment Link
+3. In the product options, add: `websiteId: 'your-website-id'`
+
+Or use customer email matching:
+
+1. Enable [user identification](/advanced/user-identification) in seeMoreThanMMR
+2. Identify users before they purchase
+3. Payments will be linked via email matching
+
+## View revenue data
+
+Once payments are linked, you can view:
+
+- Revenue by source/channel
+- Revenue by campaign
+- Conversion rates
+- Average order value
+
+## Subscriptions
+
+Subscription events are tracked separately. When a subscription is created or updated, it's recorded in seeMoreThanMMR. You can track recurring revenue separately from one-time payments.
+
+## Troubleshooting
+
+### Payments not appearing
+
+1. Check that the webhook is configured correctly
+2. Verify the `websiteId` is included in product options or metadata
+3. Check webhook logs in LemonSqueezy Dashboard
+4. Verify the webhook secret is set correctly
+
+### Payments not linked to visitors
+
+1. Ensure visitor/session IDs are included in product options
+2. Enable user identification for email matching fallback
+3. Check that the visitor was tracked before the payment
+
+## Next steps
+
+<Card
+  title="Revenue attribution guide"
+  icon="dollar-sign"
+  href="/revenue-attribution/get-started"
+>
+  Learn more about revenue attribution
+</Card>

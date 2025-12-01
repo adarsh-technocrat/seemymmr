@@ -1,0 +1,138 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "seeMoreThanMMR",
+  "colors": {
+    "primary": "#16A34A",
+    "light": "#07C983",
+    "dark": "#15803D"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Guides",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "get-started/4-steps",
+              "get-started/connect-payment-providers",
+              "get-started/tracking-parameters",
+              "get-started/filter-data",
+              "get-started/track-goals",
+              "get-started/track-funnels",
+              "get-started/search-console"
+            ]
+          },
+          {
+            "group": "Installation guides",
+            "pages": [
+              "installation/all",
+              "installation/nextjs",
+              "installation/react",
+              "installation/vue",
+              "installation/wordpress",
+              "installation/shopify"
+            ]
+          },
+          {
+            "group": "Revenue attribution",
+            "pages": [
+              "revenue-attribution/get-started",
+              "revenue-attribution/stripe",
+              "revenue-attribution/lemonsqueezy"
+            ]
+          },
+          {
+            "group": "Proxy guides",
+            "pages": [
+              "proxy/get-started",
+              "proxy/nextjs",
+              "proxy/express",
+              "proxy/nginx"
+            ]
+          },
+          {
+            "group": "Advanced features",
+            "pages": [
+              "advanced/exclude-visits",
+              "advanced/user-identification",
+              "advanced/scroll-events",
+              "advanced/x-mentions",
+              "advanced/github-integration"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "groups": [
+          {
+            "group": "Get started",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Endpoints",
+            "pages": [
+              "api-reference/visitor",
+              "api-reference/goal",
+              "api-reference/payment"
+            ]
+          }
+        ]
+      }
+    ],
+    "global": {
+      "anchors": [
+        {
+          "anchor": "Dashboard",
+          "href": "https://dashboard.seemorethanmmr.com",
+          "icon": "chart-line"
+        },
+        {
+          "anchor": "Support",
+          "href": "mailto:support@seemorethanmmr.com",
+          "icon": "envelope"
+        }
+      ]
+    }
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "links": [
+      {
+        "label": "Support",
+        "href": "mailto:support@seemorethanmmr.com"
+      }
+    ],
+    "primary": {
+      "type": "button",
+      "label": "Dashboard",
+      "href": "https://dashboard.seemorethanmmr.com"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "socials": {
+      "x": "https://x.com/seemorethanmmr",
+      "github": "https://github.com/seemorethanmmr"
+    }
+  }
+}

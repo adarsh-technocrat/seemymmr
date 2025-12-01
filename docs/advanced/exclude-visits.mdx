@@ -1,0 +1,72 @@
+---
+title: "Exclude visits"
+description: "Excluding your own visits, IPs, countries, hostnames, or paths"
+---
+
+Exclude specific visits from your analytics to get more accurate data.
+
+## Why exclude visits?
+
+- **Exclude your own visits** - Don't count your own testing and development
+- **Exclude internal traffic** - Don't count visits from your team
+- **Exclude test environments** - Exclude staging or development sites
+- **Exclude specific pages** - Exclude admin pages or internal tools
+
+## Exclude your IP
+
+1. Go to your website settings in the dashboard
+2. Click **"Settings"** → **"Exclusions"**
+3. Add your IP address to the **"Excluded IPs"** list
+4. Click **"Save"**
+
+Your visits from that IP will no longer be counted.
+
+## Exclude countries
+
+Exclude entire countries from your analytics:
+
+1. Go to **"Settings"** → **"Exclusions"**
+2. Add countries to the **"Excluded Countries"** list
+3. Click **"Save"**
+
+## Exclude hostnames
+
+Exclude specific hostnames (subdomains):
+
+1. Go to **"Settings"** → **"Exclusions"**
+2. Add hostnames to the **"Excluded Hostnames"** list
+   - Example: `admin.example.com`, `staging.example.com`
+3. Click **"Save"**
+
+## Exclude paths
+
+Exclude specific URL paths:
+
+1. Go to **"Settings"** → **"Exclusions"**
+2. Add paths to the **"Excluded Paths"** list
+   - Example: `/admin`, `/wp-admin`, `/api`
+3. Click **"Save"**
+
+## Multiple exclusions
+
+You can combine multiple exclusion rules:
+
+- Exclude IP `1.2.3.4` AND country `US` AND path `/admin`
+- All conditions must match for a visit to be excluded
+
+## View excluded visits
+
+Excluded visits are not stored in your database, so they won't appear in your analytics at all.
+
+## Best practices
+
+1. **Exclude your IP** - Always exclude your own IP address
+2. **Exclude test environments** - Exclude staging and development sites
+3. **Exclude admin pages** - Exclude internal admin interfaces
+4. **Review regularly** - Review your exclusion rules periodically
+
+## Next steps
+
+<Card title="Filter your data" icon="filter" href="/get-started/filter-data">
+  Learn how to filter your analytics data
+</Card>

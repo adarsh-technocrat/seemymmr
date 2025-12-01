@@ -1,0 +1,170 @@
+---
+title: "Track custom goals"
+description: "Track custom user actions (Goals)"
+---
+
+Track any user action as a conversion goal to measure what matters to your business.
+
+## What are goals?
+
+Goals are custom events that you want to track, such as:
+
+- Button clicks
+- Form submissions
+- Video plays
+- File downloads
+- Newsletter signups
+- Product purchases
+- Any custom user action
+
+## Create a goal
+
+1. Go to your website settings in the dashboard
+2. Click **"Goals"** in the sidebar
+3. Click **"Create Goal"**
+4. Enter:
+   - **Name** - A descriptive name (e.g., "Newsletter Signup")
+   - **Event** - The event identifier (e.g., "newsletter_signup")
+   - **Description** - Optional description
+
+## Track goals with JavaScript
+
+### Method 1: Using the tracking function
+
+```javascript
+seeMoreThanMMR("track", "goal", {
+  event: "newsletter_signup",
+  value: 0, // Optional: numeric value
+});
+```
+
+### Method 2: HTML onclick
+
+```html
+<button onclick="seeMoreThanMMR('track', 'goal', { event: 'button_click' })">
+  Click me
+</button>
+```
+
+### Method 3: React/Vue event handlers
+
+```tsx
+// React
+<button
+  onClick={() => {
+    window.seeMoreThanMMR("track", "goal", { event: "button_click" });
+  }}
+>
+  Click me
+</button>
+```
+
+```vue
+<!-- Vue -->
+<button @click="trackGoal">
+  Click me
+</button>
+
+<script>
+export default {
+  methods: {
+    trackGoal() {
+      window.seeMoreThanMMR("track", "goal", { event: "button_click" });
+    },
+  },
+};
+</script>
+```
+
+## Track goals with value
+
+Track goals with a numeric value (e.g., purchase amount):
+
+```javascript
+seeMoreThanMMR("track", "goal", {
+  event: "purchase",
+  value: 99.99,
+});
+```
+
+## Track goals via API
+
+You can also track goals server-side using our API:
+
+```bash
+curl -X POST https://your-domain.com/api/v1/goal \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "newsletter_signup",
+    "value": 0,
+    "visitorId": "visitor_123",
+    "sessionId": "session_456"
+  }'
+```
+
+See our [Goal API documentation](/api-reference/goal) for more details.
+
+## View goal data
+
+In your dashboard, you can view:
+
+- **Goal completions** - Number of times each goal was completed
+- **Conversion rate** - Percentage of visitors who completed the goal
+- **Goal value** - Total value of goal completions
+- **Goal by source** - Which traffic sources drive the most goal completions
+- **Goal over time** - Goal completions over time
+
+## Common goal examples
+
+### Form submission
+
+```javascript
+document.getElementById("contact-form").addEventListener("submit", function () {
+  seeMoreThanMMR("track", "goal", { event: "form_submit" });
+});
+```
+
+### Button click
+
+```javascript
+document.getElementById("cta-button").addEventListener("click", function () {
+  seeMoreThanMMR("track", "goal", { event: "cta_click" });
+});
+```
+
+### Video play
+
+```javascript
+document.getElementById("video").addEventListener("play", function () {
+  seeMoreThanMMR("track", "goal", { event: "video_play" });
+});
+```
+
+### File download
+
+```html
+<a
+  href="/download.pdf"
+  onclick="seeMoreThanMMR('track', 'goal', { event: 'pdf_download' })"
+>
+  Download PDF
+</a>
+```
+
+## Best practices
+
+1. **Use descriptive event names** - Use clear, consistent naming (e.g., `newsletter_signup`, not `ns`)
+2. **Track meaningful actions** - Focus on actions that matter to your business
+3. **Include values when relevant** - Add numeric values for revenue-related goals
+4. **Test your goals** - Verify goals are tracking correctly before relying on the data
+
+## Next steps
+
+<Card
+  title="Track conversion funnels"
+  icon="chart-line"
+  href="/get-started/track-funnels"
+>
+  Learn how to track multi-step conversion funnels
+</Card>

@@ -1,0 +1,151 @@
+---
+title: "POST Payment"
+description: "Record a payment using API key authentication"
+---
+
+Record payments and link them to visitors for revenue attribution.
+
+## Endpoint
+
+```
+POST /api/v1/payment
+```
+
+## Authentication
+
+Requires API key authentication.
+
+## Request body
+
+| Field               | Type   | Required | Description                                                 |
+| ------------------- | ------ | -------- | ----------------------------------------------------------- |
+| `provider`          | string | Yes      | Payment provider (e.g., "stripe", "lemonsqueezy", "custom") |
+| `providerPaymentId` | string | Yes      | Payment ID from the provider                                |
+| `amount`            | number | Yes      | Payment amount (in dollars, e.g., 99.99)                    |
+| `currency`          | string | No       | Currency code (defaults to "USD")                           |
+| `customerEmail`     | string | No       | Customer email address                                      |
+| `customerId`        | string | No       | Customer ID from provider                                   |
+| `visitorId`         | string | No       | Visitor ID (for linking)                                    |
+| `sessionId`         | string | No       | Session ID (for linking)                                    |
+| `metadata`          | object | No       | Additional metadata                                         |
+
+## Request example
+
+```bash
+curl -X POST "https://your-domain.com/api/v1/payment" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "stripe",
+    "providerPaymentId": "pi_1234567890",
+    "amount": 99.99,
+    "currency": "USD",
+    "customerEmail": "customer@example.com",
+    "visitorId": "visitor_123",
+    "sessionId": "session_456",
+    "metadata": {
+      "orderId": "order_789"
+    }
+  }'
+```
+
+## Response
+
+### Success response (200)
+
+```json
+{
+  "status": "success",
+  "data": {
+    "paymentId": "payment_abc123",
+    "message": "Payment recorded successfully"
+  }
+}
+```
+
+### Error responses
+
+#### Missing required fields (400)
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 400,
+    "message": "provider, providerPaymentId, and amount are required"
+  }
+}
+```
+
+#### Unauthorized (401)
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 401,
+    "message": "Unauthorized. Invalid or missing API key."
+  }
+}
+```
+
+## Linking payments to visitors
+
+Payments are automatically linked to visitors using:
+
+1. **Visitor/Session IDs** (most reliable) - Include `visitorId` and `sessionId` in the request
+2. **Email matching** - If user identification is enabled, payments are linked via `customerEmail`
+3. **Timestamp correlation** - Fallback method using payment timestamp
+
+## Use cases
+
+- **Custom payment providers** - Record payments from providers not supported by webhooks
+- **Manual payment entry** - Record payments manually
+- **Payment reconciliation** - Sync payments from external systems
+- **Testing** - Test revenue attribution
+
+## Examples
+
+### Stripe payment
+
+```bash
+curl -X POST "https://your-domain.com/api/v1/payment" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "stripe",
+    "providerPaymentId": "pi_1234567890",
+    "amount": 99.99,
+    "currency": "USD",
+    "customerEmail": "customer@example.com",
+    "visitorId": "visitor_123"
+  }'
+```
+
+### Custom provider
+
+```bash
+curl -X POST "https://your-domain.com/api/v1/payment" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "provider": "custom",
+    "providerPaymentId": "payment_789",
+    "amount": 49.99,
+    "currency": "EUR",
+    "customerEmail": "customer@example.com",
+    "metadata": {
+      "orderNumber": "ORD-12345"
+    }
+  }'
+```
+
+## Next steps
+
+<Card
+  title="Revenue attribution guide"
+  icon="dollar-sign"
+  href="/revenue-attribution/get-started"
+>
+  Learn more about revenue attribution
+</Card>

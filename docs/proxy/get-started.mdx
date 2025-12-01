@@ -1,0 +1,78 @@
+---
+title: "Proxy setup guide"
+description: "Proxy seeMoreThanMMR through your domain for privacy"
+---
+
+Proxy seeMoreThanMMR through your own domain to improve privacy, avoid ad blockers, and maintain control over your analytics.
+
+## Why use a proxy?
+
+- **Privacy** - All requests go through your domain
+- **Ad blocker resistance** - Requests appear to come from your domain
+- **Control** - Full control over request routing
+- **Performance** - Can cache requests if needed
+
+## How it works
+
+Instead of loading the tracking script from seeMoreThanMMR's domain:
+
+```html
+<!-- Direct (not proxied) -->
+<script src="https://analytics.example.com/api/track.js?site=CODE"></script>
+```
+
+You proxy it through your domain:
+
+```html
+<!-- Proxied -->
+<script src="https://your-domain.com/api/track.js?site=CODE"></script>
+```
+
+Your server forwards the request to seeMoreThanMMR and returns the response.
+
+## Setup methods
+
+<CardGroup cols={2}>
+  <Card title="Next.js" icon="nextjs" href="/proxy/nextjs">
+    Proxy with Next.js
+  </Card>
+  <Card title="Express.js" icon="node" href="/proxy/express">
+    Proxy with Express.js
+  </Card>
+  <Card title="Nginx" icon="server" href="/proxy/nginx">
+    Proxy with Nginx
+  </Card>
+  <Card title="Vercel" icon="vercel" href="/proxy/vercel">
+    Proxy with Vercel
+  </Card>
+</CardGroup>
+
+## Basic proxy example
+
+Here's a simple proxy implementation:
+
+```javascript
+// Proxy /api/track.js to seeMoreThanMMR
+app.get("/api/track.js", async (req, res) => {
+  const response = await fetch(
+    `https://your-seemorethanmmr-domain.com/api/track.js?${
+      req.url.split("?")[1]
+    }`
+  );
+  const script = await response.text();
+  res.setHeader("Content-Type", "application/javascript");
+  res.send(script);
+});
+```
+
+## Update tracking script URL
+
+After setting up the proxy, update your tracking script URL to use your domain:
+
+```html
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+## Next steps
+
+Choose your platform to see detailed setup instructions.

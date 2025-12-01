@@ -1,0 +1,96 @@
+---
+title: "Next.js"
+description: "Proxy seeMoreThanMMR with Next.js"
+---
+
+Proxy seeMoreThanMMR through your Next.js application.
+
+## Setup
+
+### Step 1: Create proxy route
+
+Create a file at `app/api/track.js/route.ts`:
+
+```typescript
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const trackingCode = searchParams.get("site");
+
+  if (!trackingCode) {
+    return new NextResponse("// Tracking code required", { status: 400 });
+  }
+
+  // Forward to seeMoreThanMMR
+  const seemorethanmmrUrl = `https://your-seemorethanmmr-domain.com/api/track.js?site=${trackingCode}`;
+
+  try {
+    const response = await fetch(seemorethanmmrUrl);
+    const script = await response.text();
+
+    return new NextResponse(script, {
+      headers: {
+        "Content-Type": "application/javascript",
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  } catch (error) {
+    return new NextResponse("// Error loading script", { status: 500 });
+  }
+}
+```
+
+### Step 2: Update tracking script URL
+
+Update your tracking script to use your domain:
+
+```tsx
+<Script
+  src={`https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE`}
+  strategy="afterInteractive"
+/>
+```
+
+## Proxy tracking endpoint
+
+You can also proxy the tracking endpoint itself:
+
+```typescript
+// app/api/track/route.ts
+import { NextRequest, NextResponse } from "next/server";
+
+export async function GET(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const seemorethanmmrUrl = `https://your-seemorethanmmr-domain.com/api/track?${searchParams.toString()}`;
+
+  try {
+    const response = await fetch(seemorethanmmrUrl);
+    const pixel = await response.arrayBuffer();
+
+    return new NextResponse(pixel, {
+      headers: {
+        "Content-Type": "image/gif",
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+      },
+    });
+  } catch (error) {
+    // Return 1x1 transparent pixel on error
+    const pixel = Buffer.from(
+      "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+      "base64"
+    );
+    return new NextResponse(pixel, {
+      headers: {
+        "Content-Type": "image/gif",
+      },
+    });
+  }
+}
+```
+
+## Next steps
+
+<Card title="Proxy setup guide" icon="shield" href="/proxy/get-started">
+  Learn more about proxying seeMoreThanMMR
+</Card>

@@ -1,0 +1,122 @@
+---
+title: "POST Goal"
+description: "Create a custom goal event using API key authentication"
+---
+
+Track custom goal events server-side using the API.
+
+## Endpoint
+
+```
+POST /api/v1/goal
+```
+
+## Authentication
+
+Requires API key authentication.
+
+## Request body
+
+| Field       | Type   | Required | Description                 |
+| ----------- | ------ | -------- | --------------------------- |
+| `event`     | string | Yes      | The goal event name         |
+| `value`     | number | No       | Optional numeric value      |
+| `visitorId` | string | No       | Visitor ID (if available)   |
+| `sessionId` | string | No       | Session ID (if available)   |
+| `path`      | string | No       | Page path (defaults to "/") |
+
+## Request example
+
+```bash
+curl -X POST "https://your-domain.com/api/v1/goal" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "newsletter_signup",
+    "value": 0,
+    "visitorId": "visitor_123",
+    "sessionId": "session_456",
+    "path": "/newsletter"
+  }'
+```
+
+## Response
+
+### Success response (200)
+
+```json
+{
+  "status": "success",
+  "data": {
+    "message": "Goal event tracked successfully"
+  }
+}
+```
+
+### Error responses
+
+#### Missing event (400)
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 400,
+    "message": "event parameter is required"
+  }
+}
+```
+
+#### Unauthorized (401)
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 401,
+    "message": "Unauthorized. Invalid or missing API key."
+  }
+}
+```
+
+## Use cases
+
+- **Server-side tracking** - Track events from your backend
+- **Webhook handlers** - Track goals from webhook events
+- **Background jobs** - Track goals from scheduled tasks
+- **API integrations** - Track goals from third-party APIs
+
+## Examples
+
+### Track purchase
+
+```bash
+curl -X POST "https://your-domain.com/api/v1/goal" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "purchase",
+    "value": 99.99,
+    "visitorId": "visitor_123",
+    "path": "/checkout/success"
+  }'
+```
+
+### Track form submission
+
+```bash
+curl -X POST "https://your-domain.com/api/v1/goal" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "form_submit",
+    "visitorId": "visitor_123",
+    "path": "/contact"
+  }'
+```
+
+## Next steps
+
+<Card title="POST Payment" icon="dollar-sign" href="/api-reference/payment">
+  Learn how to record payments via API
+</Card>

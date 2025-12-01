@@ -1,0 +1,135 @@
+---
+title: "Vue.js"
+description: "Add seeMoreThanMMR to your Vue.js project"
+---
+
+Add seeMoreThanMMR to your Vue.js project in minutes.
+
+## Installation
+
+### Step 1: Add the tracking script
+
+Add the tracking script to your `index.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
+```
+
+Or add it in your Vue app:
+
+```vue
+<script>
+export default {
+  mounted() {
+    const script = document.createElement("script");
+    script.src = "https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE";
+    script.async = true;
+    document.head.appendChild(script);
+  },
+};
+</script>
+```
+
+Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
+
+### Step 2: Verify installation
+
+1. Start your development server
+2. Visit your website
+3. Check your seeMoreThanMMR dashboard - you should see your visit
+
+## Track custom goals
+
+Track custom goals in your Vue components:
+
+```vue
+<template>
+  <button @click="handleClick">Click me</button>
+</template>
+
+<script>
+export default {
+  methods: {
+    handleClick() {
+      if (window.seeMoreThanMMR) {
+        window.seeMoreThanMMR("track", "goal", {
+          event: "button_click",
+          value: 0,
+        });
+      }
+    },
+  },
+};
+</script>
+```
+
+## User identification
+
+Identify users when they log in:
+
+```vue
+<template>
+  <button @click="handleLogin">Login</button>
+</template>
+
+<script>
+export default {
+  methods: {
+    async handleLogin() {
+      const user = await this.login();
+
+      if (window.seeMoreThanMMR) {
+        window.seeMoreThanMMR("identify", {
+          userId: user.id,
+          email: user.email,
+          name: user.name,
+        });
+      }
+    },
+  },
+};
+</script>
+```
+
+## Vue Router integration
+
+The tracking script automatically tracks Vue Router navigation. No additional setup needed!
+
+## TypeScript types
+
+Add TypeScript types for better type safety:
+
+```typescript
+// types/seeMoreThanMMR.d.ts
+declare global {
+  interface Window {
+    seeMoreThanMMR: (
+      method: "track" | "identify",
+      type: "pageview" | "goal",
+      data?: {
+        event?: string;
+        value?: number;
+        userId?: string;
+        email?: string;
+        name?: string;
+      }
+    ) => void;
+  }
+}
+
+export {};
+```
+
+## Next steps
+
+<Card title="Track custom goals" icon="target" href="/get-started/track-goals">
+  Learn how to track custom user actions
+</Card>

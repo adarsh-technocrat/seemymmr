@@ -1,0 +1,94 @@
+---
+title: "Revenue attribution guide"
+description: "Learn how to connect revenue to your analytics"
+---
+
+Connect your payment provider to see which marketing channels drive revenue, not just traffic.
+
+## Why revenue attribution?
+
+Revenue attribution helps you:
+
+- **See ROI** - Understand which campaigns drive revenue, not just traffic
+- **Optimize spend** - Focus your marketing budget on channels that convert
+- **Measure success** - Track revenue by source, campaign, and keyword
+- **Make data-driven decisions** - Use revenue data to guide your marketing strategy
+
+## How it works
+
+1. **Track visitors** - seeMoreThanMMR tracks all visitors to your site
+2. **Record payments** - When a payment is completed, it's recorded in seeMoreThanMMR
+3. **Link payments to visitors** - Payments are linked to visitors using:
+   - Visitor/session IDs (most reliable)
+   - Email matching (if user identification is enabled)
+   - Timestamp correlation (fallback)
+4. **View revenue data** - See revenue by source, campaign, and more in your dashboard
+
+## Setup methods
+
+### Method 1: Webhooks (Recommended)
+
+Webhooks automatically send payment data to seeMoreThanMMR when a payment is completed. This is the most reliable method.
+
+<CardGroup cols={2}>
+  <Card title="Stripe" icon="stripe" href="/revenue-attribution/stripe">
+    Set up Stripe webhooks
+  </Card>
+  <Card
+    title="LemonSqueezy"
+    icon="lemon"
+    href="/revenue-attribution/lemonsqueezy"
+  >
+    Set up LemonSqueezy webhooks
+  </Card>
+</CardGroup>
+
+### Method 2: API
+
+Record payments manually using our API. This is useful for custom payment providers or server-side implementations.
+
+See our [Payment API documentation](/api-reference/payment) for details.
+
+## Linking payments to visitors
+
+For best results, include visitor/session IDs in your payment metadata:
+
+```javascript
+// When creating a payment
+const payment = await stripe.checkout.sessions.create({
+  // ... payment config
+  metadata: {
+    visitorId: window.seeMoreThanMMR?.getVisitorId(),
+    sessionId: window.seeMoreThanMMR?.getSessionId(),
+  },
+});
+```
+
+## View revenue data
+
+Once payments are linked, you can view:
+
+- **Revenue over time** - See revenue trends
+- **Revenue by source** - Which channels drive the most revenue
+- **Revenue by campaign** - Campaign performance
+- **Conversion rates** - Revenue per visitor by source
+- **Average order value** - AOV by source
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Stripe integration"
+    icon="stripe"
+    href="/revenue-attribution/stripe"
+  >
+    Detailed Stripe setup guide
+  </Card>
+  <Card
+    title="LemonSqueezy integration"
+    icon="lemon"
+    href="/revenue-attribution/lemonsqueezy"
+  >
+    Detailed LemonSqueezy setup guide
+  </Card>
+</CardGroup>

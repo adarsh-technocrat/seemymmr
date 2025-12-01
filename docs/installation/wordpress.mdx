@@ -1,0 +1,78 @@
+---
+title: "WordPress"
+description: "Add seeMoreThanMMR to your WordPress site"
+---
+
+Add seeMoreThanMMR to your WordPress site in minutes.
+
+## Installation
+
+### Method 1: Using a plugin (Recommended)
+
+1. Install a "Insert Headers and Footers" plugin
+2. Go to **Settings** → **Insert Headers and Footers**
+3. Add the tracking script to the **Header** section:
+
+```html
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
+
+### Method 2: Edit theme files
+
+1. Go to **Appearance** → **Theme Editor**
+2. Select `header.php`
+3. Add the tracking script before the closing `</head>` tag:
+
+```html
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+<Warning>
+  Editing theme files directly will lose changes when the theme updates. Use a
+  child theme or plugin method instead.
+</Warning>
+
+## Track custom goals
+
+Track custom goals in your WordPress posts/pages:
+
+```html
+<button onclick="seeMoreThanMMR('track', 'goal', { event: 'button_click' })">
+  Click me
+</button>
+```
+
+Or in your theme's JavaScript:
+
+```javascript
+document.getElementById("my-button").addEventListener("click", function () {
+  seeMoreThanMMR("track", "goal", { event: "button_click" });
+});
+```
+
+## WooCommerce integration
+
+Track purchases in WooCommerce:
+
+```php
+add_action('woocommerce_thankyou', 'track_purchase');
+function track_purchase($order_id) {
+    $order = wc_get_order($order_id);
+    ?>
+    <script>
+    seeMoreThanMMR('track', 'goal', {
+        event: 'purchase',
+        value: <?php echo $order->get_total(); ?>
+    });
+    </script>
+    <?php
+}
+```
+
+## Next steps
+
+<Card title="Track custom goals" icon="target" href="/get-started/track-goals">
+  Learn how to track custom user actions
+</Card>

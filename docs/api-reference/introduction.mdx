@@ -1,0 +1,93 @@
+---
+title: "Get started"
+description: "Get started with the seeMoreThanMMR API"
+---
+
+Build custom integrations with the seeMoreThanMMR REST API.
+
+## Authentication
+
+All API requests require authentication using an API key. Get your API key from your dashboard:
+
+1. Go to your website settings
+2. Click **"API Keys"**
+3. Create a new API key
+4. Copy the key (you won't be able to see it again)
+
+## Base URL
+
+```
+https://your-domain.com/api/v1
+```
+
+## Authentication header
+
+Include your API key in the `Authorization` header:
+
+```bash
+Authorization: Bearer YOUR_API_KEY
+```
+
+## Rate limits
+
+API requests are rate-limited to prevent abuse:
+
+- **100 requests per minute** per API key
+- Rate limit headers are included in responses:
+  - `X-RateLimit-Limit` - Request limit
+  - `X-RateLimit-Remaining` - Remaining requests
+  - `X-RateLimit-Reset` - When the limit resets
+
+## Response format
+
+All API responses follow this format:
+
+### Success response
+
+```json
+{
+  "status": "success",
+  "data": {
+    // Response data
+  }
+}
+```
+
+### Error response
+
+```json
+{
+  "status": "error",
+  "error": {
+    "code": 400,
+    "message": "Error message"
+  }
+}
+```
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="GET Visitor" icon="users" href="/api-reference/visitor">
+    Get visitor data
+  </Card>
+  <Card title="POST Goal" icon="target" href="/api-reference/goal">
+    Track custom goal events
+  </Card>
+  <Card title="POST Payment" icon="dollar-sign" href="/api-reference/payment">
+    Record payments
+  </Card>
+</CardGroup>
+
+## Example request
+
+```bash
+curl -X GET "https://your-domain.com/api/v1/visitor?visitorId=visitor_123" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+## Next steps
+
+<Card title="GET Visitor" icon="users" href="/api-reference/visitor">
+  Learn how to get visitor data
+</Card>

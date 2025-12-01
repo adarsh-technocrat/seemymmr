@@ -1,0 +1,68 @@
+---
+title: "Shopify"
+description: "Add seeMoreThanMMR to your Shopify store"
+---
+
+Add seeMoreThanMMR to your Shopify store in minutes.
+
+## Installation
+
+### Step 1: Add the tracking script
+
+1. Go to your Shopify admin
+2. Navigate to **Online Store** → **Themes**
+3. Click **Actions** → **Edit code**
+4. Open `theme.liquid` in the Layout folder
+5. Add the tracking script before the closing `</head>` tag:
+
+```liquid
+<script src="https://your-domain.com/api/track.js?site=YOUR_TRACKING_CODE"></script>
+```
+
+Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
+
+### Step 2: Verify installation
+
+1. Visit your Shopify store
+2. Check your seeMoreThanMMR dashboard - you should see your visit
+
+## Track purchases
+
+Track purchases on the thank you page. Add this to `checkout.liquid` or use the Order Status page:
+
+```liquid
+{% if first_time_accessed %}
+<script>
+seeMoreThanMMR('track', 'goal', {
+  event: 'purchase',
+  value: {{ checkout.total_price | divided_by: 100.0 }}
+});
+</script>
+{% endif %}
+```
+
+## Track add to cart
+
+Track when items are added to cart. Add this to your cart template:
+
+```javascript
+document.addEventListener("DOMContentLoaded", function () {
+  document
+    .querySelector('form[action="/cart/add"]')
+    .addEventListener("submit", function () {
+      seeMoreThanMMR("track", "goal", {
+        event: "add_to_cart",
+      });
+    });
+});
+```
+
+## Next steps
+
+<Card
+  title="Connect payment providers"
+  icon="credit-card"
+  href="/get-started/connect-payment-providers"
+>
+  Learn how to link revenue to your analytics
+</Card>

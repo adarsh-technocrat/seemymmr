@@ -1,0 +1,91 @@
+---
+title: "Track scroll events"
+description: "Track scroll events to measure engagement"
+---
+
+Track scroll events to measure how engaged your visitors are with your content.
+
+## How it works
+
+The seeMoreThanMMR tracking script automatically tracks scroll events. When a user scrolls on your page, it's tracked as a goal event.
+
+## Automatic tracking
+
+Scroll tracking is enabled by default. No configuration needed!
+
+The tracking script automatically fires a `scroll` goal event when a user first scrolls on a page.
+
+## View scroll data
+
+In your dashboard, you can view:
+
+- **Scroll events** - Number of scroll events
+- **Scroll rate** - Percentage of visitors who scroll
+- **Scroll by page** - Which pages have the highest scroll rates
+
+## Custom scroll tracking
+
+You can also track custom scroll milestones:
+
+```javascript
+let scrollTracked = {
+  25: false,
+  50: false,
+  75: false,
+  100: false,
+};
+
+window.addEventListener("scroll", function () {
+  const scrollPercent =
+    (window.scrollY /
+      (document.documentElement.scrollHeight - window.innerHeight)) *
+    100;
+
+  if (scrollPercent >= 25 && !scrollTracked[25]) {
+    scrollTracked[25] = true;
+    seeMoreThanMMR("track", "goal", { event: "scroll_25" });
+  }
+
+  if (scrollPercent >= 50 && !scrollTracked[50]) {
+    scrollTracked[50] = true;
+    seeMoreThanMMR("track", "goal", { event: "scroll_50" });
+  }
+
+  if (scrollPercent >= 75 && !scrollTracked[75]) {
+    scrollTracked[75] = true;
+    seeMoreThanMMR("track", "goal", { event: "scroll_75" });
+  }
+
+  if (scrollPercent >= 100 && !scrollTracked[100]) {
+    scrollTracked[100] = true;
+    seeMoreThanMMR("track", "goal", { event: "scroll_100" });
+  }
+});
+```
+
+## Create scroll goals
+
+Create goals in your dashboard for scroll milestones:
+
+1. Go to **"Goals"** in your dashboard
+2. Click **"Create Goal"**
+3. Create goals for:
+   - `scroll_25` - 25% scroll depth
+   - `scroll_50` - 50% scroll depth
+   - `scroll_75` - 75% scroll depth
+   - `scroll_100` - 100% scroll depth
+
+## Analyze scroll data
+
+Use scroll data to:
+
+- **Measure engagement** - See which pages keep users engaged
+- **Optimize content** - Identify pages with low scroll rates
+- **A/B test** - Test different content layouts
+- **Improve UX** - Understand user reading patterns
+
+## Next steps
+
+<Card title="Track custom goals" icon="target" href="/get-started/track-goals">
+  Learn how to track other custom events
+</Card>

@@ -1,0 +1,113 @@
+---
+title: "Use tracking parameters"
+description: "Get better analytics with URL tracking parameters"
+---
+
+Use URL tracking parameters to understand where your traffic comes from and which campaigns drive the most value.
+
+## UTM parameters
+
+UTM parameters are automatically captured by seeMoreThanMMR. Add them to your URLs:
+
+```
+https://example.com?utm_source=google&utm_medium=cpc&utm_campaign=summer_sale
+```
+
+### Supported UTM parameters
+
+- `utm_source` - The source of traffic (e.g., google, facebook, newsletter)
+- `utm_medium` - The medium (e.g., cpc, email, social)
+- `utm_campaign` - The campaign name (e.g., summer_sale, product_launch)
+- `utm_term` - The keyword (mainly for paid search)
+- `utm_content` - Additional content identifier (e.g., ad_variant_a)
+
+## Referrer tracking
+
+seeMoreThanMMR automatically tracks referrers. When a user clicks a link to your site, the referrer is captured.
+
+## View tracking data
+
+In your dashboard, you can view:
+
+- **Source breakdown** - See traffic by source (Google, Facebook, Direct, etc.)
+- **Campaign performance** - Compare campaign performance
+- **Medium analysis** - See which mediums drive the most traffic
+- **Keyword tracking** - View which keywords drive traffic (for paid search)
+
+## Best practices
+
+### 1. Use consistent naming
+
+Use consistent naming conventions for your UTM parameters:
+
+```
+utm_source=google
+utm_medium=cpc
+utm_campaign=summer_sale_2024
+```
+
+### 2. Track all campaigns
+
+Add UTM parameters to all your marketing links:
+
+- Email campaigns
+- Social media posts
+- Paid ads
+- Affiliate links
+- Blog posts
+
+### 3. Use lowercase
+
+Use lowercase for UTM values to avoid duplicates:
+
+```
+❌ utm_source=Google
+✅ utm_source=google
+```
+
+### 4. Track internal links
+
+You can also track internal links by adding UTM parameters:
+
+```html
+<a href="/pricing?utm_source=homepage&utm_medium=internal&utm_campaign=cta">
+  View Pricing
+</a>
+```
+
+## Example URLs
+
+### Email campaign
+
+```
+https://example.com/pricing?utm_source=newsletter&utm_medium=email&utm_campaign=monthly_update
+```
+
+### Social media post
+
+```
+https://example.com/blog/post?utm_source=twitter&utm_medium=social&utm_campaign=blog_promotion
+```
+
+### Paid ad
+
+```
+https://example.com?utm_source=google&utm_medium=cpc&utm_campaign=summer_sale&utm_term=analytics
+```
+
+## Filter by tracking parameters
+
+In your dashboard, you can filter analytics by:
+
+- Source
+- Medium
+- Campaign
+- Keyword
+
+This helps you understand which campaigns drive the most traffic and revenue.
+
+## Next steps
+
+<Card title="Filter your data" icon="filter" href="/get-started/filter-data">
+  Learn how to filter and analyze your data
+</Card>
