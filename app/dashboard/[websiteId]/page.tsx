@@ -37,6 +37,13 @@ import {
   Cell,
 } from "recharts";
 import { Chart } from "@/components/chart";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty";
 
 export default function WebsiteAnalyticsPage({
   params,
@@ -80,357 +87,8 @@ export default function WebsiteAnalyticsPage({
     }
   }, [websiteId, dispatch]);
 
-  // Get chart data from Redux or use empty array
-  const chartData =
-    analytics.chartData.length > 0
-      ? analytics.chartData
-      : [
-          {
-            date: "01 Nov",
-            fullDate: "Monday, 1 November",
-            visitors: 2800,
-            revenue: 1200,
-            revenueNew: 1200,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.43,
-            conversionRate: 0.25,
-            hasMention: true,
-            mentions: [
-              {
-                text: "I heard X preloads websites. So you should use my links going forward",
-                url: "https://t.co/xH5p415Pdy",
-                type: "profile" as const,
-              },
-            ],
-          },
-          {
-            date: "02 Nov",
-            fullDate: "Tuesday, 2 November",
-            visitors: 1200,
-            revenue: 600,
-            revenueNew: 600,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.22,
-          },
-          {
-            date: "03 Nov",
-            fullDate: "Monday, 3 November",
-            visitors: 1183,
-            revenue: 1365,
-            revenueNew: 1365,
-            revenueRefund: 0,
-            revenuePerVisitor: 1.15,
-            conversionRate: 0.42,
-            hasMention: true,
-            mentions: [
-              {
-                text: 'CodeFast by @marc_louvion is the single best coding "course" i\'ve ever taken perhaps not for absolute beginne...',
-                type: "profile" as const,
-              },
-              {
-                text: "My product https://t.co/G9SDDImZUQ just crossed $1200 MRR. This is exactly about 0.5 hours since I started bu...",
-                url: "https://t.co/G9SDDImZUQ",
-                type: "profile" as const,
-              },
-            ],
-          },
-          {
-            date: "04 Nov",
-            fullDate: "Thursday, 4 November",
-            visitors: 600,
-            revenue: 300,
-            revenueNew: 300,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.18,
-          },
-          {
-            date: "05 Nov",
-            fullDate: "Wednesday, 5 November",
-            visitors: 850,
-            revenue: 338,
-            revenueNew: 338,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.4,
-            conversionRate: 0.24,
-            hasMention: true,
-            mentions: [
-              {
-                text: "I heard X preloads websites. So you should use my links going forward",
-                url: "https://t.co/xH5p415Pdy",
-                type: "profile" as const,
-              },
-              {
-                text: "Cut development time in half. Our advanced code generation and debugging features are built to integrate se...",
-                type: "gear" as const,
-              },
-            ],
-          },
-          {
-            date: "06 Nov",
-            fullDate: "Thursday, 6 November",
-            visitors: 550,
-            revenue: 280,
-            revenueNew: 280,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.51,
-            conversionRate: 0.19,
-            hasMention: true,
-          },
-          {
-            date: "07 Nov",
-            fullDate: "Friday, 7 November",
-            visitors: 600,
-            revenue: 300,
-            revenueNew: 300,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.2,
-          },
-          {
-            date: "08 Nov",
-            fullDate: "Saturday, 8 November",
-            visitors: 650,
-            revenue: 320,
-            revenueNew: 320,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.49,
-            conversionRate: 0.21,
-          },
-          {
-            date: "09 Nov",
-            fullDate: "Sunday, 9 November",
-            visitors: 700,
-            revenue: 350,
-            revenueNew: 350,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.22,
-          },
-          {
-            date: "10 Nov",
-            fullDate: "Monday, 10 November",
-            visitors: 750,
-            revenue: 380,
-            revenueNew: 380,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.51,
-            conversionRate: 0.23,
-          },
-          {
-            date: "11 Nov",
-            fullDate: "Tuesday, 11 November",
-            visitors: 1000,
-            revenue: 500,
-            revenueNew: 500,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.24,
-            hasMention: true,
-          },
-          {
-            date: "12 Nov",
-            fullDate: "Wednesday, 12 November",
-            visitors: 1500,
-            revenue: 750,
-            revenueNew: 750,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.25,
-          },
-          {
-            date: "13 Nov",
-            fullDate: "Thursday, 13 November",
-            visitors: 2200,
-            revenue: 1800,
-            revenueNew: 1800,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.82,
-            conversionRate: 0.28,
-            hasMention: true,
-          },
-          {
-            date: "14 Nov",
-            fullDate: "Friday, 14 November",
-            visitors: 1800,
-            revenue: 900,
-            revenueNew: 900,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.26,
-          },
-          {
-            date: "15 Nov",
-            fullDate: "Saturday, 15 November",
-            visitors: 1600,
-            revenue: 800,
-            revenueNew: 800,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.25,
-            hasMention: true,
-          },
-          {
-            date: "16 Nov",
-            fullDate: "Sunday, 16 November",
-            visitors: 1400,
-            revenue: 700,
-            revenueNew: 700,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.24,
-          },
-          {
-            date: "17 Nov",
-            fullDate: "Monday, 17 November",
-            visitors: 1200,
-            revenue: 600,
-            revenueNew: 600,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.23,
-          },
-          {
-            date: "18 Nov",
-            fullDate: "Tuesday, 18 November",
-            visitors: 1100,
-            revenue: 550,
-            revenueNew: 550,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.22,
-            hasMention: true,
-          },
-          {
-            date: "19 Nov",
-            fullDate: "Wednesday, 19 November",
-            visitors: 1000,
-            revenue: 500,
-            revenueNew: 500,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.21,
-          },
-          {
-            date: "20 Nov",
-            fullDate: "Thursday, 20 November",
-            visitors: 900,
-            revenue: 450,
-            revenueNew: 450,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.2,
-          },
-          {
-            date: "21 Nov",
-            fullDate: "Friday, 21 November",
-            visitors: 850,
-            revenue: 425,
-            revenueNew: 425,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.19,
-          },
-          {
-            date: "22 Nov",
-            fullDate: "Saturday, 22 November",
-            visitors: 800,
-            revenue: 400,
-            revenueNew: 400,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.18,
-            hasMention: true,
-          },
-          {
-            date: "23 Nov",
-            fullDate: "Sunday, 23 November",
-            visitors: 750,
-            revenue: 375,
-            revenueNew: 375,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.17,
-          },
-          {
-            date: "24 Nov",
-            fullDate: "Monday, 24 November",
-            visitors: 700,
-            revenue: 350,
-            revenueNew: 350,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.16,
-          },
-          {
-            date: "25 Nov",
-            fullDate: "Tuesday, 25 November",
-            visitors: 800,
-            revenue: 400,
-            revenueNew: 400,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.17,
-          },
-          {
-            date: "26 Nov",
-            fullDate: "Wednesday, 26 November",
-            visitors: 900,
-            revenue: 450,
-            revenueNew: 450,
-            revenueRefund: 0,
-            revenuePerVisitor: 0.5,
-            conversionRate: 0.18,
-            hasMention: true,
-          },
-          {
-            date: "27 Nov",
-            fullDate: "Thursday, 27 November",
-            visitors: 1000,
-            revenue: 2500,
-            revenueNew: 2500,
-            revenueRefund: 0,
-            revenuePerVisitor: 2.5,
-            conversionRate: 0.35,
-            hasMention: true,
-          },
-          {
-            date: "28 Nov",
-            fullDate: "Friday, 28 November",
-            visitors: 1100,
-            revenue: 2400,
-            revenueNew: 2400,
-            revenueRefund: 0,
-            revenuePerVisitor: 2.18,
-            conversionRate: 0.33,
-          },
-          {
-            date: "29 Nov",
-            fullDate: "Saturday, 29 November",
-            visitors: 500,
-            revenue: 700,
-            revenueNew: 700,
-            revenueRefund: 0,
-            revenuePerVisitor: 1.4,
-            conversionRate: 0.28,
-            hasMention: true,
-          },
-        ];
-
-  // Sample avatar URLs for mentions - using Unsplash images
-  const avatarUrls = [
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces",
-  ];
+  // Get chart data from Redux - use empty array if no data
+  const chartData = analytics.chartData || [];
 
   // Get metrics from Redux or use defaults
   const metricsData = analytics.metrics
@@ -557,7 +215,6 @@ export default function WebsiteAnalyticsPage({
 
   const COLORS = ["#8dcdff", "#7888b2", "#E16540", "#94a3b8", "#cbd5e1"];
 
-  // Use real-time data if available, otherwise fall back to Redux data
   const visitorsNow =
     realtimeVisitorsNow > 0
       ? realtimeVisitorsNow.toString()
@@ -993,7 +650,6 @@ export default function WebsiteAnalyticsPage({
                   <div className="px-4 pb-4">
                     <Chart
                       data={chartData}
-                      avatarUrls={avatarUrls}
                       showMentions={ui.showMentionsOnChart}
                       onMentionClick={(data) => {
                         setSelectedMentionData(data);
@@ -1430,14 +1086,10 @@ export default function WebsiteAnalyticsPage({
                           <div key={idx} className="custom-card">
                             <div className="flex items-start gap-3 p-4">
                               {mention.type === "profile" ? (
-                                <Image
-                                  src={avatarUrls[idx % avatarUrls.length]}
-                                  alt="Profile"
-                                  width={48}
-                                  height={48}
-                                  className="rounded-full shrink-0"
-                                  unoptimized
-                                />
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center shrink-0 text-white font-semibold">
+                                  {mention.text?.charAt(0)?.toUpperCase() ||
+                                    "?"}
+                                </div>
                               ) : (
                                 <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center shrink-0">
                                   <svg

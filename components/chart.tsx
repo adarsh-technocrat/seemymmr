@@ -1,9 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useState } from "react";
 import {
-  AreaChart,
   Area,
   Line,
   Bar,
@@ -48,22 +46,6 @@ export function Chart({
   height = "h-72 md:h-96",
 }: ChartProps) {
   const [showMentionsOnChart, setShowMentionsOnChart] = useState(showMentions);
-
-  // Default avatar URLs if not provided
-  const defaultAvatarUrls = [
-    "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&h=200&fit=crop&crop=faces",
-    "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces",
-  ];
-
-  const avatars = avatarUrls.length > 0 ? avatarUrls : defaultAvatarUrls;
 
   const handleMentionClick = (payload: ChartDataPoint, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -158,14 +140,16 @@ export function Chart({
                     className="flex items-start gap-2 text-textSecondary text-xs"
                   >
                     {mention.type === "profile" ? (
-                      <Image
-                        src={avatars[idx % avatars.length]}
-                        alt="Profile"
-                        width={16}
-                        height={16}
-                        className="rounded-full mt-0.5 shrink-0"
-                        unoptimized
-                      />
+                      <div
+                        className="w-4 h-4 rounded-full mt-0.5 shrink-0 flex items-center justify-center text-[10px] font-semibold text-white"
+                        style={{
+                          backgroundColor: `hsl(${
+                            (idx * 137.5) % 360
+                          }, 70%, 50%)`,
+                        }}
+                      >
+                        {mention.text?.charAt(0)?.toUpperCase() || "?"}
+                      </div>
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -308,9 +292,9 @@ export function Chart({
             dot={(props: any) => {
               const { cx, cy, payload } = props;
               if (payload?.hasMention && cx && cy && showMentionsOnChart) {
-                const avatarIndex =
-                  data.findIndex((d) => d.date === payload.date) %
-                  avatars.length;
+                const avatarIndex = data.findIndex(
+                  (d) => d.date === payload.date
+                );
                 const profileMentions = payload.mentions
                   ? payload.mentions.filter((m: any) => m.type === "profile")
                   : [];
@@ -356,21 +340,27 @@ export function Chart({
                                   stroke="#8dcdff"
                                   strokeWidth={2}
                                 />
-                                <image
-                                  x={cx + offsetX - avatarRadius}
-                                  y={cy + offsetY - avatarRadius}
-                                  width={avatarSize}
-                                  height={avatarSize}
-                                  href={
-                                    avatars[
-                                      (avatarIndex + idx) % avatars.length
-                                    ]
-                                  }
-                                  clipPath={`url(#avatarClip-${payload.date}-${idx})`}
-                                  style={{
-                                    pointerEvents: "none",
-                                  }}
+                                <circle
+                                  cx={cx + offsetX}
+                                  cy={cy + offsetY}
+                                  r={avatarRadius}
+                                  fill={`hsl(${
+                                    ((avatarIndex + idx) * 137.5) % 360
+                                  }, 70%, 50%)`}
                                 />
+                                <text
+                                  x={cx + offsetX}
+                                  y={cy + offsetY}
+                                  textAnchor="middle"
+                                  dominantBaseline="central"
+                                  fontSize="10"
+                                  fontWeight="bold"
+                                  fill="white"
+                                  style={{ pointerEvents: "none" }}
+                                >
+                                  {mention.text?.charAt(0)?.toUpperCase() ||
+                                    "?"}
+                                </text>
                                 <defs>
                                   <clipPath
                                     id={`avatarClip-${payload.date}-${idx}`}
@@ -401,20 +391,28 @@ export function Chart({
                               stroke="#8dcdff"
                               strokeWidth={2}
                             />
-                            <image
-                              x={cx - 10}
-                              y={cy - 10}
-                              width={20}
-                              height={20}
-                              href={avatars[avatarIndex]}
-                              clipPath={`url(#avatarClip-${payload.date})`}
-                              style={{ pointerEvents: "none" }}
+                            <circle
+                              cx={cx}
+                              cy={cy}
+                              r={10}
+                              fill={`hsl(${
+                                (avatarIndex * 137.5) % 360
+                              }, 70%, 50%)`}
                             />
-                            <defs>
-                              <clipPath id={`avatarClip-${payload.date}`}>
-                                <circle cx={cx} cy={cy} r={10} />
-                              </clipPath>
-                            </defs>
+                            <text
+                              x={cx}
+                              y={cy}
+                              textAnchor="middle"
+                              dominantBaseline="central"
+                              fontSize="10"
+                              fontWeight="bold"
+                              fill="white"
+                              style={{ pointerEvents: "none" }}
+                            >
+                              {payload.mentions?.[0]?.text
+                                ?.charAt(0)
+                                ?.toUpperCase() || "?"}
+                            </text>
                           </g>,
                         ]}
                   </g>

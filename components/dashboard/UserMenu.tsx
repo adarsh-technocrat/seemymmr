@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/firebase/auth-context";
@@ -28,14 +27,36 @@ export function UserMenu() {
 
   useEffect(() => {
     if (firebaseUser && !loading) {
-      // Get user data from localStorage (set by AuthProvider)
       const stored = localStorage.getItem("firebaseUser");
       if (stored) {
         try {
-          setUserData(JSON.parse(stored));
+          const parsedData = JSON.parse(stored);
+          setUserData({
+            ...parsedData,
+            image: parsedData.image || firebaseUser.photoURL || undefined,
+          });
         } catch (e) {
           console.error("Error parsing user data:", e);
+          setUserData({
+            id: firebaseUser.uid,
+            email: firebaseUser.email || "",
+            name:
+              firebaseUser.displayName ||
+              firebaseUser.email?.split("@")[0] ||
+              "User",
+            image: firebaseUser.photoURL || undefined,
+          });
         }
+      } else {
+        setUserData({
+          id: firebaseUser.uid,
+          email: firebaseUser.email || "",
+          name:
+            firebaseUser.displayName ||
+            firebaseUser.email?.split("@")[0] ||
+            "User",
+          image: firebaseUser.photoURL || undefined,
+        });
       }
     } else if (!firebaseUser && !loading) {
       setUserData(null);
@@ -44,7 +65,6 @@ export function UserMenu() {
 
   const handleSignOut = async () => {
     await signOut();
-    // Clear cookie
     document.cookie = "firebaseToken=; path=/; max-age=0";
     router.push("/login");
   };
@@ -67,18 +87,28 @@ export function UserMenu() {
               className="size-6 shrink-0 rounded-full"
               width={24}
               height={24}
+              referrerPolicy="no-referrer"
               onError={(e) => {
                 console.error("Image failed to load:", userData.image);
-                e.currentTarget.style.display = "none";
+                // Hide the image and show fallback instead
+                const target = e.currentTarget;
+                target.style.display = "none";
+                // Show fallback avatar
+                const fallback = target.nextElementSibling as HTMLElement;
+                if (fallback) {
+                  fallback.style.display = "flex";
+                }
               }}
             />
-          ) : (
-            <div className="size-6 shrink-0 rounded-full bg-primary flex items-center justify-center text-white text-xs font-medium">
-              {userData.name?.[0]?.toUpperCase() ||
-                userData.email?.[0]?.toUpperCase() ||
-                "U"}
-            </div>
-          )}
+          ) : null}
+          <div
+            className="size-6 shrink-0 rounded-full bg-primary flex items-center justify-center text-white text-xs font-medium"
+            style={{ display: userData.image ? "none" : "flex" }}
+          >
+            {userData.name?.[0]?.toUpperCase() ||
+              userData.email?.[0]?.toUpperCase() ||
+              "U"}
+          </div>
           <span className="capitalize text-textPrimary">
             {userData.name || userData.email}
           </span>
