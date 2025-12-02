@@ -1,7 +1,14 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useDomainIcon } from "@/hooks/use-domain-icon";
 
 export default function Home() {
+  const [domain, setDomain] = useState("");
+  const { iconUrl, loading } = useDomainIcon(domain);
+
   return (
     <>
       <header className="border-b border-gray-100">
@@ -126,23 +133,38 @@ export default function Home() {
                   <div className="w-full">
                     <div className="relative flex items-center w-full border border-gray-200 rounded-lg overflow-hidden bg-white">
                       <div className="flex items-center justify-center px-3 py-2 bg-gray-50 border-r border-gray-200">
-                        <svg
-                          className="w-5 h-5 text-textPrimary opacity-75"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                        {iconUrl ? (
+                          <img
+                            src={iconUrl}
+                            alt="Domain icon"
+                            width={24}
+                            height={24}
+                            className="!h-6 !w-6 !max-w-none shrink-0 animate-opacity rounded drop-shadow-sm"
+                            onError={() => {}}
                           />
-                        </svg>
+                        ) : loading ? (
+                          <div className="!h-6 !w-6 shrink-0 animate-pulse rounded bg-gray-300" />
+                        ) : (
+                          <svg
+                            className="w-5 h-5 text-textPrimary opacity-75"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                            />
+                          </svg>
+                        )}
                       </div>
                       <input
-                        type="url"
+                        type="text"
                         placeholder="yourwebsite.com"
+                        value={domain}
+                        onChange={(e) => setDomain(e.target.value)}
                         className="flex-1 px-3 py-2 text-sm outline-none placeholder:opacity-60"
                       />
                     </div>

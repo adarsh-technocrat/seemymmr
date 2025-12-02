@@ -38,7 +38,24 @@ const nextConfig: NextConfig = {
         hostname: "lh3.googleusercontent.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "www.google.com",
+        pathname: "/s2/favicons",
+      },
+      {
+        protocol: "https",
+        hostname: "t0.gstatic.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.gstatic.com",
+        pathname: "/**",
+      },
     ],
+    // Allow unoptimized images for dynamic domain favicons
+    unoptimized: false,
   },
 };
 

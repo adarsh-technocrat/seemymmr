@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,8 +9,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, use } from "react";
+import { useState, use, useEffect } from "react";
 import { useRealtimeVisitors } from "@/hooks/use-realtime-visitors";
+import { useAnalytics } from "@/hooks/use-analytics";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setSelectedPeriod,
+  setSelectedGranularity,
+  setSelectedSourceTab,
+  setSelectedPathTab,
+  setSelectedLocationTab,
+  setSelectedSystemTab,
+  setSelectedGoalTab,
+  setShowMentionsOnChart,
+} from "@/store/slices/uiSlice";
+import { fetchWebsiteById } from "@/store/slices/websitesSlice";
 import {
   BarChart,
   Bar,
@@ -32,355 +44,379 @@ export default function WebsiteAnalyticsPage({
   params: Promise<{ websiteId: string }>;
 }) {
   const { websiteId } = use(params);
-  const [selectedPeriod, setSelectedPeriod] = useState("Last 30 days");
-  const [selectedGranularity, setSelectedGranularity] = useState("Hourly");
-  const [selectedSourceTab, setSelectedSourceTab] = useState("Channel");
-  const [selectedPathTab, setSelectedPathTab] = useState("Page");
-  const [selectedLocationTab, setSelectedLocationTab] = useState("Country");
-  const [selectedSystemTab, setSelectedSystemTab] = useState("Browser");
-  const [selectedGoalTab, setSelectedGoalTab] = useState("Goal");
+  const dispatch = useAppDispatch();
+
+  // Redux state
+  const ui = useAppSelector((state) => state.ui) as {
+    selectedPeriod: string;
+    selectedGranularity: "Hourly" | "Daily" | "Weekly" | "Monthly";
+    selectedSourceTab: "Channel" | "Referrer" | "Campaign" | "Keyword";
+    selectedPathTab: "Hostname" | "Page" | "Entry page" | "Exit link";
+    selectedLocationTab: "Map" | "Country" | "Region" | "City";
+    selectedSystemTab: "Browser" | "OS" | "Device";
+    selectedGoalTab: "Goal" | "Funnel" | "Journey";
+    showMentionsOnChart: boolean;
+  };
+  const website = useAppSelector((state) => state.websites.currentWebsite) as {
+    _id: string;
+    domain: string;
+    name: string;
+    iconUrl?: string;
+  } | null;
+  const analytics = useAnalytics(websiteId);
+
+  // Local state for dialogs
   const [mentionDialogOpen, setMentionDialogOpen] = useState(false);
   const [selectedMentionData, setSelectedMentionData] = useState<any>(null);
-  const [showMentionsOnChart, setShowMentionsOnChart] = useState(true);
 
   // Real-time visitors hook
   const { visitorsNow: realtimeVisitorsNow, isConnected } =
     useRealtimeVisitors(websiteId);
 
-  // Dummy data for charts - matching the exact structure from the reference
-  const chartData = [
-    {
-      date: "01 Nov",
-      fullDate: "Monday, 1 November",
-      visitors: 2800,
-      revenue: 1200,
-      revenueNew: 1200,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.43,
-      conversionRate: 0.25,
-      hasMention: true,
-      mentions: [
-        {
-          text: "I heard X preloads websites. So you should use my links going forward",
-          url: "https://t.co/xH5p415Pdy",
-          type: "profile" as const,
-        },
-      ],
-    },
-    {
-      date: "02 Nov",
-      fullDate: "Tuesday, 2 November",
-      visitors: 1200,
-      revenue: 600,
-      revenueNew: 600,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.22,
-    },
-    {
-      date: "03 Nov",
-      fullDate: "Monday, 3 November",
-      visitors: 1183,
-      revenue: 1365,
-      revenueNew: 1365,
-      revenueRefund: 0,
-      revenuePerVisitor: 1.15,
-      conversionRate: 0.42,
-      hasMention: true,
-      mentions: [
-        {
-          text: 'CodeFast by @marc_louvion is the single best coding "course" i\'ve ever taken perhaps not for absolute beginne...',
-          type: "profile" as const,
-        },
-        {
-          text: "My product https://t.co/G9SDDImZUQ just crossed $1200 MRR. This is exactly about 0.5 hours since I started bu...",
-          url: "https://t.co/G9SDDImZUQ",
-          type: "profile" as const,
-        },
-      ],
-    },
-    {
-      date: "04 Nov",
-      fullDate: "Thursday, 4 November",
-      visitors: 600,
-      revenue: 300,
-      revenueNew: 300,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.18,
-    },
-    {
-      date: "05 Nov",
-      fullDate: "Wednesday, 5 November",
-      visitors: 850,
-      revenue: 338,
-      revenueNew: 338,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.4,
-      conversionRate: 0.24,
-      hasMention: true,
-      mentions: [
-        {
-          text: "I heard X preloads websites. So you should use my links going forward",
-          url: "https://t.co/xH5p415Pdy",
-          type: "profile" as const,
-        },
-        {
-          text: "Cut development time in half. Our advanced code generation and debugging features are built to integrate se...",
-          type: "gear" as const,
-        },
-      ],
-    },
-    {
-      date: "06 Nov",
-      fullDate: "Thursday, 6 November",
-      visitors: 550,
-      revenue: 280,
-      revenueNew: 280,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.51,
-      conversionRate: 0.19,
-      hasMention: true,
-    },
-    {
-      date: "07 Nov",
-      fullDate: "Friday, 7 November",
-      visitors: 600,
-      revenue: 300,
-      revenueNew: 300,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.2,
-    },
-    {
-      date: "08 Nov",
-      fullDate: "Saturday, 8 November",
-      visitors: 650,
-      revenue: 320,
-      revenueNew: 320,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.49,
-      conversionRate: 0.21,
-    },
-    {
-      date: "09 Nov",
-      fullDate: "Sunday, 9 November",
-      visitors: 700,
-      revenue: 350,
-      revenueNew: 350,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.22,
-    },
-    {
-      date: "10 Nov",
-      fullDate: "Monday, 10 November",
-      visitors: 750,
-      revenue: 380,
-      revenueNew: 380,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.51,
-      conversionRate: 0.23,
-    },
-    {
-      date: "11 Nov",
-      fullDate: "Tuesday, 11 November",
-      visitors: 1000,
-      revenue: 500,
-      revenueNew: 500,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.24,
-      hasMention: true,
-    },
-    {
-      date: "12 Nov",
-      fullDate: "Wednesday, 12 November",
-      visitors: 1500,
-      revenue: 750,
-      revenueNew: 750,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.25,
-    },
-    {
-      date: "13 Nov",
-      fullDate: "Thursday, 13 November",
-      visitors: 2200,
-      revenue: 1800,
-      revenueNew: 1800,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.82,
-      conversionRate: 0.28,
-      hasMention: true,
-    },
-    {
-      date: "14 Nov",
-      fullDate: "Friday, 14 November",
-      visitors: 1800,
-      revenue: 900,
-      revenueNew: 900,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.26,
-    },
-    {
-      date: "15 Nov",
-      fullDate: "Saturday, 15 November",
-      visitors: 1600,
-      revenue: 800,
-      revenueNew: 800,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.25,
-      hasMention: true,
-    },
-    {
-      date: "16 Nov",
-      fullDate: "Sunday, 16 November",
-      visitors: 1400,
-      revenue: 700,
-      revenueNew: 700,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.24,
-    },
-    {
-      date: "17 Nov",
-      fullDate: "Monday, 17 November",
-      visitors: 1200,
-      revenue: 600,
-      revenueNew: 600,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.23,
-    },
-    {
-      date: "18 Nov",
-      fullDate: "Tuesday, 18 November",
-      visitors: 1100,
-      revenue: 550,
-      revenueNew: 550,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.22,
-      hasMention: true,
-    },
-    {
-      date: "19 Nov",
-      fullDate: "Wednesday, 19 November",
-      visitors: 1000,
-      revenue: 500,
-      revenueNew: 500,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.21,
-    },
-    {
-      date: "20 Nov",
-      fullDate: "Thursday, 20 November",
-      visitors: 900,
-      revenue: 450,
-      revenueNew: 450,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.2,
-    },
-    {
-      date: "21 Nov",
-      fullDate: "Friday, 21 November",
-      visitors: 850,
-      revenue: 425,
-      revenueNew: 425,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.19,
-    },
-    {
-      date: "22 Nov",
-      fullDate: "Saturday, 22 November",
-      visitors: 800,
-      revenue: 400,
-      revenueNew: 400,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.18,
-      hasMention: true,
-    },
-    {
-      date: "23 Nov",
-      fullDate: "Sunday, 23 November",
-      visitors: 750,
-      revenue: 375,
-      revenueNew: 375,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.17,
-    },
-    {
-      date: "24 Nov",
-      fullDate: "Monday, 24 November",
-      visitors: 700,
-      revenue: 350,
-      revenueNew: 350,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.16,
-    },
-    {
-      date: "25 Nov",
-      fullDate: "Tuesday, 25 November",
-      visitors: 800,
-      revenue: 400,
-      revenueNew: 400,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.17,
-    },
-    {
-      date: "26 Nov",
-      fullDate: "Wednesday, 26 November",
-      visitors: 900,
-      revenue: 450,
-      revenueNew: 450,
-      revenueRefund: 0,
-      revenuePerVisitor: 0.5,
-      conversionRate: 0.18,
-      hasMention: true,
-    },
-    {
-      date: "27 Nov",
-      fullDate: "Thursday, 27 November",
-      visitors: 1000,
-      revenue: 2500,
-      revenueNew: 2500,
-      revenueRefund: 0,
-      revenuePerVisitor: 2.5,
-      conversionRate: 0.35,
-      hasMention: true,
-    },
-    {
-      date: "28 Nov",
-      fullDate: "Friday, 28 November",
-      visitors: 1100,
-      revenue: 2400,
-      revenueNew: 2400,
-      revenueRefund: 0,
-      revenuePerVisitor: 2.18,
-      conversionRate: 0.33,
-    },
-    {
-      date: "29 Nov",
-      fullDate: "Saturday, 29 November",
-      visitors: 500,
-      revenue: 700,
-      revenueNew: 700,
-      revenueRefund: 0,
-      revenuePerVisitor: 1.4,
-      conversionRate: 0.28,
-      hasMention: true,
-    },
-  ];
+  // Fetch website data on mount
+  useEffect(() => {
+    if (websiteId) {
+      dispatch(fetchWebsiteById(websiteId));
+    }
+  }, [websiteId, dispatch]);
+
+  // Get chart data from Redux or use empty array
+  const chartData =
+    analytics.chartData.length > 0
+      ? analytics.chartData
+      : [
+          {
+            date: "01 Nov",
+            fullDate: "Monday, 1 November",
+            visitors: 2800,
+            revenue: 1200,
+            revenueNew: 1200,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.43,
+            conversionRate: 0.25,
+            hasMention: true,
+            mentions: [
+              {
+                text: "I heard X preloads websites. So you should use my links going forward",
+                url: "https://t.co/xH5p415Pdy",
+                type: "profile" as const,
+              },
+            ],
+          },
+          {
+            date: "02 Nov",
+            fullDate: "Tuesday, 2 November",
+            visitors: 1200,
+            revenue: 600,
+            revenueNew: 600,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.22,
+          },
+          {
+            date: "03 Nov",
+            fullDate: "Monday, 3 November",
+            visitors: 1183,
+            revenue: 1365,
+            revenueNew: 1365,
+            revenueRefund: 0,
+            revenuePerVisitor: 1.15,
+            conversionRate: 0.42,
+            hasMention: true,
+            mentions: [
+              {
+                text: 'CodeFast by @marc_louvion is the single best coding "course" i\'ve ever taken perhaps not for absolute beginne...',
+                type: "profile" as const,
+              },
+              {
+                text: "My product https://t.co/G9SDDImZUQ just crossed $1200 MRR. This is exactly about 0.5 hours since I started bu...",
+                url: "https://t.co/G9SDDImZUQ",
+                type: "profile" as const,
+              },
+            ],
+          },
+          {
+            date: "04 Nov",
+            fullDate: "Thursday, 4 November",
+            visitors: 600,
+            revenue: 300,
+            revenueNew: 300,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.18,
+          },
+          {
+            date: "05 Nov",
+            fullDate: "Wednesday, 5 November",
+            visitors: 850,
+            revenue: 338,
+            revenueNew: 338,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.4,
+            conversionRate: 0.24,
+            hasMention: true,
+            mentions: [
+              {
+                text: "I heard X preloads websites. So you should use my links going forward",
+                url: "https://t.co/xH5p415Pdy",
+                type: "profile" as const,
+              },
+              {
+                text: "Cut development time in half. Our advanced code generation and debugging features are built to integrate se...",
+                type: "gear" as const,
+              },
+            ],
+          },
+          {
+            date: "06 Nov",
+            fullDate: "Thursday, 6 November",
+            visitors: 550,
+            revenue: 280,
+            revenueNew: 280,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.51,
+            conversionRate: 0.19,
+            hasMention: true,
+          },
+          {
+            date: "07 Nov",
+            fullDate: "Friday, 7 November",
+            visitors: 600,
+            revenue: 300,
+            revenueNew: 300,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.2,
+          },
+          {
+            date: "08 Nov",
+            fullDate: "Saturday, 8 November",
+            visitors: 650,
+            revenue: 320,
+            revenueNew: 320,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.49,
+            conversionRate: 0.21,
+          },
+          {
+            date: "09 Nov",
+            fullDate: "Sunday, 9 November",
+            visitors: 700,
+            revenue: 350,
+            revenueNew: 350,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.22,
+          },
+          {
+            date: "10 Nov",
+            fullDate: "Monday, 10 November",
+            visitors: 750,
+            revenue: 380,
+            revenueNew: 380,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.51,
+            conversionRate: 0.23,
+          },
+          {
+            date: "11 Nov",
+            fullDate: "Tuesday, 11 November",
+            visitors: 1000,
+            revenue: 500,
+            revenueNew: 500,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.24,
+            hasMention: true,
+          },
+          {
+            date: "12 Nov",
+            fullDate: "Wednesday, 12 November",
+            visitors: 1500,
+            revenue: 750,
+            revenueNew: 750,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.25,
+          },
+          {
+            date: "13 Nov",
+            fullDate: "Thursday, 13 November",
+            visitors: 2200,
+            revenue: 1800,
+            revenueNew: 1800,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.82,
+            conversionRate: 0.28,
+            hasMention: true,
+          },
+          {
+            date: "14 Nov",
+            fullDate: "Friday, 14 November",
+            visitors: 1800,
+            revenue: 900,
+            revenueNew: 900,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.26,
+          },
+          {
+            date: "15 Nov",
+            fullDate: "Saturday, 15 November",
+            visitors: 1600,
+            revenue: 800,
+            revenueNew: 800,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.25,
+            hasMention: true,
+          },
+          {
+            date: "16 Nov",
+            fullDate: "Sunday, 16 November",
+            visitors: 1400,
+            revenue: 700,
+            revenueNew: 700,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.24,
+          },
+          {
+            date: "17 Nov",
+            fullDate: "Monday, 17 November",
+            visitors: 1200,
+            revenue: 600,
+            revenueNew: 600,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.23,
+          },
+          {
+            date: "18 Nov",
+            fullDate: "Tuesday, 18 November",
+            visitors: 1100,
+            revenue: 550,
+            revenueNew: 550,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.22,
+            hasMention: true,
+          },
+          {
+            date: "19 Nov",
+            fullDate: "Wednesday, 19 November",
+            visitors: 1000,
+            revenue: 500,
+            revenueNew: 500,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.21,
+          },
+          {
+            date: "20 Nov",
+            fullDate: "Thursday, 20 November",
+            visitors: 900,
+            revenue: 450,
+            revenueNew: 450,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.2,
+          },
+          {
+            date: "21 Nov",
+            fullDate: "Friday, 21 November",
+            visitors: 850,
+            revenue: 425,
+            revenueNew: 425,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.19,
+          },
+          {
+            date: "22 Nov",
+            fullDate: "Saturday, 22 November",
+            visitors: 800,
+            revenue: 400,
+            revenueNew: 400,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.18,
+            hasMention: true,
+          },
+          {
+            date: "23 Nov",
+            fullDate: "Sunday, 23 November",
+            visitors: 750,
+            revenue: 375,
+            revenueNew: 375,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.17,
+          },
+          {
+            date: "24 Nov",
+            fullDate: "Monday, 24 November",
+            visitors: 700,
+            revenue: 350,
+            revenueNew: 350,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.16,
+          },
+          {
+            date: "25 Nov",
+            fullDate: "Tuesday, 25 November",
+            visitors: 800,
+            revenue: 400,
+            revenueNew: 400,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.17,
+          },
+          {
+            date: "26 Nov",
+            fullDate: "Wednesday, 26 November",
+            visitors: 900,
+            revenue: 450,
+            revenueNew: 450,
+            revenueRefund: 0,
+            revenuePerVisitor: 0.5,
+            conversionRate: 0.18,
+            hasMention: true,
+          },
+          {
+            date: "27 Nov",
+            fullDate: "Thursday, 27 November",
+            visitors: 1000,
+            revenue: 2500,
+            revenueNew: 2500,
+            revenueRefund: 0,
+            revenuePerVisitor: 2.5,
+            conversionRate: 0.35,
+            hasMention: true,
+          },
+          {
+            date: "28 Nov",
+            fullDate: "Friday, 28 November",
+            visitors: 1100,
+            revenue: 2400,
+            revenueNew: 2400,
+            revenueRefund: 0,
+            revenuePerVisitor: 2.18,
+            conversionRate: 0.33,
+          },
+          {
+            date: "29 Nov",
+            fullDate: "Saturday, 29 November",
+            visitors: 500,
+            revenue: 700,
+            revenueNew: 700,
+            revenueRefund: 0,
+            revenuePerVisitor: 1.4,
+            conversionRate: 0.28,
+            hasMention: true,
+          },
+        ];
 
   // Sample avatar URLs for mentions - using Unsplash images
   const avatarUrls = [
@@ -396,54 +432,135 @@ export default function WebsiteAnalyticsPage({
     "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=faces",
   ];
 
-  // Metrics data with variations and trends
-  const metricsData = {
-    visitors: { value: "18.9k", variation: "-12.7%", trend: "down" },
-    revenue: { value: "$28.3k", variation: "+45.4%", trend: "up" },
-    conversionRate: { value: "0.60%", variation: "+63.3%", trend: "up" },
-    revenuePerVisitor: { value: "$1.49", variation: "+66.5%", trend: "up" },
-    bounceRate: { value: "83%", variation: "-1.2%", trend: "up" },
-    sessionTime: { value: "2m 41s", variation: "+1.4%", trend: "up" },
-    visitorsNow: { value: "6" },
+  // Get metrics from Redux or use defaults
+  const metricsData = analytics.metrics
+    ? {
+        visitors: {
+          value: analytics.metrics.visitors,
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        revenue: {
+          value: analytics.metrics.revenue,
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        conversionRate: {
+          value: analytics.metrics.conversionRate,
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        revenuePerVisitor: {
+          value: analytics.metrics.revenuePerVisitor,
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        bounceRate: {
+          value: analytics.metrics.bounceRate,
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        sessionTime: {
+          value: analytics.metrics.sessionTime,
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        visitorsNow: { value: analytics.metrics.visitorsNow },
+      }
+    : {
+        visitors: { value: "0", variation: "0%", trend: "up" as "up" | "down" },
+        revenue: { value: "$0", variation: "0%", trend: "up" as "up" | "down" },
+        conversionRate: {
+          value: "0%",
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        revenuePerVisitor: {
+          value: "$0",
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        bounceRate: {
+          value: "0%",
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        sessionTime: {
+          value: "0m 0s",
+          variation: "0%",
+          trend: "up" as "up" | "down",
+        },
+        visitorsNow: { value: "0" },
+      };
+
+  // Get breakdown data from Redux
+  const getSourceData = () => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedSourceTab) {
+      case "Channel":
+        return analytics.breakdowns.source.channel || [];
+      case "Referrer":
+        return analytics.breakdowns.source.referrer || [];
+      case "Campaign":
+        return analytics.breakdowns.source.campaign || [];
+      case "Keyword":
+        return analytics.breakdowns.source.keyword || [];
+      default:
+        return analytics.breakdowns.source.channel || [];
+    }
   };
 
-  const sourceData = [
-    { name: "Direct", value: 45 },
-    { name: "Google", value: 30 },
-    { name: "Social", value: 15 },
-    { name: "Referral", value: 10 },
-  ];
+  const getPathData = () => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedPathTab) {
+      case "Page":
+        return analytics.breakdowns.path.page || [];
+      case "Hostname":
+        return analytics.breakdowns.path.hostname || [];
+      default:
+        return analytics.breakdowns.path.page || [];
+    }
+  };
 
-  const pathData = [
-    { name: "/", value: 120 },
-    { name: "/about", value: 80 },
-    { name: "/products", value: 60 },
-    { name: "/contact", value: 40 },
-  ];
+  const getLocationData = () => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedLocationTab) {
+      case "Country":
+        return analytics.breakdowns.location.country || [];
+      case "Region":
+        return analytics.breakdowns.location.region || [];
+      case "City":
+        return analytics.breakdowns.location.city || [];
+      default:
+        return analytics.breakdowns.location.country || [];
+    }
+  };
 
-  const locationData = [
-    { name: "United States", value: 150 },
-    { name: "United Kingdom", value: 80 },
-    { name: "Canada", value: 50 },
-    { name: "Germany", value: 30 },
-    { name: "Other", value: 40 },
-  ];
+  const getSystemData = () => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedSystemTab) {
+      case "Browser":
+        return analytics.breakdowns.system.browser || [];
+      case "OS":
+        return analytics.breakdowns.system.os || [];
+      case "Device":
+        return analytics.breakdowns.system.device || [];
+      default:
+        return analytics.breakdowns.system.browser || [];
+    }
+  };
 
-  const systemData = [
-    { name: "Chrome", value: 180 },
-    { name: "Safari", value: 100 },
-    { name: "Firefox", value: 50 },
-    { name: "Edge", value: 20 },
-  ];
+  const sourceData = getSourceData();
+  const pathData = getPathData();
+  const locationData = getLocationData();
+  const systemData = getSystemData();
 
   const COLORS = ["#8dcdff", "#7888b2", "#E16540", "#94a3b8", "#cbd5e1"];
 
-  // Calculate totals
-  const totalVisitors = "18.9k";
-  // Use real-time data if available, otherwise fall back to static data
+  // Use real-time data if available, otherwise fall back to Redux data
   const visitorsNow =
     realtimeVisitorsNow > 0
-      ? realtimeVisitorsNow
+      ? realtimeVisitorsNow.toString()
       : metricsData.visitorsNow.value;
 
   return (
@@ -464,7 +581,9 @@ export default function WebsiteAnalyticsPage({
                     height={20}
                     unoptimized
                   />
-                  <h3 className="text-base font-normal">uxmagic.ai</h3>
+                  <h3 className="text-base font-normal">
+                    {website?.name || "Loading..."}
+                  </h3>
                 </button>
                 <Link
                   href={`/dashboard/${websiteId}/settings`}
@@ -512,7 +631,7 @@ export default function WebsiteAnalyticsPage({
                   </svg>
                 </button>
                 <button className="btn join-item btn-sm h-8 inline-flex flex-nowrap items-center gap-2 whitespace-nowrap border-0 border-l border-borderColor bg-transparent text-textPrimary hover:bg-gray-50 px-3">
-                  <h3 className="text-base font-normal">{selectedPeriod}</h3>
+                  <h3 className="text-base font-normal">{ui.selectedPeriod}</h3>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     width="24"
@@ -556,7 +675,7 @@ export default function WebsiteAnalyticsPage({
               <div className="relative h-8">
                 <button className="single-item-join-divider btn btn-sm h-8 inline-flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md px-3">
                   <span className="text-base font-normal">
-                    {selectedGranularity}
+                    {ui.selectedGranularity}
                   </span>
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -580,6 +699,8 @@ export default function WebsiteAnalyticsPage({
             <button
               className="single-item-join-divider group btn btn-square btn-sm h-8 w-8 max-md:hidden border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md p-0 flex items-center justify-center"
               title="Refresh analytics data (Cmd+R / Ctrl+R)"
+              onClick={() => analytics.refetch()}
+              disabled={analytics.loading}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -873,7 +994,7 @@ export default function WebsiteAnalyticsPage({
                     <Chart
                       data={chartData}
                       avatarUrls={avatarUrls}
-                      showMentions={showMentionsOnChart}
+                      showMentions={ui.showMentionsOnChart}
                       onMentionClick={(data) => {
                         setSelectedMentionData(data);
                         setMentionDialogOpen(true);
@@ -892,22 +1013,22 @@ export default function WebsiteAnalyticsPage({
               <div className="flex flex-wrap items-center justify-between gap-x-2 border-b border-textPrimary/5 px-1 py-1">
                 <div className="flex items-baseline gap-0">
                   <div role="tablist" className="tabs tabs-sm ml-1">
-                    {["Channel", "Referrer", "Campaign", "Keyword"].map(
-                      (tab) => (
-                        <button
-                          key={tab}
-                          role="tab"
-                          className={`tab h-8! px-2! font-medium duration-100 ${
-                            selectedSourceTab === tab
-                              ? "tab-active text-textPrimary"
-                              : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
-                          }`}
-                          onClick={() => setSelectedSourceTab(tab)}
-                        >
-                          <div className="flex items-center gap-1.5">{tab}</div>
-                        </button>
-                      )
-                    )}
+                    {(
+                      ["Channel", "Referrer", "Campaign", "Keyword"] as const
+                    ).map((tab) => (
+                      <button
+                        key={tab}
+                        role="tab"
+                        className={`tab h-8! px-2! font-medium duration-100 ${
+                          ui.selectedSourceTab === tab
+                            ? "tab-active text-textPrimary"
+                            : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
+                        }`}
+                        onClick={() => dispatch(setSelectedSourceTab(tab))}
+                      >
+                        <div className="flex items-center gap-1.5">{tab}</div>
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="ml-auto flex items-center gap-0">
@@ -932,7 +1053,7 @@ export default function WebsiteAnalyticsPage({
               </div>
               <div className="relative h-96">
                 <ResponsiveContainer width="100%" height="100%">
-                  {selectedSourceTab === "Channel" ? (
+                  {ui.selectedSourceTab === "Channel" ? (
                     <PieChart>
                       <Pie
                         data={sourceData}
@@ -979,22 +1100,22 @@ export default function WebsiteAnalyticsPage({
               <div className="flex flex-wrap items-center justify-between gap-x-2 border-b border-textPrimary/5 px-1 py-1">
                 <div className="flex items-baseline gap-0">
                   <div role="tablist" className="tabs tabs-sm ml-1">
-                    {["Hostname", "Page", "Entry page", "Exit link"].map(
-                      (tab) => (
-                        <button
-                          key={tab}
-                          role="tab"
-                          className={`tab h-8! px-2! font-medium duration-100 ${
-                            selectedPathTab === tab
-                              ? "tab-active text-textPrimary"
-                              : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
-                          }`}
-                          onClick={() => setSelectedPathTab(tab)}
-                        >
-                          <div className="flex items-center gap-1.5">{tab}</div>
-                        </button>
-                      )
-                    )}
+                    {(
+                      ["Hostname", "Page", "Entry page", "Exit link"] as const
+                    ).map((tab) => (
+                      <button
+                        key={tab}
+                        role="tab"
+                        className={`tab h-8! px-2! font-medium duration-100 ${
+                          ui.selectedPathTab === tab
+                            ? "tab-active text-textPrimary"
+                            : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
+                        }`}
+                        onClick={() => dispatch(setSelectedPathTab(tab))}
+                      >
+                        <div className="flex items-center gap-1.5">{tab}</div>
+                      </button>
+                    ))}
                   </div>
                 </div>
                 <div className="ml-auto flex items-center gap-0">
@@ -1046,20 +1167,22 @@ export default function WebsiteAnalyticsPage({
               <div className="flex flex-wrap items-center justify-between gap-x-2 border-b border-textPrimary/5 px-1 py-1">
                 <div className="flex items-baseline gap-0">
                   <div role="tablist" className="tabs tabs-sm ml-1">
-                    {["Map", "Country", "Region", "City"].map((tab) => (
-                      <button
-                        key={tab}
-                        role="tab"
-                        className={`tab h-8! px-2! font-medium duration-100 ${
-                          selectedLocationTab === tab
-                            ? "tab-active text-textPrimary"
-                            : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
-                        }`}
-                        onClick={() => setSelectedLocationTab(tab)}
-                      >
-                        <div className="flex items-center gap-1.5">{tab}</div>
-                      </button>
-                    ))}
+                    {(["Map", "Country", "Region", "City"] as const).map(
+                      (tab) => (
+                        <button
+                          key={tab}
+                          role="tab"
+                          className={`tab h-8! px-2! font-medium duration-100 ${
+                            ui.selectedLocationTab === tab
+                              ? "tab-active text-textPrimary"
+                              : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
+                          }`}
+                          onClick={() => dispatch(setSelectedLocationTab(tab))}
+                        >
+                          <div className="flex items-center gap-1.5">{tab}</div>
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
@@ -1093,16 +1216,16 @@ export default function WebsiteAnalyticsPage({
               <div className="flex flex-wrap items-center justify-between gap-x-2 border-b border-textPrimary/5 px-1 py-1">
                 <div className="flex items-baseline gap-0">
                   <div role="tablist" className="tabs tabs-sm ml-1">
-                    {["Browser", "OS", "Device"].map((tab) => (
+                    {(["Browser", "OS", "Device"] as const).map((tab) => (
                       <button
                         key={tab}
                         role="tab"
                         className={`tab h-8! px-2! font-medium duration-100 ${
-                          selectedSystemTab === tab
+                          ui.selectedSystemTab === tab
                             ? "tab-active text-textPrimary"
                             : "text-textSecondary opacity-50 hover:text-textPrimary hover:opacity-80"
                         }`}
-                        onClick={() => setSelectedSystemTab(tab)}
+                        onClick={() => dispatch(setSelectedSystemTab(tab))}
                       >
                         <div className="flex items-center gap-1.5">{tab}</div>
                       </button>
@@ -1136,16 +1259,16 @@ export default function WebsiteAnalyticsPage({
                   <div className="flex items-center gap-0">
                     <div className="relative">
                       <div role="tablist" className="tabs tabs-sm ml-1">
-                        {["Goal", "Funnel", "Journey"].map((tab) => (
+                        {(["Goal", "Funnel", "Journey"] as const).map((tab) => (
                           <button
                             key={tab}
                             role="tab"
                             className={`group tab relative h-8! gap-1 px-2! font-medium duration-100 ${
-                              selectedGoalTab === tab
+                              ui.selectedGoalTab === tab
                                 ? "tab-active text-textPrimary"
                                 : "text-textSecondary opacity-50 group-hover:text-textPrimary group-hover:opacity-80"
                             }`}
-                            onClick={() => setSelectedGoalTab(tab)}
+                            onClick={() => dispatch(setSelectedGoalTab(tab))}
                           >
                             <span>{tab}</span>
                           </button>
@@ -1380,8 +1503,10 @@ export default function WebsiteAnalyticsPage({
               <input
                 className="toggle toggle-xs"
                 type="checkbox"
-                checked={showMentionsOnChart}
-                onChange={(e) => setShowMentionsOnChart(e.target.checked)}
+                checked={ui.showMentionsOnChart}
+                onChange={(e) =>
+                  dispatch(setShowMentionsOnChart(e.target.checked))
+                }
               />
               <span className="text-xs text-textPrimary">
                 Show mentions on chart

@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
+import { useDomainIcon } from "@/hooks/use-domain-icon";
 
 export default function AddSitePage() {
   const [currentTime, setCurrentTime] = useState("");
+  const [domain, setDomain] = useState("");
+  const { iconUrl, loading } = useDomainIcon(domain);
 
   useEffect(() => {
     const updateTime = () => {
@@ -85,7 +89,39 @@ export default function AddSitePage() {
 
           {/* Form Card */}
           <div className="w-full">
-            <form>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                const domainValue =
+                  domain || (formData.get("domain") as string);
+
+                if (!domainValue || typeof domainValue !== "string") return;
+
+                try {
+                  const response = await fetch("/api/websites", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      domain: domainValue,
+                      name: domainValue.replace(/^www\./, "").split(".")[0],
+                      iconUrl: iconUrl || undefined,
+                    }),
+                  });
+
+                  if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = `/dashboard/${data.website._id}`;
+                  } else {
+                    const error = await response.json();
+                    alert(error.error || "Failed to create website");
+                  }
+                } catch (error) {
+                  console.error("Error creating website:", error);
+                  alert("Failed to create website");
+                }
+              }}
+            >
               <Card className="overflow-visible bg-white border-gray-100 shadow-sm">
                 <CardHeader>
                   <CardTitle className="text-textPrimary font-bold">
@@ -103,20 +139,33 @@ export default function AddSitePage() {
                     </Label>
                     <div className="flex w-full items-center rounded-md border border-borderColor overflow-hidden bg-white">
                       <div className="inline-flex select-none items-center justify-center gap-2 border-r border-borderColor bg-gray-50 px-3 py-2 text-sm text-textSecondary">
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          strokeWidth="1.5"
-                          stroke="currentColor"
-                          className="text-textSecondary size-4 shrink-0 opacity-40"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
+                        {iconUrl ? (
+                          <img
+                            src={iconUrl}
+                            alt="Domain icon"
+                            width={24}
+                            height={24}
+                            className="!h-6 !w-6 !max-w-none shrink-0 animate-opacity rounded drop-shadow-sm"
+                            onError={() => {}}
                           />
-                        </svg>
+                        ) : loading ? (
+                          <div className="!h-6 !w-6 shrink-0 animate-pulse rounded bg-gray-300" />
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            strokeWidth="1.5"
+                            stroke="currentColor"
+                            className="text-textSecondary size-4 shrink-0 opacity-40"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418"
+                            />
+                          </svg>
+                        )}
                         <span className="opacity-90">https://</span>
                       </div>
                       <Input
@@ -125,6 +174,8 @@ export default function AddSitePage() {
                         placeholder="google.com"
                         required
                         autoComplete="off"
+                        value={domain}
+                        onChange={(e) => setDomain(e.target.value)}
                         className="flex-1 border-0 rounded-none focus-visible:ring-0 placeholder:opacity-60 h-9 text-sm bg-white text-textPrimary"
                       />
                     </div>
