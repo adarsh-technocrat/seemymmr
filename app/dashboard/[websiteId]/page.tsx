@@ -9,7 +9,23 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, use, useEffect } from "react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { type DateRange } from "react-day-picker";
+import React, { useState, use, useEffect, useMemo } from "react";
 import { useRealtimeVisitors } from "@/hooks/use-realtime-visitors";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
@@ -24,6 +40,7 @@ import {
   setShowMentionsOnChart,
 } from "@/store/slices/uiSlice";
 import { fetchWebsiteById } from "@/store/slices/websitesSlice";
+import { fetchAnalytics } from "@/store/slices/analyticsSlice";
 import {
   BarChart,
   Bar,
@@ -84,11 +101,323 @@ export default function WebsiteAnalyticsPage({
     name: string;
     iconUrl?: string;
   } | null;
-  const analytics = useAnalytics(websiteId);
 
   // Local state for dialogs
   const [mentionDialogOpen, setMentionDialogOpen] = useState(false);
   const [selectedMentionData, setSelectedMentionData] = useState<any>(null);
+  const [periodOffset, setPeriodOffset] = useState(0); // Track navigation offset
+  const [customDateRange, setCustomDateRange] = useState<DateRange | undefined>(
+    {
+      from: undefined,
+      to: undefined,
+    }
+  );
+  const [customDatePickerOpen, setCustomDatePickerOpen] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  // Available period options
+  const periodOptions = [
+    "Today",
+    "Yesterday",
+    "Last 24 hours",
+    "Last 7 days",
+    "Last 30 days",
+    "Last 12 months",
+    "Week to date",
+    "Month to date",
+    "Year to date",
+    "All time",
+    "Custom",
+  ];
+
+  // Calculate the number of days for a period
+  const getPeriodDays = (period: string): number => {
+    switch (period) {
+      case "Today":
+        return 1;
+      case "Yesterday":
+        return 1;
+      case "Last 24 hours":
+        return 1;
+      case "Last 7 days":
+        return 7;
+      case "Last 30 days":
+        return 30;
+      case "Last 12 months":
+        return 365;
+      case "Week to date":
+        return 7; // Will be handled specially
+      case "Month to date":
+        return 30; // Will be handled specially
+      case "Year to date":
+        return 365; // Will be handled specially
+      case "All time":
+        return 0; // Special case
+      default:
+        return 30;
+    }
+  };
+
+  // Get date range based on period and offset
+  const getDateRangeForPeriod = (period: string, offset: number) => {
+    let endDate = new Date();
+    const periodDays = getPeriodDays(period);
+
+    // Adjust dates based on offset
+    if (
+      offset !== 0 &&
+      period !== "Week to date" &&
+      period !== "Month to date" &&
+      period !== "Year to date"
+    ) {
+      endDate.setDate(endDate.getDate() - offset * periodDays);
+    }
+
+    let startDate = new Date(endDate);
+
+    switch (period) {
+      case "Today":
+        if (offset > 0) {
+          endDate.setDate(endDate.getDate() - offset);
+          startDate = new Date(endDate);
+        }
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case "Yesterday":
+        if (offset > 0) {
+          endDate.setDate(endDate.getDate() - offset - 1);
+          startDate = new Date(endDate);
+        } else {
+          endDate.setDate(endDate.getDate() - 1);
+          startDate = new Date(endDate);
+        }
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case "Last 24 hours":
+        if (offset > 0) {
+          endDate.setTime(endDate.getTime() - offset * 24 * 60 * 60 * 1000);
+        }
+        startDate = new Date(endDate.getTime() - 24 * 60 * 60 * 1000);
+        break;
+      case "Last 7 days":
+        if (offset > 0) {
+          endDate.setDate(endDate.getDate() - offset * 7);
+        }
+        startDate.setDate(endDate.getDate() - 6);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case "Last 30 days":
+        if (offset > 0) {
+          endDate.setDate(endDate.getDate() - offset * 30);
+        }
+        startDate.setDate(endDate.getDate() - 29);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case "Last 12 months":
+        if (offset > 0) {
+          endDate.setMonth(endDate.getMonth() - offset * 12);
+        }
+        startDate = new Date(endDate);
+        startDate.setMonth(startDate.getMonth() - 12);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+        break;
+      case "Week to date":
+        // Start of current week (Sunday) to now
+        if (offset > 0) {
+          endDate.setDate(endDate.getDate() - offset * 7);
+        }
+        const dayOfWeek = endDate.getDay();
+        startDate = new Date(endDate);
+        startDate.setDate(endDate.getDate() - dayOfWeek);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case "Month to date":
+        // Start of current month to now
+        if (offset > 0) {
+          endDate.setMonth(endDate.getMonth() - offset);
+        }
+        startDate = new Date(endDate);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case "Year to date":
+        // Start of current year to now
+        if (offset > 0) {
+          endDate.setFullYear(endDate.getFullYear() - offset);
+        }
+        startDate = new Date(endDate);
+        startDate.setMonth(0);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case "All time":
+        startDate = new Date(0); // Beginning of time
+        if (offset > 0) {
+          // For "All time", offset doesn't make sense, but we'll handle it
+          endDate = new Date(Date.now() - offset * 365 * 24 * 60 * 60 * 1000);
+        }
+        break;
+      default:
+        if (offset > 0) {
+          endDate.setDate(endDate.getDate() - offset * periodDays);
+        }
+        startDate.setDate(endDate.getDate() - periodDays + 1);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+    }
+
+    return { startDate, endDate };
+  };
+
+  // Handle period navigation
+  const handlePreviousPeriod = () => {
+    // If custom date range is selected, shift the entire range
+    if (
+      ui.selectedPeriod === "Custom" &&
+      customDateRange?.from &&
+      customDateRange?.to
+    ) {
+      const diffInMs =
+        customDateRange.to.getTime() - customDateRange.from.getTime();
+      const newFrom = new Date(customDateRange.from.getTime() - diffInMs);
+      const newTo = new Date(customDateRange.to.getTime() - diffInMs);
+      setCustomDateRange({ from: newFrom, to: newTo });
+    } else {
+      setPeriodOffset((prev) => prev + 1);
+    }
+  };
+
+  const handleNextPeriod = () => {
+    // If custom date range is selected, shift the entire range
+    if (
+      ui.selectedPeriod === "Custom" &&
+      customDateRange?.from &&
+      customDateRange?.to
+    ) {
+      const diffInMs =
+        customDateRange.to.getTime() - customDateRange.from.getTime();
+      const newFrom = new Date(customDateRange.from.getTime() + diffInMs);
+      const newTo = new Date(customDateRange.to.getTime() + diffInMs);
+      setCustomDateRange({ from: newFrom, to: newTo });
+    } else {
+      setPeriodOffset((prev) => Math.max(0, prev - 1));
+    }
+  };
+
+  const handlePeriodSelect = (period: string) => {
+    if (period === "Custom") {
+      setCustomDatePickerOpen(true);
+      return;
+    }
+    dispatch(setSelectedPeriod(period));
+    setPeriodOffset(0); // Reset offset when changing period type
+    setCustomDateRange({ from: undefined, to: undefined });
+  };
+
+  const handleCustomDateSelect = (range: DateRange | undefined) => {
+    setCustomDateRange(range);
+  };
+
+  const handleApplyCustomDate = () => {
+    if (customDateRange?.from && customDateRange?.to) {
+      dispatch(setSelectedPeriod("Custom"));
+      setPeriodOffset(0);
+      setCustomDatePickerOpen(false);
+    }
+  };
+
+  const handleClearCustomDate = () => {
+    setCustomDateRange(undefined);
+    dispatch(setSelectedPeriod("Last 30 days"));
+    setPeriodOffset(0);
+    setCustomDatePickerOpen(false);
+  };
+
+  // Helper function to format date for input field (YYYY-MM-DD)
+  const formatDateForInput = (date: Date | undefined): string => {
+    if (!date) return "";
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  // Helper function to format date for display (e.g., "Dec 4, 2024")
+  const formatDateForDisplay = (date: Date | undefined): string => {
+    if (!date) return "";
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateValue = e.target.value;
+    if (!dateValue) {
+      setCustomDateRange((prev) => ({
+        from: undefined,
+        to: prev?.to,
+      }));
+      return;
+    }
+    // Parse the date string and create a date at local midnight
+    const [year, month, day] = dateValue.split("-").map(Number);
+    const date = new Date(year, month - 1, day, 0, 0, 0, 0);
+    setCustomDateRange((prev) => ({
+      from: date,
+      to: prev?.to,
+    }));
+  };
+
+  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const dateValue = e.target.value;
+    if (!dateValue) {
+      setCustomDateRange((prev) => ({
+        from: prev?.from,
+        to: undefined,
+      }));
+      return;
+    }
+    // Parse the date string and create a date at local end of day
+    const [year, month, day] = dateValue.split("-").map(Number);
+    const date = new Date(year, month - 1, day, 23, 59, 59, 999);
+    setCustomDateRange((prev) => ({
+      from: prev?.from,
+      to: date,
+    }));
+  };
+
+  // Calculate current date range with offset
+  const currentDateRange = useMemo(() => {
+    // If custom date range is selected, use it
+    if (
+      ui.selectedPeriod === "Custom" &&
+      customDateRange?.from &&
+      customDateRange?.to
+    ) {
+      return {
+        startDate: customDateRange.from,
+        endDate: customDateRange.to,
+      };
+    }
+    return getDateRangeForPeriod(ui.selectedPeriod, periodOffset);
+  }, [ui.selectedPeriod, periodOffset, customDateRange]);
+
+  // Check if we can go to next period (only if offset > 0)
+  const canGoNext = periodOffset > 0;
+
+  // Use analytics hook with custom date range support (after currentDateRange is defined)
+  const analytics = useAnalytics(websiteId, {
+    customDateRange: currentDateRange,
+    disableAutoFetch: true, // We'll handle fetching manually with offset support
+  });
 
   // Real-time visitors hook
   const { visitorsNow: realtimeVisitorsNow, isConnected } =
@@ -100,6 +429,33 @@ export default function WebsiteAnalyticsPage({
       dispatch(fetchWebsiteById(websiteId));
     }
   }, [websiteId, dispatch]);
+
+  // Fetch analytics when period offset changes (useAnalytics only responds to selectedPeriod)
+  useEffect(() => {
+    if (!websiteId) return;
+
+    const { startDate, endDate } = currentDateRange;
+    const granularity = ui.selectedGranularity.toLowerCase() as
+      | "hourly"
+      | "daily"
+      | "weekly"
+      | "monthly";
+
+    dispatch(
+      fetchAnalytics({
+        websiteId,
+        startDate,
+        endDate,
+        granularity,
+      })
+    );
+  }, [
+    websiteId,
+    periodOffset,
+    dispatch,
+    currentDateRange,
+    ui.selectedGranularity,
+  ]);
 
   // Get chart data from Redux - use empty array if no data
   const chartData = analytics.chartData || [];
@@ -283,6 +639,7 @@ export default function WebsiteAnalyticsPage({
             <div className="relative">
               <div className="join-divider relative z-10 border border-borderColor bg-white rounded-md overflow-hidden">
                 <button
+                  onClick={handlePreviousPeriod}
                   className="btn btn-square btn-ghost join-item btn-sm h-8 w-8 p-0 border-0 bg-transparent text-textPrimary hover:bg-gray-50 flex items-center justify-center"
                   aria-label="Previous period"
                 >
@@ -301,26 +658,190 @@ export default function WebsiteAnalyticsPage({
                     <path d="m15 18-6-6 6-6"></path>
                   </svg>
                 </button>
-                <button className="btn join-item btn-sm h-8 inline-flex flex-nowrap items-center gap-2 whitespace-nowrap border-0 border-l border-borderColor bg-transparent text-textPrimary hover:bg-gray-50 px-3">
-                  <h3 className="text-base font-normal">{ui.selectedPeriod}</h3>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-chevron-down size-3.5 shrink-0 opacity-30 duration-200"
+                <Popover
+                  open={customDatePickerOpen}
+                  onOpenChange={setCustomDatePickerOpen}
+                >
+                  <DropdownMenu
+                    open={dropdownOpen}
+                    onOpenChange={setDropdownOpen}
                   >
-                    <path d="m6 9 6 6 6-6"></path>
-                  </svg>
-                </button>
+                    <PopoverTrigger asChild>
+                      <DropdownMenuTrigger asChild>
+                        <button className="btn join-item btn-sm h-8 inline-flex flex-nowrap items-center gap-2 whitespace-nowrap border-0 border-l border-borderColor bg-transparent text-textPrimary hover:bg-gray-50 px-3">
+                          <h3 className="text-base font-normal">
+                            {ui.selectedPeriod === "Custom" &&
+                            customDateRange?.from &&
+                            customDateRange?.to
+                              ? `${formatDateForDisplay(
+                                  customDateRange.from
+                                )} → ${formatDateForDisplay(
+                                  customDateRange.to
+                                )}`
+                              : periodOffset > 0
+                              ? `${ui.selectedPeriod} (${periodOffset} ago)`
+                              : ui.selectedPeriod}
+                          </h3>
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            width="24"
+                            height="24"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="lucide lucide-chevron-down size-3.5 shrink-0 opacity-30 duration-200"
+                          >
+                            <path d="m6 9 6 6 6-6"></path>
+                          </svg>
+                        </button>
+                      </DropdownMenuTrigger>
+                    </PopoverTrigger>
+                    <DropdownMenuContent align="start" className="w-56">
+                      {/* Current time display */}
+                      <div className="px-2 py-1.5 text-xs text-muted-foreground border-b">
+                        Current time:{" "}
+                        {new Date().toLocaleTimeString("en-US", {
+                          hour: "numeric",
+                          minute: "2-digit",
+                          hour12: true,
+                        })}
+                      </div>
+                      {periodOptions.map((period, index) => (
+                        <React.Fragment key={period}>
+                          {period === "Custom" && <DropdownMenuSeparator />}
+                          {period === "Custom" ? (
+                            <DropdownMenuItem
+                              onSelect={(e) => {
+                                e.preventDefault();
+                                setDropdownOpen(false);
+                                // Use requestAnimationFrame to ensure dropdown closes before popover opens
+                                requestAnimationFrame(() => {
+                                  setTimeout(() => {
+                                    setCustomDatePickerOpen(true);
+                                  }, 50);
+                                });
+                              }}
+                              className={
+                                ui.selectedPeriod === period ? "bg-accent" : ""
+                              }
+                            >
+                              <div className="flex items-center justify-between w-full">
+                                <span>Custom</span>
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  className="ml-2"
+                                >
+                                  <rect
+                                    width="18"
+                                    height="18"
+                                    x="3"
+                                    y="4"
+                                    rx="2"
+                                    ry="2"
+                                  />
+                                  <line x1="16" x2="16" y1="2" y2="6" />
+                                  <line x1="8" x2="8" y1="2" y2="6" />
+                                  <line x1="3" x2="21" y1="10" y2="10" />
+                                </svg>
+                              </div>
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() => {
+                                handlePeriodSelect(period);
+                                setDropdownOpen(false);
+                              }}
+                              className={
+                                ui.selectedPeriod === period ? "bg-accent" : ""
+                              }
+                            >
+                              {period}
+                            </DropdownMenuItem>
+                          )}
+                        </React.Fragment>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <PopoverContent
+                    className="w-auto p-0"
+                    align="start"
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                  >
+                    <div className="w-full rounded-lg bg-base-100 p-4 shadow-xl ring-1 ring-base-content ring-opacity-5">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={handleCustomDateSelect}
+                        numberOfMonths={2}
+                        defaultMonth={customDateRange?.from || new Date()}
+                        className="w-full"
+                      />
+                      <div className="mt-4 flex items-end justify-between lg:items-center">
+                        <div className="flex flex-col items-center gap-3 text-sm lg:flex-row lg:gap-10">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">Start</span>
+                            <Input
+                              type="date"
+                              placeholder="YYYY-MM-DD"
+                              value={formatDateForInput(customDateRange?.from)}
+                              onChange={handleStartDateChange}
+                              className="input input-sm w-32 border-base-content/10 placeholder:opacity-60 h-9"
+                            />
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm">End</span>
+                            <Input
+                              type="date"
+                              placeholder="YYYY-MM-DD"
+                              value={formatDateForInput(customDateRange?.to)}
+                              onChange={handleEndDateChange}
+                              className="input input-sm w-32 border-base-content/10 placeholder:opacity-60 h-9"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 lg:gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={handleClearCustomDate}
+                            className="btn btn-ghost btn-sm h-9"
+                          >
+                            Clear
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={handleApplyCustomDate}
+                            disabled={
+                              !customDateRange?.from || !customDateRange?.to
+                            }
+                            className="btn btn-primary btn-sm h-9"
+                          >
+                            Apply
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
                 <button
-                  disabled
-                  className="btn btn-square btn-ghost join-item btn-sm h-8 w-8 p-0 border-0 border-l border-borderColor bg-transparent text-textSecondary opacity-30 cursor-not-allowed flex items-center justify-center"
+                  onClick={handleNextPeriod}
+                  disabled={!canGoNext}
+                  className={`btn btn-square btn-ghost join-item btn-sm h-8 w-8 p-0 border-0 border-l border-borderColor bg-transparent flex items-center justify-center ${
+                    canGoNext
+                      ? "text-textPrimary hover:bg-gray-50"
+                      : "text-textSecondary opacity-30 cursor-not-allowed"
+                  }`}
                   aria-label="Next period"
                 >
                   <svg
