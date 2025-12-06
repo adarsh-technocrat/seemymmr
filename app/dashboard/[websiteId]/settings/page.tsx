@@ -15,6 +15,7 @@ import { GeneralSettings } from "@/components/dashboard/GeneralSettings";
 import { RevenueSettings } from "@/components/dashboard/RevenueSettings";
 import { TeamSettings } from "@/components/dashboard/TeamSettings";
 import { SecuritySettings } from "@/components/dashboard/SecuritySettings";
+import { ExclusionsSettings } from "@/components/dashboard/ExclusionsSettings";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "⚙️" },
@@ -59,6 +60,10 @@ export default function SettingsPage({
         threshold?: number;
         activatedAt?: Date;
       };
+      excludeIps?: string[];
+      excludePaths?: string[];
+      excludeHostnames?: string[];
+      excludeCountries?: string[];
     };
   } | null;
 
@@ -157,10 +162,19 @@ export default function SettingsPage({
             />
           )}
 
+          {activeTab === "exclusions" && (
+            <ExclusionsSettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
           {activeTab !== "general" &&
             activeTab !== "revenue" &&
             activeTab !== "team" &&
-            activeTab !== "security" && (
+            activeTab !== "security" &&
+            activeTab !== "exclusions" && (
               <section className="space-y-4">
                 <Card className="custom-card">
                   <CardHeader>
