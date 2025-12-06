@@ -17,6 +17,7 @@ import { TeamSettings } from "@/components/dashboard/TeamSettings";
 import { SecuritySettings } from "@/components/dashboard/SecuritySettings";
 import { ExclusionsSettings } from "@/components/dashboard/ExclusionsSettings";
 import { APISettings } from "@/components/dashboard/APISettings";
+import { IntegrationsSettings } from "@/components/dashboard/IntegrationsSettings";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "⚙️" },
@@ -65,6 +66,20 @@ export default function SettingsPage({
       excludePaths?: string[];
       excludeHostnames?: string[];
       excludeCountries?: string[];
+    };
+    integrations?: {
+      googleSearchConsole?: {
+        enabled: boolean;
+        propertyUrl?: string;
+      };
+      github?: {
+        enabled: boolean;
+        repositories?: Array<{ owner: string; name: string }>;
+      };
+      twitter?: {
+        enabled: boolean;
+        username?: string;
+      };
     };
   } | null;
 
@@ -179,12 +194,21 @@ export default function SettingsPage({
             />
           )}
 
+          {activeTab === "integrations" && (
+            <IntegrationsSettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
           {activeTab !== "general" &&
             activeTab !== "revenue" &&
             activeTab !== "team" &&
             activeTab !== "security" &&
             activeTab !== "exclusions" &&
-            activeTab !== "api" && (
+            activeTab !== "api" &&
+            activeTab !== "integrations" && (
               <section className="space-y-4">
                 <Card className="custom-card">
                   <CardHeader>
