@@ -23,20 +23,22 @@ export async function GET(
 
     await connectDB();
 
-    // Verify user owns this website or is a team member
-    const website = await Website.findOne({
-      _id: websiteId,
-      userId: session.user.id,
-    });
+    // Get website first to check access and get owner info
+    const website = await Website.findById(websiteId);
+    if (!website) {
+      return NextResponse.json({ error: "Website not found" }, { status: 404 });
+    }
 
+    // Verify user owns this website or is a team member
+    const isOwner = website.userId.toString() === session.user.id;
     const isTeamMember = await TeamMember.findOne({
       websiteId,
       userId: session.user.id,
       status: "accepted",
     });
 
-    if (!website && !isTeamMember) {
-      return NextResponse.json({ error: "Website not found" }, { status: 404 });
+    if (!isOwner && !isTeamMember) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
     const teamMembers = await TeamMember.find({ websiteId })
@@ -44,7 +46,22 @@ export async function GET(
       .populate("invitedBy", "email name")
       .sort({ createdAt: -1 });
 
-    return NextResponse.json({ teamMembers });
+    // Get owner information
+    const owner = await User.findById(website.userId).select(
+      "email name avatarUrl"
+    );
+
+    return NextResponse.json({
+      teamMembers,
+      owner: owner
+        ? {
+            _id: owner._id.toString(),
+            email: owner.email,
+            name: owner.name,
+            avatarUrl: owner.avatarUrl,
+          }
+        : null,
+    });
   } catch (error: any) {
     console.error("Error fetching team members:", error);
     return NextResponse.json(

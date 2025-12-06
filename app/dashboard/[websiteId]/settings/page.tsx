@@ -7,13 +7,14 @@ import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchWebsiteById } from "@/store/slices/websitesSlice";
 import {
   Card,
-  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
 import { GeneralSettings } from "@/components/dashboard/GeneralSettings";
 import { RevenueSettings } from "@/components/dashboard/RevenueSettings";
+import { TeamSettings } from "@/components/dashboard/TeamSettings";
+import { SecuritySettings } from "@/components/dashboard/SecuritySettings";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "⚙️" },
@@ -40,6 +41,7 @@ export default function SettingsPage({
     _id: string;
     domain: string;
     name: string;
+    userId: string;
     iconUrl?: string;
     trackingCode?: string;
     settings?: {
@@ -50,6 +52,12 @@ export default function SettingsPage({
       publicDashboard?: {
         enabled: boolean;
         shareId?: string;
+      };
+      attackMode?: {
+        enabled: boolean;
+        autoActivate: boolean;
+        threshold?: number;
+        activatedAt?: Date;
       };
     };
   } | null;
@@ -133,21 +141,40 @@ export default function SettingsPage({
             />
           )}
 
-          {activeTab !== "general" && activeTab !== "revenue" && (
-            <section className="space-y-4">
-              <Card className="custom-card">
-                <CardHeader>
-                  <CardTitle>
-                    {SETTINGS_TABS.find((t) => t.id === activeTab)?.label}
-                  </CardTitle>
-                  <CardDescription>
-                    This section is coming soon. Check back later for more
-                    features.
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </section>
+          {activeTab === "team" && (
+            <TeamSettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
           )}
+
+          {activeTab === "security" && (
+            <SecuritySettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
+          {activeTab !== "general" &&
+            activeTab !== "revenue" &&
+            activeTab !== "team" &&
+            activeTab !== "security" && (
+              <section className="space-y-4">
+                <Card className="custom-card">
+                  <CardHeader>
+                    <CardTitle>
+                      {SETTINGS_TABS.find((t) => t.id === activeTab)?.label}
+                    </CardTitle>
+                    <CardDescription>
+                      This section is coming soon. Check back later for more
+                      features.
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
+              </section>
+            )}
         </main>
       </div>
     </main>
