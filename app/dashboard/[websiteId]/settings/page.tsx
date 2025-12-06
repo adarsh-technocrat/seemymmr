@@ -16,6 +16,7 @@ import { RevenueSettings } from "@/components/dashboard/RevenueSettings";
 import { TeamSettings } from "@/components/dashboard/TeamSettings";
 import { SecuritySettings } from "@/components/dashboard/SecuritySettings";
 import { ExclusionsSettings } from "@/components/dashboard/ExclusionsSettings";
+import { APISettings } from "@/components/dashboard/APISettings";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "⚙️" },
@@ -170,11 +171,20 @@ export default function SettingsPage({
             />
           )}
 
+          {activeTab === "api" && (
+            <APISettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
           {activeTab !== "general" &&
             activeTab !== "revenue" &&
             activeTab !== "team" &&
             activeTab !== "security" &&
-            activeTab !== "exclusions" && (
+            activeTab !== "exclusions" &&
+            activeTab !== "api" && (
               <section className="space-y-4">
                 <Card className="custom-card">
                   <CardHeader>
