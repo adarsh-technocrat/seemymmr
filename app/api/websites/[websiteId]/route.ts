@@ -5,6 +5,7 @@ import {
   deleteWebsite,
 } from "@/utils/database/website";
 import { getUserId } from "@/lib/get-session";
+import { isValidObjectId } from "@/utils/validation";
 
 export async function GET(
   request: NextRequest,
@@ -12,6 +13,13 @@ export async function GET(
 ) {
   try {
     const { websiteId } = await params;
+    if (!isValidObjectId(websiteId)) {
+      return NextResponse.json(
+        { error: "Invalid website ID" },
+        { status: 400 }
+      );
+    }
+
     const website = await getWebsiteById(websiteId);
 
     if (!website) {
@@ -39,6 +47,15 @@ export async function PUT(
 ) {
   try {
     const { websiteId } = await params;
+
+    // Validate ObjectId format
+    if (!isValidObjectId(websiteId)) {
+      return NextResponse.json(
+        { error: "Invalid website ID" },
+        { status: 400 }
+      );
+    }
+
     const userId = await getUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -81,6 +98,13 @@ export async function DELETE(
 ) {
   try {
     const { websiteId } = await params;
+    if (!isValidObjectId(websiteId)) {
+      return NextResponse.json(
+        { error: "Invalid website ID" },
+        { status: 400 }
+      );
+    }
+
     const userId = await getUserId();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

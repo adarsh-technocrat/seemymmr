@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   ComposedChart,
 } from "recharts";
+import NumberFlow from "@number-flow/react";
 
 interface ChartDataPoint {
   date: string;
@@ -66,7 +67,10 @@ export function Chart({
             <div className="flex items-center justify-between">
               <span className="text-textSecondary">Visitors</span>
               <span className="font-semibold text-textPrimary">
-                {data.visitors.toLocaleString()}
+                <NumberFlow
+                  value={data.visitors}
+                  format={{ notation: "standard" }}
+                />
               </span>
             </div>
             <div className="border-t border-gray-100 pt-2 mt-2">
@@ -75,7 +79,14 @@ export function Chart({
                   Revenue
                 </span>
                 <span className="font-semibold text-textPrimary">
-                  ${data.revenue.toLocaleString()}
+                  <NumberFlow
+                    value={data.revenue}
+                    format={{
+                      style: "currency",
+                      currency: "USD",
+                      notation: "standard",
+                    }}
+                  />
                 </span>
               </div>
               {data.revenueRefund && data.revenueRefund > 0 && (
@@ -97,7 +108,14 @@ export function Chart({
                     <span className="text-textSecondary">Refunds</span>
                   </div>
                   <span className="font-medium text-textPrimary">
-                    ${data.revenueRefund.toLocaleString()}
+                    <NumberFlow
+                      value={data.revenueRefund}
+                      format={{
+                        style: "currency",
+                        currency: "USD",
+                        notation: "standard",
+                      }}
+                    />
                   </span>
                 </div>
               )}
@@ -112,7 +130,14 @@ export function Chart({
                   <span className="text-textSecondary">New</span>
                 </div>
                 <span className="font-medium text-textPrimary">
-                  ${(data.revenueNew || data.revenue).toLocaleString()}
+                  <NumberFlow
+                    value={data.revenueNew || data.revenue}
+                    format={{
+                      style: "currency",
+                      currency: "USD",
+                      notation: "standard",
+                    }}
+                  />
                 </span>
               </div>
             </div>
@@ -120,7 +145,15 @@ export function Chart({
               <div className="flex items-center justify-between pt-2 border-t border-gray-100">
                 <span className="text-textSecondary">Revenue/visitor</span>
                 <span className="font-semibold text-textPrimary">
-                  ${data.revenuePerVisitor.toFixed(2)}
+                  <NumberFlow
+                    value={data.revenuePerVisitor}
+                    format={{
+                      style: "currency",
+                      currency: "USD",
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }}
+                  />
                 </span>
               </div>
             )}
@@ -128,7 +161,14 @@ export function Chart({
               <div className="flex items-center justify-between">
                 <span className="text-textSecondary">Conversion rate</span>
                 <span className="font-semibold text-textPrimary">
-                  {(data.conversionRate * 100).toFixed(2)}%
+                  <NumberFlow
+                    value={data.conversionRate * 100}
+                    format={{
+                      style: "percent",
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    }}
+                  />
                 </span>
               </div>
             )}

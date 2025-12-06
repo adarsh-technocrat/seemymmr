@@ -10,6 +10,7 @@ import {
   Area,
   AreaChart,
 } from "recharts";
+import NumberFlow from "@number-flow/react";
 
 interface WebsiteCardProps {
   website: {
@@ -152,7 +153,10 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <div className="flex items-center justify-start gap-2">
                 <p className="text-textSecondary text-sm">
                   <span className="font-semibold text-textPrimary">
-                    {totalVisitors.toLocaleString()}
+                    <NumberFlow
+                      value={totalVisitors}
+                      format={{ notation: "standard" }}
+                    />
                   </span>{" "}
                   <span>visitors</span>
                 </p>

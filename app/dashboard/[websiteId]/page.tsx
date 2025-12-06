@@ -44,6 +44,14 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "@/components/ui/empty";
+import NumberFlow from "@number-flow/react";
+import {
+  parseFormattedNumber,
+  isPercentage,
+  isCurrency,
+} from "@/utils/number-utils";
+import { isValidObjectId } from "@/utils/validation";
+import { useRouter } from "next/navigation";
 
 export default function WebsiteAnalyticsPage({
   params,
@@ -51,9 +59,15 @@ export default function WebsiteAnalyticsPage({
   params: Promise<{ websiteId: string }>;
 }) {
   const { websiteId } = use(params);
+  const router = useRouter();
   const dispatch = useAppDispatch();
 
-  // Redux state
+  useEffect(() => {
+    if (!isValidObjectId(websiteId)) {
+      router.push("/dashboard");
+    }
+  }, [websiteId, router]);
+
   const ui = useAppSelector((state) => state.ui) as {
     selectedPeriod: string;
     selectedGranularity: "Hourly" | "Daily" | "Weekly" | "Monthly";
@@ -398,7 +412,12 @@ export default function WebsiteAnalyticsPage({
                         </div>
                         <div className="flex flex-col items-start">
                           <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-                            {metricsData.visitors.value}
+                            <NumberFlow
+                              value={parseFormattedNumber(
+                                metricsData.visitors.value
+                              )}
+                              format={{ notation: "compact" }}
+                            />
                           </div>
                           <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
                             <span className="text-textSecondary text-xs opacity-80">
@@ -446,7 +465,17 @@ export default function WebsiteAnalyticsPage({
                         </div>
                         <div className="flex flex-col items-start">
                           <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-                            {metricsData.revenue.value}
+                            <NumberFlow
+                              value={parseFormattedNumber(
+                                metricsData.revenue.value
+                              )}
+                              format={{
+                                style: "currency",
+                                currency: "USD",
+                                notation: "compact",
+                                trailingZeroDisplay: "stripIfInteger",
+                              }}
+                            />
                           </div>
                           <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
                             <span className="text-textSecondary text-xs opacity-80">
@@ -480,7 +509,16 @@ export default function WebsiteAnalyticsPage({
                         </div>
                         <div className="flex flex-col items-start">
                           <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-                            {metricsData.conversionRate.value}
+                            <NumberFlow
+                              value={parseFormattedNumber(
+                                metricsData.conversionRate.value
+                              )}
+                              format={{
+                                style: "percent",
+                                minimumFractionDigits: 1,
+                                maximumFractionDigits: 2,
+                              }}
+                            />
                           </div>
                           <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
                             <span className="text-textSecondary text-xs opacity-80">
@@ -515,7 +553,17 @@ export default function WebsiteAnalyticsPage({
                         <div className="flex flex-col items-start">
                           <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
                             <div className="flex items-baseline gap-2">
-                              <span>{metricsData.revenuePerVisitor.value}</span>
+                              <NumberFlow
+                                value={parseFormattedNumber(
+                                  metricsData.revenuePerVisitor.value
+                                )}
+                                format={{
+                                  style: "currency",
+                                  currency: "USD",
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                }}
+                              />
                             </div>
                           </div>
                           <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
@@ -550,7 +598,15 @@ export default function WebsiteAnalyticsPage({
                         </div>
                         <div className="flex flex-col items-start">
                           <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-                            {metricsData.bounceRate.value}
+                            <NumberFlow
+                              value={parseFormattedNumber(
+                                metricsData.bounceRate.value
+                              )}
+                              format={{
+                                style: "percent",
+                                maximumFractionDigits: 0,
+                              }}
+                            />
                           </div>
                           <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
                             <span className="text-textSecondary text-xs opacity-80">
@@ -633,12 +689,18 @@ export default function WebsiteAnalyticsPage({
                         <div className="relative flex flex-col items-start overflow-hidden">
                           <div className="absolute w-full animate-dropIn transition-transform duration-100 ease-in-out">
                             <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-                              {visitorsNow}
+                              <NumberFlow
+                                value={parseInt(visitorsNow) || 0}
+                                format={{ notation: "standard" }}
+                              />
                             </div>
                           </div>
                           <div className="opacity-0">
                             <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-                              {visitorsNow}
+                              <NumberFlow
+                                value={parseInt(visitorsNow) || 0}
+                                format={{ notation: "standard" }}
+                              />
                             </div>
                           </div>
                         </div>
