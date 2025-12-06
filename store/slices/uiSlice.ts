@@ -12,7 +12,7 @@ export interface UIState {
 }
 
 const initialState: UIState = {
-  selectedPeriod: "Last 30 days",
+  selectedPeriod: "Today",
   selectedGranularity: "Daily",
   selectedSourceTab: "Channel",
   selectedPathTab: "Page",

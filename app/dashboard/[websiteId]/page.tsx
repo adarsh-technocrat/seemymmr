@@ -114,6 +114,7 @@ export default function WebsiteAnalyticsPage({
   );
   const [customDatePickerOpen, setCustomDatePickerOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [granularityDropdownOpen, setGranularityDropdownOpen] = useState(false);
 
   // Available period options
   const periodOptions = [
@@ -412,6 +413,82 @@ export default function WebsiteAnalyticsPage({
 
   // Check if we can go to next period (only if offset > 0)
   const canGoNext = periodOffset > 0;
+
+  // Get available granularity options based on selected period
+  const getAvailableGranularities = (): Array<
+    "Hourly" | "Daily" | "Weekly" | "Monthly"
+  > => {
+    const period = ui.selectedPeriod;
+    const daysDiff = currentDateRange
+      ? Math.ceil(
+          (currentDateRange.endDate.getTime() -
+            currentDateRange.startDate.getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
+      : 0;
+
+    // For single day or 24-hour periods: Only Hourly (Daily doesn't make sense)
+    if (
+      period === "Today" ||
+      period === "Yesterday" ||
+      period === "Last 24 hours"
+    ) {
+      return ["Hourly"];
+    }
+
+    // For very short periods (2 days): Hourly and Daily
+    if (daysDiff <= 2) {
+      return ["Hourly", "Daily"];
+    }
+
+    // For short periods (3-7 days): Daily and Weekly
+    if (
+      period === "Last 7 days" ||
+      period === "Week to date" ||
+      (daysDiff > 2 && daysDiff <= 7)
+    ) {
+      return ["Daily", "Weekly"];
+    }
+
+    // For medium periods (8-90 days): Daily, Weekly, and Monthly
+    if (
+      period === "Last 30 days" ||
+      period === "Month to date" ||
+      (daysDiff > 7 && daysDiff <= 90)
+    ) {
+      return ["Daily", "Weekly", "Monthly"];
+    }
+
+    // For long periods (91+ days): Weekly and Monthly
+    if (
+      period === "Last 12 months" ||
+      period === "Year to date" ||
+      period === "All time" ||
+      daysDiff > 90
+    ) {
+      return ["Weekly", "Monthly"];
+    }
+
+    // Default fallback
+    return ["Daily", "Weekly", "Monthly"];
+  };
+
+  // Available granularity options based on current period
+  const availableGranularities = useMemo(
+    () => getAvailableGranularities(),
+    [ui.selectedPeriod, currentDateRange]
+  );
+
+  // Auto-adjust granularity if current selection is not available
+  useEffect(() => {
+    if (
+      availableGranularities.length > 0 &&
+      !availableGranularities.includes(ui.selectedGranularity)
+    ) {
+      // Set to the first available option (usually the most appropriate)
+      dispatch(setSelectedGranularity(availableGranularities[0]));
+    }
+  }, [availableGranularities, ui.selectedGranularity, dispatch]);
 
   // Use analytics hook with custom date range support (after currentDateRange is defined)
   const analytics = useAnalytics(websiteId, {
@@ -865,25 +942,50 @@ export default function WebsiteAnalyticsPage({
             {/* Granularity Selector */}
             <div className="hidden sm:block">
               <div className="relative h-8">
-                <button className="single-item-join-divider btn btn-sm h-8 inline-flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md px-3">
-                  <span className="text-base font-normal">
-                    {ui.selectedGranularity}
-                  </span>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-chevron-down size-3.5 shrink-0 opacity-30 duration-200"
-                  >
-                    <path d="m6 9 6 6 6-6"></path>
-                  </svg>
-                </button>
+                <DropdownMenu
+                  open={granularityDropdownOpen}
+                  onOpenChange={setGranularityDropdownOpen}
+                >
+                  <DropdownMenuTrigger asChild>
+                    <button className="single-item-join-divider btn btn-sm h-8 inline-flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md px-3">
+                      <span className="text-base font-normal">
+                        {ui.selectedGranularity}
+                      </span>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="24"
+                        height="24"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="lucide lucide-chevron-down size-3.5 shrink-0 opacity-30 duration-200"
+                      >
+                        <path d="m6 9 6 6 6-6"></path>
+                      </svg>
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-40">
+                    {availableGranularities.map((granularity) => (
+                      <DropdownMenuItem
+                        key={granularity}
+                        onClick={() => {
+                          dispatch(setSelectedGranularity(granularity));
+                          setGranularityDropdownOpen(false);
+                        }}
+                        className={
+                          ui.selectedGranularity === granularity
+                            ? "bg-accent"
+                            : ""
+                        }
+                      >
+                        {granularity}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             </div>
 
