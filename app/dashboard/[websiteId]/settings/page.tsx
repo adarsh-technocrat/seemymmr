@@ -18,6 +18,9 @@ import { SecuritySettings } from "@/components/dashboard/SecuritySettings";
 import { ExclusionsSettings } from "@/components/dashboard/ExclusionsSettings";
 import { APISettings } from "@/components/dashboard/APISettings";
 import { IntegrationsSettings } from "@/components/dashboard/IntegrationsSettings";
+import { ReportsSettings } from "@/components/dashboard/ReportsSettings";
+import { ImportSettings } from "@/components/dashboard/ImportSettings";
+import { WidgetsSettings } from "@/components/dashboard/WidgetsSettings";
 
 const SETTINGS_TABS = [
   { id: "general", label: "General", icon: "⚙️" },
@@ -202,13 +205,40 @@ export default function SettingsPage({
             />
           )}
 
+          {activeTab === "reports" && (
+            <ReportsSettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
+          {activeTab === "import" && (
+            <ImportSettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
+          {activeTab === "widgets" && (
+            <WidgetsSettings
+              website={website}
+              websiteId={websiteId}
+              onUpdate={handleUpdate}
+            />
+          )}
+
           {activeTab !== "general" &&
             activeTab !== "revenue" &&
             activeTab !== "team" &&
             activeTab !== "security" &&
             activeTab !== "exclusions" &&
             activeTab !== "api" &&
-            activeTab !== "integrations" && (
+            activeTab !== "integrations" &&
+            activeTab !== "reports" &&
+            activeTab !== "import" &&
+            activeTab !== "widgets" && (
               <section className="space-y-4">
                 <Card className="custom-card">
                   <CardHeader>
