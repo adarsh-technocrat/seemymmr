@@ -38,6 +38,7 @@ import {
   setSelectedSystemTab,
   setSelectedGoalTab,
   setShowMentionsOnChart,
+  setShowRevenueOnChart,
 } from "@/store/slices/uiSlice";
 import { fetchWebsiteById } from "@/store/slices/websitesSlice";
 import { fetchAnalytics } from "@/store/slices/analyticsSlice";
@@ -94,6 +95,7 @@ export default function WebsiteAnalyticsPage({
     selectedSystemTab: "Browser" | "OS" | "Device";
     selectedGoalTab: "Goal" | "Funnel" | "Journey";
     showMentionsOnChart: boolean;
+    showRevenueOnChart: boolean;
   };
   const website = useAppSelector((state) => state.websites.currentWebsite) as {
     _id: string;
@@ -1073,7 +1075,10 @@ export default function WebsiteAnalyticsPage({
                           <input
                             className="checkbox size-4 rounded"
                             type="checkbox"
-                            defaultChecked
+                            checked={ui.showRevenueOnChart}
+                            onChange={(e) =>
+                              dispatch(setShowRevenueOnChart(e.target.checked))
+                            }
                             style={
                               {
                                 "--chkbg": "#e78468",
@@ -1336,6 +1341,7 @@ export default function WebsiteAnalyticsPage({
                     <Chart
                       data={chartData}
                       showMentions={ui.showMentionsOnChart}
+                      showRevenue={ui.showRevenueOnChart}
                       onMentionClick={(data) => {
                         setSelectedMentionData(data);
                         setMentionDialogOpen(true);

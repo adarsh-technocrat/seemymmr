@@ -48,6 +48,8 @@ export async function GET(
       : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
     // Get all analytics data
+    // Note: All data comes from our database (source of truth)
+    // Revenue data is synced from Stripe when the key is added and kept up-to-date via webhooks
     const [
       visitors,
       revenue,
@@ -67,6 +69,7 @@ export async function GET(
       systemDevice,
     ] = await Promise.all([
       getVisitorsOverTime(websiteId, startDate, endDate, granularity),
+      // Revenue data from database - synced from Stripe API
       getRevenueOverTime(websiteId, startDate, endDate, granularity),
       getMetrics(websiteId, startDate, endDate),
       getVisitorsNow(websiteId),

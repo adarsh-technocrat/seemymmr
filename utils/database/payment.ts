@@ -20,6 +20,21 @@ export async function createPayment(data: {
   await connectDB();
 
   try {
+    // Check if payment already exists (upsert to prevent duplicates)
+    const existingPayment = await Payment.findOne({
+      provider: data.provider,
+      providerPaymentId: data.providerPaymentId,
+    });
+
+    if (existingPayment) {
+      // Update existing payment if needed
+      if (existingPayment.status !== data.status) {
+        existingPayment.status = data.status;
+        await existingPayment.save();
+      }
+      return existingPayment;
+    }
+
     // Try to link to visitor/session
     const link = await linkPaymentToVisitor(
       {

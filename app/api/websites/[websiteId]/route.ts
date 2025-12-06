@@ -8,6 +8,7 @@ import { getUserId } from "@/lib/get-session";
 import { isValidObjectId } from "@/utils/validation";
 import Stripe from "stripe";
 import { sanitizeWebsiteForFrontend } from "@/utils/database/website-sanitize";
+import { syncStripePayments } from "@/utils/integrations/stripe";
 
 export async function GET(
   request: NextRequest,
@@ -75,6 +76,12 @@ export async function PUT(
 
     const body = await request.json();
     const { name, domain, iconUrl, settings, paymentProviders } = body;
+
+    // Check if this is a new Stripe key being added
+    const isNewStripeKey =
+      paymentProviders?.stripe?.apiKey &&
+      website.paymentProviders?.stripe?.apiKey !==
+        paymentProviders.stripe.apiKey;
 
     if (paymentProviders?.stripe?.apiKey) {
       const apiKey = paymentProviders.stripe.apiKey.trim();
@@ -153,6 +160,20 @@ export async function PUT(
       settings,
       paymentProviders,
     });
+
+    // Auto-sync Stripe payments in the background when a new key is added
+    if (isNewStripeKey && paymentProviders?.stripe?.apiKey) {
+      // Run sync in background (don't await - let it run async)
+      syncStripePayments(websiteId, paymentProviders.stripe.apiKey).catch(
+        (error) => {
+          console.error(
+            `Background Stripe sync failed for website ${websiteId}:`,
+            error
+          );
+          // Don't throw - this is a background operation
+        }
+      );
+    }
 
     const sanitizedWebsite = sanitizeWebsiteForFrontend(updatedWebsite);
 

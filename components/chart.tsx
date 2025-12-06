@@ -35,6 +35,7 @@ interface ChartProps {
   data: ChartDataPoint[];
   avatarUrls?: string[];
   showMentions?: boolean;
+  showRevenue?: boolean;
   onMentionClick?: (data: ChartDataPoint) => void;
   height?: string;
 }
@@ -43,6 +44,7 @@ export function Chart({
   data,
   avatarUrls = [],
   showMentions = true,
+  showRevenue = true,
   onMentionClick,
   height = "h-72 md:h-96",
 }: ChartProps) {
@@ -285,26 +287,28 @@ export function Chart({
             tickMargin={8}
             domain={[0, "dataMax"]}
           />
-          <YAxis
-            yAxisId="right"
-            orientation="right"
-            stroke="#9ca3af"
-            className="stroke-neutral-200 dark:stroke-neutral-600!"
-            tick={{
-              fill: "hsl(var(--muted-foreground))",
-              fontSize: 11,
-              className: "text-xs fill-textSecondary opacity-80",
-            }}
-            style={{
-              fontSize: "11px",
-            }}
-            tickFormatter={(value) => {
-              if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
-              return `$${value}`;
-            }}
-            tickMargin={8}
-            domain={[0, "dataMax"]}
-          />
+          {showRevenue && (
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              stroke="#9ca3af"
+              className="stroke-neutral-200 dark:stroke-neutral-600!"
+              tick={{
+                fill: "hsl(var(--muted-foreground))",
+                fontSize: 11,
+                className: "text-xs fill-textSecondary opacity-80",
+              }}
+              style={{
+                fontSize: "11px",
+              }}
+              tickFormatter={(value) => {
+                if (value >= 1000) return `$${(value / 1000).toFixed(1)}k`;
+                return `$${value}`;
+              }}
+              tickMargin={8}
+              domain={[0, "dataMax"]}
+            />
+          )}
           <Tooltip content={<CustomTooltip />} />
           <Area
             yAxisId="left"
@@ -315,13 +319,15 @@ export function Chart({
             fill="url(#visitorGradient)"
             fillOpacity={0.6}
           />
-          <Bar
-            yAxisId="right"
-            dataKey="revenue"
-            fill="#E16540"
-            radius={[4, 4, 0, 0]}
-            opacity={0.8}
-          />
+          {showRevenue && (
+            <Bar
+              yAxisId="right"
+              dataKey="revenue"
+              fill="#E16540"
+              radius={[4, 4, 0, 0]}
+              opacity={0.8}
+            />
+          )}
           <Line
             yAxisId="left"
             type="monotone"

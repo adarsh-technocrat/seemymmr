@@ -176,23 +176,27 @@ const analyticsSlice = createSlice({
           }
         });
 
-        // Process revenue data
         revenue.forEach((item: any) => {
           const date = item.date || item._id;
+          const revenueDollars = (item.revenue || 0) / 100;
+          const revenueNewDollars =
+            (item.revenueNew || item.revenue || 0) / 100;
+          const revenueRefundDollars = (item.revenueRefund || 0) / 100;
+
           if (!dateMap.has(date)) {
             dateMap.set(date, {
               date: formatDate(date),
               fullDate: formatFullDate(date),
               visitors: 0,
-              revenue: item.total || 0,
-              revenueNew: item.new || item.total || 0,
-              revenueRefund: item.refund || 0,
+              revenue: revenueDollars,
+              revenueNew: revenueNewDollars,
+              revenueRefund: revenueRefundDollars,
             });
           } else {
             const existing = dateMap.get(date)!;
-            existing.revenue = item.total || 0;
-            existing.revenueNew = item.new || item.total || 0;
-            existing.revenueRefund = item.refund || 0;
+            existing.revenue = revenueDollars;
+            existing.revenueNew = revenueNewDollars;
+            existing.revenueRefund = revenueRefundDollars;
           }
         });
 
@@ -201,7 +205,7 @@ const analyticsSlice = createSlice({
           .map((point) => ({
             ...point,
             revenuePerVisitor:
-              point.visitors > 0 ? point.revenue / point.visitors / 100 : 0,
+              point.visitors > 0 ? point.revenue / point.visitors : 0,
             conversionRate: 0, // Will be calculated if needed
           }))
           .sort((a, b) => {
