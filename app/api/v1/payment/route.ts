@@ -73,21 +73,27 @@ export async function POST(request: NextRequest) {
       timestamp: new Date(),
     });
 
-    await payment.save();
-
-    // Try to link payment to visitor if visitorId/sessionId provided
-    if (visitorId || sessionId) {
+    if (!visitorId && !sessionId) {
       try {
-        await linkPaymentToVisitor(payment._id.toString(), {
-          visitorId,
-          sessionId,
-          customerEmail,
-        });
+        const link = await linkPaymentToVisitor(
+          {
+            metadata,
+            customerEmail,
+            timestamp: payment.timestamp,
+          },
+          websiteId
+        );
+
+        if (link) {
+          if (link.visitorId) payment.visitorId = link.visitorId;
+          if (link.sessionId) payment.sessionId = link.sessionId;
+        }
       } catch (error) {
         console.error("Error linking payment to visitor:", error);
-        // Don't fail the request if linking fails
       }
     }
+
+    await payment.save();
 
     return NextResponse.json({
       status: "success",
@@ -110,4 +116,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
