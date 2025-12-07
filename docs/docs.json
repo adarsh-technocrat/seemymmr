@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "seeMoreThanMMR",
+  "name": "PostMetric",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -89,12 +89,12 @@
       "anchors": [
         {
           "anchor": "Dashboard",
-          "href": "https://dashboard.seemorethanmmr.com",
+          "href": "https://dashboard.postmetric.com",
           "icon": "chart-line"
         },
         {
           "anchor": "Support",
-          "href": "mailto:support@seemorethanmmr.com",
+          "href": "mailto:support@postmetric.com",
           "icon": "envelope"
         }
       ]
@@ -108,13 +108,13 @@
     "links": [
       {
         "label": "Support",
-        "href": "mailto:support@seemorethanmmr.com"
+        "href": "mailto:support@postmetric.com"
       }
     ],
     "primary": {
       "type": "button",
       "label": "Dashboard",
-      "href": "https://dashboard.seemorethanmmr.com"
+      "href": "https://dashboard.postmetric.com"
     }
   },
   "contextual": {
@@ -131,8 +131,8 @@
   },
   "footer": {
     "socials": {
-      "x": "https://x.com/seemorethanmmr",
-      "github": "https://github.com/seemorethanmmr"
+      "x": "https://x.com/postmetric",
+      "github": "https://github.com/postmetric"
     }
   }
 }

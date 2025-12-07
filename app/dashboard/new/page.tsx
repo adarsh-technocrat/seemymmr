@@ -213,12 +213,12 @@ export default function AddSitePage() {
         <div className="text-center text-xs text-textSecondary max-md:hidden">
           <span className="opacity-60">Need help? Email</span>{" "}
           <a
-            href="mailto:support@seemorethanmmr.com?subject=Need help with seeMoreThanMMR installation"
+            href="mailto:support@postmetric.com?subject=Need help with PostMetric installation"
             target="_blank"
             className="text-primary opacity-60 duration-100 hover:opacity-100"
             rel="noopener noreferrer"
           >
-            support@seemorethanmmr.com
+            support@postmetric.com
           </a>
         </div>
       </div>

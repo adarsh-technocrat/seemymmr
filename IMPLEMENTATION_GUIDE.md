@@ -415,7 +415,7 @@ datafast("track", "goal", {
 Create `.env.local`:
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/seemymmr
+MONGODB_URI=mongodb://localhost:27017/postmetric
 NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-here
 

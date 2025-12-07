@@ -1,9 +1,9 @@
 ---
 title: "Shopify"
-description: "Add seeMoreThanMMR to your Shopify store"
+description: "Add PostMetric to your Shopify store"
 ---
 
-Add seeMoreThanMMR to your Shopify store in minutes.
+Add PostMetric to your Shopify store in minutes.
 
 ## Installation
 
@@ -24,7 +24,7 @@ Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
 ### Step 2: Verify installation
 
 1. Visit your Shopify store
-2. Check your seeMoreThanMMR dashboard - you should see your visit
+2. Check your PostMetric dashboard - you should see your visit
 
 ## Track purchases
 
@@ -33,7 +33,7 @@ Track purchases on the thank you page. Add this to `checkout.liquid` or use the 
 ```liquid
 {% if first_time_accessed %}
 <script>
-seeMoreThanMMR('track', 'goal', {
+postMetric('track', 'goal', {
   event: 'purchase',
   value: {{ checkout.total_price | divided_by: 100.0 }}
 });
@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .querySelector('form[action="/cart/add"]')
     .addEventListener("submit", function () {
-      seeMoreThanMMR("track", "goal", {
+      postMetric("track", "goal", {
         event: "add_to_cart",
       });
     });

@@ -185,7 +185,7 @@ Add to `.env.local`:
 
 ```env
 # Database
-MONGODB_URI=mongodb://localhost:27017/seemymmr
+MONGODB_URI=mongodb://localhost:27017/postmetric
 
 # App URL (for tracking script)
 NEXT_PUBLIC_APP_URL=http://localhost:3000

@@ -1,9 +1,9 @@
 ---
 title: "Express.js"
-description: "Proxy seeMoreThanMMR with Express.js"
+description: "Proxy PostMetric with Express.js"
 ---
 
-Proxy seeMoreThanMMR through your Express.js application.
+Proxy PostMetric through your Express.js application.
 
 ## Setup
 
@@ -25,7 +25,7 @@ const app = express();
 app.get(
   "/api/track.js",
   createProxyMiddleware({
-    target: "https://your-seemorethanmmr-domain.com",
+    target: "https://your-postmetric-domain.com",
     changeOrigin: true,
     pathRewrite: {
       "^/api/track.js": "/api/track.js",
@@ -40,7 +40,7 @@ app.get(
 app.all(
   "/api/track",
   createProxyMiddleware({
-    target: "https://your-seemorethanmmr-domain.com",
+    target: "https://your-postmetric-domain.com",
     changeOrigin: true,
     pathRewrite: {
       "^/api/track": "/api/track",
@@ -62,5 +62,5 @@ Update your tracking script to use your domain:
 ## Next steps
 
 <Card title="Proxy setup guide" icon="shield" href="/proxy/get-started">
-  Learn more about proxying seeMoreThanMMR
+  Learn more about proxying PostMetric
 </Card>

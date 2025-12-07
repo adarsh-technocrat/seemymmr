@@ -7,7 +7,7 @@ Track scroll events to measure how engaged your visitors are with your content.
 
 ## How it works
 
-The seeMoreThanMMR tracking script automatically tracks scroll events. When a user scrolls on your page, it's tracked as a goal event.
+The PostMetric tracking script automatically tracks scroll events. When a user scrolls on your page, it's tracked as a goal event.
 
 ## Automatic tracking
 
@@ -43,22 +43,22 @@ window.addEventListener("scroll", function () {
 
   if (scrollPercent >= 25 && !scrollTracked[25]) {
     scrollTracked[25] = true;
-    seeMoreThanMMR("track", "goal", { event: "scroll_25" });
+    postMetric("track", "goal", { event: "scroll_25" });
   }
 
   if (scrollPercent >= 50 && !scrollTracked[50]) {
     scrollTracked[50] = true;
-    seeMoreThanMMR("track", "goal", { event: "scroll_50" });
+    postMetric("track", "goal", { event: "scroll_50" });
   }
 
   if (scrollPercent >= 75 && !scrollTracked[75]) {
     scrollTracked[75] = true;
-    seeMoreThanMMR("track", "goal", { event: "scroll_75" });
+    postMetric("track", "goal", { event: "scroll_75" });
   }
 
   if (scrollPercent >= 100 && !scrollTracked[100]) {
     scrollTracked[100] = true;
-    seeMoreThanMMR("track", "goal", { event: "scroll_100" });
+    postMetric("track", "goal", { event: "scroll_100" });
   }
 });
 ```

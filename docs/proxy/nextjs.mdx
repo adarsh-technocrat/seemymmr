@@ -1,9 +1,9 @@
 ---
 title: "Next.js"
-description: "Proxy seeMoreThanMMR with Next.js"
+description: "Proxy PostMetric with Next.js"
 ---
 
-Proxy seeMoreThanMMR through your Next.js application.
+Proxy PostMetric through your Next.js application.
 
 ## Setup
 
@@ -22,11 +22,11 @@ export async function GET(request: NextRequest) {
     return new NextResponse("// Tracking code required", { status: 400 });
   }
 
-  // Forward to seeMoreThanMMR
-  const seemorethanmmrUrl = `https://your-seemorethanmmr-domain.com/api/track.js?site=${trackingCode}`;
+  // Forward to PostMetric
+  const postmetricUrl = `https://your-postmetric-domain.com/api/track.js?site=${trackingCode}`;
 
   try {
-    const response = await fetch(seemorethanmmrUrl);
+    const response = await fetch(postmetricUrl);
     const script = await response.text();
 
     return new NextResponse(script, {
@@ -62,10 +62,10 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
-  const seemorethanmmrUrl = `https://your-seemorethanmmr-domain.com/api/track?${searchParams.toString()}`;
+  const postmetricUrl = `https://your-postmetric-domain.com/api/track?${searchParams.toString()}`;
 
   try {
-    const response = await fetch(seemorethanmmrUrl);
+    const response = await fetch(postmetricUrl);
     const pixel = await response.arrayBuffer();
 
     return new NextResponse(pixel, {
@@ -92,5 +92,5 @@ export async function GET(request: NextRequest) {
 ## Next steps
 
 <Card title="Proxy setup guide" icon="shield" href="/proxy/get-started">
-  Learn more about proxying seeMoreThanMMR
+  Learn more about proxying PostMetric
 </Card>

@@ -27,7 +27,7 @@ export const authOptions: NextAuthOptions = {
       from: process.env.EMAIL_FROM || "onboarding@resend.dev",
       sendVerificationRequest: async ({ identifier, url, provider }) => {
         const { host } = new URL(url);
-        const appName = "seeMoreThanMMR";
+        const appName = "PostMetric";
 
         try {
           const resend = getResend();

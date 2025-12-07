@@ -1,4 +1,4 @@
-# seeMoreThanMMR
+# PostMetric
 
 A privacy-focused web analytics platform that helps you understand your website visitors, track revenue attribution, and measure custom goals.
 
@@ -17,8 +17,8 @@ A privacy-focused web analytics platform that helps you understand your website 
 ### Installation
 
 ```bash
-git clone https://github.com/adarsh-technocrat/seemymmr.git
-cd seemymmr
+git clone https://github.com/adarsh-technocrat/postmetric.git
+cd postmetric
 pnpm install
 ```
 
@@ -90,4 +90,4 @@ MIT
 
 ## Support
 
-For support, email support@seemorethanmmr.com or open an issue on GitHub.
+For support, email support@postmetric.com or open an issue on GitHub.

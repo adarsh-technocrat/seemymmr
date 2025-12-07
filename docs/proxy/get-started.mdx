@@ -1,9 +1,9 @@
 ---
 title: "Proxy setup guide"
-description: "Proxy seeMoreThanMMR through your domain for privacy"
+description: "Proxy PostMetric through your domain for privacy"
 ---
 
-Proxy seeMoreThanMMR through your own domain to improve privacy, avoid ad blockers, and maintain control over your analytics.
+Proxy PostMetric through your own domain to improve privacy, avoid ad blockers, and maintain control over your analytics.
 
 ## Why use a proxy?
 
@@ -14,7 +14,7 @@ Proxy seeMoreThanMMR through your own domain to improve privacy, avoid ad blocke
 
 ## How it works
 
-Instead of loading the tracking script from seeMoreThanMMR's domain:
+Instead of loading the tracking script from PostMetric's domain:
 
 ```html
 <!-- Direct (not proxied) -->
@@ -28,7 +28,7 @@ You proxy it through your domain:
 <script src="https://your-domain.com/api/track.js?site=CODE"></script>
 ```
 
-Your server forwards the request to seeMoreThanMMR and returns the response.
+Your server forwards the request to PostMetric and returns the response.
 
 ## Setup methods
 
@@ -52,10 +52,10 @@ Your server forwards the request to seeMoreThanMMR and returns the response.
 Here's a simple proxy implementation:
 
 ```javascript
-// Proxy /api/track.js to seeMoreThanMMR
+// Proxy /api/track.js to PostMetric
 app.get("/api/track.js", async (req, res) => {
   const response = await fetch(
-    `https://your-seemorethanmmr-domain.com/api/track.js?${
+    `https://your-postmetric-domain.com/api/track.js?${
       req.url.split("?")[1]
     }`
   );

@@ -1,9 +1,9 @@
 ---
 title: "Nginx"
-description: "Proxy seeMoreThanMMR with Nginx"
+description: "Proxy PostMetric with Nginx"
 ---
 
-Proxy seeMoreThanMMR through your Nginx server.
+Proxy PostMetric through your Nginx server.
 
 ## Setup
 
@@ -13,8 +13,8 @@ Add this to your Nginx configuration:
 
 ```nginx
 location /api/track.js {
-    proxy_pass https://your-seemorethanmmr-domain.com/api/track.js;
-    proxy_set_header Host your-seemorethanmmr-domain.com;
+    proxy_pass https://your-postmetric-domain.com/api/track.js;
+    proxy_set_header Host your-postmetric-domain.com;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -24,8 +24,8 @@ location /api/track.js {
 }
 
 location /api/track {
-    proxy_pass https://your-seemorethanmmr-domain.com/api/track;
-    proxy_set_header Host your-seemorethanmmr-domain.com;
+    proxy_pass https://your-postmetric-domain.com/api/track;
+    proxy_set_header Host your-postmetric-domain.com;
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header X-Forwarded-Proto $scheme;
@@ -50,5 +50,5 @@ Update your tracking script to use your domain:
 ## Next steps
 
 <Card title="Proxy setup guide" icon="shield" href="/proxy/get-started">
-  Learn more about proxying seeMoreThanMMR
+  Learn more about proxying PostMetric
 </Card>

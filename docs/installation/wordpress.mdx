@@ -1,9 +1,9 @@
 ---
 title: "WordPress"
-description: "Add seeMoreThanMMR to your WordPress site"
+description: "Add PostMetric to your WordPress site"
 ---
 
-Add seeMoreThanMMR to your WordPress site in minutes.
+Add PostMetric to your WordPress site in minutes.
 
 ## Installation
 
@@ -39,7 +39,7 @@ Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
 Track custom goals in your WordPress posts/pages:
 
 ```html
-<button onclick="seeMoreThanMMR('track', 'goal', { event: 'button_click' })">
+<button onclick="postMetric('track', 'goal', { event: 'button_click' })">
   Click me
 </button>
 ```
@@ -48,7 +48,7 @@ Or in your theme's JavaScript:
 
 ```javascript
 document.getElementById("my-button").addEventListener("click", function () {
-  seeMoreThanMMR("track", "goal", { event: "button_click" });
+  postMetric("track", "goal", { event: "button_click" });
 });
 ```
 
@@ -62,7 +62,7 @@ function track_purchase($order_id) {
     $order = wc_get_order($order_id);
     ?>
     <script>
-    seeMoreThanMMR('track', 'goal', {
+    postMetric('track', 'goal', {
         event: 'purchase',
         value: <?php echo $order->get_total(); ?>
     });

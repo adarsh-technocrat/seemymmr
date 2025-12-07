@@ -36,10 +36,10 @@ export default function DashboardLayout({
             <Link
               href="/dashboard"
               className="flex items-center gap-2"
-              title="seeMoreThanMMR dashboard"
+              title="PostMetric dashboard"
             >
               <Image
-                alt="seeMoreThanMMR logo"
+                alt="PostMetric logo"
                 src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=64&q=75"
                 width={28}
                 height={28}
@@ -47,7 +47,7 @@ export default function DashboardLayout({
                 unoptimized
               />
               <span className="text-base font-bold md:text-lg text-textPrimary">
-                seeMoreThanMMR
+                PostMetric
               </span>
             </Link>
             <div className="flex flex-1 items-center justify-end gap-4">

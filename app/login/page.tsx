@@ -69,7 +69,7 @@ export default function LoginPage() {
               >
                 <Image
                   src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=128&q=75"
-                  alt="seeMoreThanMMR Logo"
+                  alt="PostMetric Logo"
                   width={40}
                   height={40}
                   className="h-8 w-8 md:h-10 md:w-10"
@@ -77,12 +77,12 @@ export default function LoginPage() {
                 />
               </Link>
               <h1 className="text-xl font-bold text-textPrimary md:text-2xl">
-                Sign in to seeMoreThanMMR
+                Sign in to PostMetric
               </h1>
             </div>
             <div className="text-sm text-textSecondary">
               <span>
-                If you already have an account, sign in to seeMoreThanMMR to get
+                If you already have an account, sign in to PostMetric to get
                 started. Or{" "}
                 <Link
                   href="/signup"
@@ -198,7 +198,7 @@ export default function LoginPage() {
           </p>
           <p>
             <span className="cursor-pointer hover:underline">
-              © 2024 seeMoreThanMMR
+              © 2024 PostMetric
             </span>
           </p>
         </div>
@@ -208,7 +208,7 @@ export default function LoginPage() {
         <div className="relative h-full w-full">
           <Image
             src="https://image.mux.com/IAD2rWZEhEc6Mzo3YyejHhnOQpwk00vfIEHdfpUBV5yU/thumbnail.webp"
-            alt="seeMoreThanMMR Dashboard Preview"
+            alt="PostMetric Dashboard Preview"
             fill
             className="object-cover brightness-90"
             unoptimized

@@ -49,8 +49,8 @@ When creating a checkout session, include visitor and session IDs in the metadat
 
 ```javascript
 // Client-side: Get visitor/session IDs
-const visitorId = window.seeMoreThanMMR?.getVisitorId();
-const sessionId = window.seeMoreThanMMR?.getSessionId();
+const visitorId = window.postMetric?.getVisitorId();
+const sessionId = window.postMetric?.getSessionId();
 
 // Server-side: Create checkout session
 const session = await stripe.checkout.sessions.create({
@@ -95,7 +95,7 @@ const paymentIntent = await stripe.paymentIntents.create({
 
 For Payment Links, you can't add metadata directly. Instead, use the customer email matching method:
 
-1. Enable [user identification](/advanced/user-identification) in seeMoreThanMMR
+1. Enable [user identification](/advanced/user-identification) in PostMetric
 2. Identify users before they purchase
 3. Payments will be linked via email matching
 

@@ -1,9 +1,9 @@
 ---
 title: "React"
-description: "Add seeMoreThanMMR to your React application"
+description: "Add PostMetric to your React application"
 ---
 
-Add seeMoreThanMMR to your React application in minutes.
+Add PostMetric to your React application in minutes.
 
 ## Installation
 
@@ -50,7 +50,7 @@ Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
 
 1. Start your development server
 2. Visit your website
-3. Check your seeMoreThanMMR dashboard - you should see your visit
+3. Check your PostMetric dashboard - you should see your visit
 
 ## Track custom goals
 
@@ -59,8 +59,8 @@ Track custom goals in your React components:
 ```tsx
 function Button() {
   const handleClick = () => {
-    if (window.seeMoreThanMMR) {
-      window.seeMoreThanMMR("track", "goal", {
+    if (window.postMetric) {
+      window.postMetric("track", "goal", {
         event: "button_click",
         value: 0,
       });
@@ -80,8 +80,8 @@ function LoginButton() {
   const handleLogin = async () => {
     const user = await login();
 
-    if (window.seeMoreThanMMR) {
-      window.seeMoreThanMMR("identify", {
+    if (window.postMetric) {
+      window.postMetric("identify", {
         userId: user.id,
         email: user.email,
         name: user.name,
@@ -102,10 +102,10 @@ The tracking script automatically tracks React Router navigation. No additional 
 Add TypeScript types for better type safety:
 
 ```typescript
-// types/seeMoreThanMMR.d.ts
+// types/PostMetric.d.ts
 declare global {
   interface Window {
-    seeMoreThanMMR: (
+    PostMetric: (
       method: "track" | "identify",
       type: "pageview" | "goal",
       data?: {

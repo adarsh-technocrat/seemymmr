@@ -7,7 +7,7 @@ Connect your payment provider to see which marketing channels drive revenue, not
 
 ## Supported providers
 
-seeMoreThanMMR supports the following payment providers:
+PostMetric supports the following payment providers:
 
 - **Stripe** - Checkout API, PaymentIntent API, Payment Links
 - **LemonSqueezy** - Checkout API, Payment Links
@@ -15,7 +15,7 @@ seeMoreThanMMR supports the following payment providers:
 
 ## How it works
 
-When a payment is completed, seeMoreThanMMR links it to the visitor who made the purchase. This allows you to:
+When a payment is completed, PostMetric links it to the visitor who made the purchase. This allows you to:
 
 - See which marketing channels drive revenue
 - Calculate ROI for your campaigns
@@ -26,7 +26,7 @@ When a payment is completed, seeMoreThanMMR links it to the visitor who made the
 
 ### Method 1: Webhooks (Recommended)
 
-Webhooks automatically send payment data to seeMoreThanMMR when a payment is completed.
+Webhooks automatically send payment data to PostMetric when a payment is completed.
 
 <CardGroup cols={2}>
   <Card
@@ -68,7 +68,7 @@ See our [Payment API documentation](/api-reference/payment) for more details.
 
 ## Linking payments to visitors
 
-seeMoreThanMMR uses three methods to link payments to visitors, in order of preference:
+PostMetric uses three methods to link payments to visitors, in order of preference:
 
 1. **Metadata method** (most reliable) - Include `visitorId` or `sessionId` in your payment metadata
 2. **Email matching** - Match customer email to identified users

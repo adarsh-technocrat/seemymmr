@@ -25,14 +25,14 @@ export default function Home() {
             <div className="flex items-center gap-2">
               <Image
                 src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=64&q=75"
-                alt="seeMoreThanMMR Logo"
+                alt="PostMetric Logo"
                 width={32}
                 height={32}
                 className="w-8 h-8"
                 unoptimized
               />
               <span className="text-xl font-bold text-gray-900">
-                seeMoreThanMMR
+                PostMetric
               </span>
             </div>
             <div className="hidden md:flex items-center gap-8">
@@ -208,7 +208,7 @@ export default function Home() {
                   </div>
                   <div className="text-base text-textPrimary">
                     <span className="font-medium text-gray-900">200+</span>{" "}
-                    entrepreneurs trust seeMoreThanMMR
+                    entrepreneurs trust PostMetric
                   </div>
                 </div>
               </div>
@@ -233,16 +233,14 @@ export default function Home() {
                     <span className="text-textPrimary opacity-50">
                       https://
                     </span>
-                    <span className="text-gray-900">
-                      app.seemorethanmmr.com
-                    </span>
+                    <span className="text-gray-900">app.postmetric.com</span>
                   </div>
                 </div>
 
                 <div className="w-full bg-background">
                   <Image
                     src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Fdemo.8f89df2b.jpg&w=1080&q=100"
-                    alt="seeMoreThanMMR Dashboard Demo"
+                    alt="PostMetric Dashboard Demo"
                     width={1080}
                     height={600}
                     className="w-full h-auto"
@@ -365,7 +363,7 @@ export default function Home() {
               Loved by entrepreneurs
             </h2>
             <p className="text-lg text-textPrimary">
-              See what makers are saying about seeMoreThanMMR
+              See what makers are saying about PostMetric
             </p>
           </div>
 
@@ -383,7 +381,7 @@ export default function Home() {
                 handle: "@sarahchen",
                 avatar:
                   "https://datafa.st/_next/image?url=https%3A%2F%2Fpbs.twimg.com%2Fprofile_images%2F1905054657971728384%2FM9JF7NHU_normal.jpg&w=96&q=100",
-                text: "seeMoreThanMMR helped me identify which marketing channels were actually profitable. Game changer!",
+                text: "PostMetric helped me identify which marketing channels were actually profitable. Game changer!",
               },
               {
                 name: "Alex Rivera",
@@ -598,18 +596,16 @@ export default function Home() {
             <div className="flex items-center gap-2 mb-4 md:mb-0">
               <Image
                 src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=64&q=75"
-                alt="seeMoreThanMMR Logo"
+                alt="PostMetric Logo"
                 width={24}
                 height={24}
                 className="w-6 h-6"
                 unoptimized
               />
-              <span className="font-semibold text-gray-900">
-                seeMoreThanMMR
-              </span>
+              <span className="font-semibold text-gray-900">PostMetric</span>
             </div>
             <div className="text-sm text-textPrimary">
-              © 2024 seeMoreThanMMR. All rights reserved.
+              © 2024 PostMetric. All rights reserved.
             </div>
           </div>
         </div>

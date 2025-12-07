@@ -14,10 +14,10 @@ Identify users to link their sessions and track authenticated user behavior.
 
 ## How it works
 
-When a user logs in, identify them with seeMoreThanMMR:
+When a user logs in, identify them with PostMetric:
 
 ```javascript
-seeMoreThanMMR("identify", {
+postMetric("identify", {
   userId: "user_123",
   email: "user@example.com",
   name: "John Doe",
@@ -34,9 +34,9 @@ This links all future sessions to this user.
 async function handleLogin(email, password) {
   const user = await login(email, password);
 
-  // Identify user with seeMoreThanMMR
-  if (window.seeMoreThanMMR) {
-    window.seeMoreThanMMR("identify", {
+  // Identify user with PostMetric
+  if (window.postMetric) {
+    window.postMetric("identify", {
       userId: user.id,
       email: user.email,
       name: user.name,
@@ -54,8 +54,8 @@ function LoginButton() {
   const handleLogin = async () => {
     const user = await login();
 
-    if (typeof window !== "undefined" && window.seeMoreThanMMR) {
-      window.seeMoreThanMMR("identify", {
+    if (typeof window !== "undefined" && window.postMetric) {
+      window.postMetric("identify", {
         userId: user.id,
         email: user.email,
         name: user.name,
@@ -76,8 +76,8 @@ export default {
     async handleLogin() {
       const user = await this.login();
 
-      if (window.seeMoreThanMMR) {
-        window.seeMoreThanMMR("identify", {
+      if (window.postMetric) {
+        window.postMetric("identify", {
           userId: user.id,
           email: user.email,
           name: user.name,
@@ -125,7 +125,7 @@ Once users are identified, you can:
 
 ## Privacy
 
-User identification is optional. You can use seeMoreThanMMR without identifying users. When users are identified, their data is stored securely and only accessible to you.
+User identification is optional. You can use PostMetric without identifying users. When users are identified, their data is stored securely and only accessible to you.
 
 ## Next steps
 

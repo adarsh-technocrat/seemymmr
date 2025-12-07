@@ -1,9 +1,9 @@
 ---
 title: "Vue.js"
-description: "Add seeMoreThanMMR to your Vue.js project"
+description: "Add PostMetric to your Vue.js project"
 ---
 
-Add seeMoreThanMMR to your Vue.js project in minutes.
+Add PostMetric to your Vue.js project in minutes.
 
 ## Installation
 
@@ -44,7 +44,7 @@ Replace `YOUR_TRACKING_CODE` with your tracking code from the dashboard.
 
 1. Start your development server
 2. Visit your website
-3. Check your seeMoreThanMMR dashboard - you should see your visit
+3. Check your PostMetric dashboard - you should see your visit
 
 ## Track custom goals
 
@@ -59,8 +59,8 @@ Track custom goals in your Vue components:
 export default {
   methods: {
     handleClick() {
-      if (window.seeMoreThanMMR) {
-        window.seeMoreThanMMR("track", "goal", {
+      if (window.postMetric) {
+        window.postMetric("track", "goal", {
           event: "button_click",
           value: 0,
         });
@@ -86,8 +86,8 @@ export default {
     async handleLogin() {
       const user = await this.login();
 
-      if (window.seeMoreThanMMR) {
-        window.seeMoreThanMMR("identify", {
+      if (window.postMetric) {
+        window.postMetric("identify", {
           userId: user.id,
           email: user.email,
           name: user.name,
@@ -108,10 +108,10 @@ The tracking script automatically tracks Vue Router navigation. No additional se
 Add TypeScript types for better type safety:
 
 ```typescript
-// types/seeMoreThanMMR.d.ts
+// types/PostMetric.d.ts
 declare global {
   interface Window {
-    seeMoreThanMMR: (
+    PostMetric: (
       method: "track" | "identify",
       type: "pageview" | "goal",
       data?: {

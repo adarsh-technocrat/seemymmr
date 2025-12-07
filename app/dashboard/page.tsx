@@ -76,7 +76,7 @@ export default function DashboardPage() {
           <div data-fast-goal="open_onboarding_modal">
             <Image
               src="https://d1aebdcemlt4l7.cloudfront.net/videos/widget.gif"
-              alt="seeMoreThanMMR Onboarding"
+              alt="PostMetric Onboarding"
               width={96}
               height={96}
               className="w-24 cursor-pointer rounded-2xl border-2 border-gray-200 shadow-xl duration-200 hover:border-[2.5px] hover:border-primary hover:shadow-2xl"

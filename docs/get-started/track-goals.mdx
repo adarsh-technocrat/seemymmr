@@ -32,7 +32,7 @@ Goals are custom events that you want to track, such as:
 ### Method 1: Using the tracking function
 
 ```javascript
-seeMoreThanMMR("track", "goal", {
+postMetric("track", "goal", {
   event: "newsletter_signup",
   value: 0, // Optional: numeric value
 });
@@ -41,7 +41,7 @@ seeMoreThanMMR("track", "goal", {
 ### Method 2: HTML onclick
 
 ```html
-<button onclick="seeMoreThanMMR('track', 'goal', { event: 'button_click' })">
+<button onclick="postMetric('track', 'goal', { event: 'button_click' })">
   Click me
 </button>
 ```
@@ -52,7 +52,7 @@ seeMoreThanMMR("track", "goal", {
 // React
 <button
   onClick={() => {
-    window.seeMoreThanMMR("track", "goal", { event: "button_click" });
+    window.postMetric("track", "goal", { event: "button_click" });
   }}
 >
   Click me
@@ -69,7 +69,7 @@ seeMoreThanMMR("track", "goal", {
 export default {
   methods: {
     trackGoal() {
-      window.seeMoreThanMMR("track", "goal", { event: "button_click" });
+      window.postMetric("track", "goal", { event: "button_click" });
     },
   },
 };
@@ -81,7 +81,7 @@ export default {
 Track goals with a numeric value (e.g., purchase amount):
 
 ```javascript
-seeMoreThanMMR("track", "goal", {
+postMetric("track", "goal", {
   event: "purchase",
   value: 99.99,
 });
@@ -121,7 +121,7 @@ In your dashboard, you can view:
 
 ```javascript
 document.getElementById("contact-form").addEventListener("submit", function () {
-  seeMoreThanMMR("track", "goal", { event: "form_submit" });
+  postMetric("track", "goal", { event: "form_submit" });
 });
 ```
 
@@ -129,7 +129,7 @@ document.getElementById("contact-form").addEventListener("submit", function () {
 
 ```javascript
 document.getElementById("cta-button").addEventListener("click", function () {
-  seeMoreThanMMR("track", "goal", { event: "cta_click" });
+  postMetric("track", "goal", { event: "cta_click" });
 });
 ```
 
@@ -137,7 +137,7 @@ document.getElementById("cta-button").addEventListener("click", function () {
 
 ```javascript
 document.getElementById("video").addEventListener("play", function () {
-  seeMoreThanMMR("track", "goal", { event: "video_play" });
+  postMetric("track", "goal", { event: "video_play" });
 });
 ```
 
@@ -146,7 +146,7 @@ document.getElementById("video").addEventListener("play", function () {
 ```html
 <a
   href="/download.pdf"
-  onclick="seeMoreThanMMR('track', 'goal', { event: 'pdf_download' })"
+  onclick="postMetric('track', 'goal', { event: 'pdf_download' })"
 >
   Download PDF
 </a>

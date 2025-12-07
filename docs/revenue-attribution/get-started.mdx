@@ -16,8 +16,8 @@ Revenue attribution helps you:
 
 ## How it works
 
-1. **Track visitors** - seeMoreThanMMR tracks all visitors to your site
-2. **Record payments** - When a payment is completed, it's recorded in seeMoreThanMMR
+1. **Track visitors** - PostMetric tracks all visitors to your site
+2. **Record payments** - When a payment is completed, it's recorded in PostMetric
 3. **Link payments to visitors** - Payments are linked to visitors using:
    - Visitor/session IDs (most reliable)
    - Email matching (if user identification is enabled)
@@ -28,7 +28,7 @@ Revenue attribution helps you:
 
 ### Method 1: Webhooks (Recommended)
 
-Webhooks automatically send payment data to seeMoreThanMMR when a payment is completed. This is the most reliable method.
+Webhooks automatically send payment data to PostMetric when a payment is completed. This is the most reliable method.
 
 <CardGroup cols={2}>
   <Card title="Stripe" icon="stripe" href="/revenue-attribution/stripe">
@@ -58,8 +58,8 @@ For best results, include visitor/session IDs in your payment metadata:
 const payment = await stripe.checkout.sessions.create({
   // ... payment config
   metadata: {
-    visitorId: window.seeMoreThanMMR?.getVisitorId(),
-    sessionId: window.seeMoreThanMMR?.getSessionId(),
+    visitorId: window.postMetric?.getVisitorId(),
+    sessionId: window.postMetric?.getSessionId(),
   },
 });
 ```

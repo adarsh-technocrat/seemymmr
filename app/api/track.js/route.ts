@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
   // Track custom goal
   function trackGoal(data) {
     if (!data || !data.event) {
-      console.warn('seeMoreThanMMR: Goal event name required');
+      console.warn('PostMetric: Goal event name required');
       return;
     }
     
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
   }
   
   // Main tracking function
-  function seeMoreThanMMR(method, type, data) {
+  function postMetric(method, type, data) {
     if (method === 'track') {
       if (type === 'pageview') {
         trackPageview(data);
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
   });
   
   // Expose global function
-  window.seeMoreThanMMR = seeMoreThanMMR;
+  window.postMetric = postMetric;
   
   // Scroll tracking (if enabled)
   var scrollTracked = false;
