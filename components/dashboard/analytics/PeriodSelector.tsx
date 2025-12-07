@@ -131,9 +131,11 @@ export function PeriodSelector({
   return (
     <div className="relative">
       <div className="join-divider relative z-10 border border-borderColor bg-white rounded-md overflow-hidden">
-        <button
+        <Button
           onClick={onPreviousPeriod}
-          className="btn btn-square btn-ghost join-item btn-sm h-8 w-8 p-0 border-0 bg-transparent text-textPrimary hover:bg-gray-50 flex items-center justify-center"
+          variant="ghost"
+          size="icon"
+          className="join-item h-8 w-8 p-0 border-0 bg-transparent text-textPrimary hover:bg-gray-50"
           aria-label="Previous period"
         >
           <svg
@@ -150,7 +152,7 @@ export function PeriodSelector({
           >
             <path d="m15 18-6-6 6-6"></path>
           </svg>
-        </button>
+        </Button>
         <Popover
           open={customDatePickerOpen}
           onOpenChange={setCustomDatePickerOpen}
@@ -158,7 +160,11 @@ export function PeriodSelector({
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <PopoverTrigger asChild>
               <DropdownMenuTrigger asChild>
-                <button className="btn join-item btn-sm h-8 inline-flex flex-nowrap items-center gap-2 whitespace-nowrap border-0 border-l border-borderColor bg-transparent text-textPrimary hover:bg-gray-50 px-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="join-item h-8 inline-flex flex-nowrap items-center gap-2 whitespace-nowrap border-0 border-l border-borderColor bg-transparent text-textPrimary hover:bg-gray-50 px-3"
+                >
                   <h3 className="text-base font-normal">
                     {selectedPeriod === "Custom" &&
                     customDateRange?.from &&
@@ -184,7 +190,7 @@ export function PeriodSelector({
                   >
                     <path d="m6 9 6 6 6-6"></path>
                   </svg>
-                </button>
+                </Button>
               </DropdownMenuTrigger>
             </PopoverTrigger>
             <DropdownMenuContent align="start" className="w-56">
@@ -297,7 +303,6 @@ export function PeriodSelector({
                     variant="ghost"
                     size="sm"
                     onClick={handleClearCustomDate}
-                    className="btn btn-ghost btn-sm h-9"
                   >
                     Clear
                   </Button>
@@ -305,7 +310,6 @@ export function PeriodSelector({
                     size="sm"
                     onClick={handleApplyCustomDate}
                     disabled={!customDateRange?.from || !customDateRange?.to}
-                    className="btn btn-primary btn-sm h-9"
                   >
                     Apply
                   </Button>
@@ -314,10 +318,12 @@ export function PeriodSelector({
             </div>
           </PopoverContent>
         </Popover>
-        <button
+        <Button
           onClick={onNextPeriod}
           disabled={!canGoNext}
-          className={`btn btn-square btn-ghost join-item btn-sm h-8 w-8 p-0 border-0 border-l border-borderColor bg-transparent flex items-center justify-center ${
+          variant="ghost"
+          size="icon"
+          className={`join-item h-8 w-8 p-0 border-0 border-l border-borderColor bg-transparent flex items-center justify-center ${
             canGoNext
               ? "text-textPrimary hover:bg-gray-50"
               : "text-textSecondary opacity-30 cursor-not-allowed"
@@ -338,7 +344,7 @@ export function PeriodSelector({
           >
             <path d="m9 18 6-6-6-6"></path>
           </svg>
-        </button>
+        </Button>
       </div>
     </div>
   );

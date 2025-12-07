@@ -119,7 +119,9 @@ export function ImportSettings({
           />
           <Button
             type="submit"
-            className="btn btn-sm btn-block btn-simple"
+            variant="outline"
+            size="sm"
+            className="w-full"
             disabled={!selectedFile || uploading}
           >
             {uploading ? "Importing..." : "Import"}

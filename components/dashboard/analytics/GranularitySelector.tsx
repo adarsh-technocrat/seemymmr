@@ -7,6 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface GranularitySelectorProps {
   selectedGranularity: "Hourly" | "Daily" | "Weekly" | "Monthly";
@@ -28,7 +29,11 @@ export function GranularitySelector({
       <div className="relative h-8">
         <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>
-            <button className="single-item-join-divider btn btn-sm h-8 inline-flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md px-3">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 inline-flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md px-3"
+            >
               <span className="text-base font-normal">
                 {selectedGranularity}
               </span>
@@ -46,7 +51,7 @@ export function GranularitySelector({
               >
                 <path d="m6 9 6 6 6-6"></path>
               </svg>
-            </button>
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="w-40">
             {availableGranularities.map((granularity) => (

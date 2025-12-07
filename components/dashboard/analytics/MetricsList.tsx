@@ -2,6 +2,7 @@
 
 import NumberFlow from "@number-flow/react";
 import { parseFormattedNumber } from "@/utils/number-utils";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface Metric {
   value: string;
@@ -43,10 +44,9 @@ export function MetricsList({
       <li>
         <div className="flex flex-col items-start gap-1 border-textPrimary/5 md:mr-6 md:border-r md:pr-6 select-none">
           <div className="flex cursor-pointer items-center gap-1.5">
-            <input
-              className="checkbox size-4 rounded checkbox-secondary"
-              type="checkbox"
+            <Checkbox
               defaultChecked
+              className="data-[state=checked]:bg-secondary"
             />
             <div className="text-textSecondary whitespace-nowrap text-xs md:text-sm">
               Visitors
@@ -87,18 +87,12 @@ export function MetricsList({
       <li>
         <div className="flex flex-col items-start gap-1 border-textPrimary/5 md:mr-6 md:border-r md:pr-6 select-none">
           <div className="flex cursor-pointer items-center gap-1.5">
-            <input
-              className="checkbox size-4 rounded"
-              type="checkbox"
+            <Checkbox
               checked={showRevenueOnChart}
-              onChange={(e) => onShowRevenueChange(e.target.checked)}
-              style={
-                {
-                  "--chkbg": "#e78468",
-                  "--chkfg": "#ffffff",
-                  borderColor: "rgb(231, 132, 104)",
-                } as React.CSSProperties
+              onCheckedChange={(checked) =>
+                onShowRevenueChange(checked === true)
               }
+              className="data-[state=checked]:bg-[#e78468] data-[state=checked]:border-[#e78468]"
             />
             <div className="text-textSecondary whitespace-nowrap text-xs md:text-sm">
               Revenue

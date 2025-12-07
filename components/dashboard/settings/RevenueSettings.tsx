@@ -368,7 +368,9 @@ export function RevenueSettings({
                       </h2>
                       <Button
                         onClick={() => setShowDisconnectDialog(true)}
-                        className="btn btn-ghost btn-sm hover:bg-error/20 hover:text-error"
+                        variant="ghost"
+                        size="sm"
+                        className="hover:bg-error/20 hover:text-error"
                         disabled={loading}
                       >
                         <svg
@@ -464,7 +466,9 @@ export function RevenueSettings({
                       />
                       <Button
                         type="submit"
-                        className="btn btn-neutral btn-sm btn-block"
+                        variant="secondary"
+                        size="sm"
+                        className="w-full"
                         disabled={loading}
                       >
                         Connect

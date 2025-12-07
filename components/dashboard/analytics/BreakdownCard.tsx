@@ -12,6 +12,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
+import { Button } from "@/components/ui/button";
 
 interface BreakdownData {
   name: string;
@@ -120,8 +121,12 @@ export function BreakdownCard({
             </div>
           </div>
           <div className="ml-auto flex items-center gap-0">
-            <button className="group btn btn-ghost btn-xs inline-flex flex-nowrap items-center gap-0.5 px-1.5! text-xs! font-medium! border-borderColor bg-white text-textPrimary hover:bg-gray-50">
-              <span className="-mr-0.5 inline-block max-w-20! truncate">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="inline-flex flex-nowrap items-center gap-0.5 px-1.5 text-xs font-medium border-borderColor bg-white text-textPrimary hover:bg-gray-50 h-auto py-1"
+            >
+              <span className="-mr-0.5 inline-block max-w-20 truncate">
                 All
               </span>
               <svg
@@ -136,7 +141,7 @@ export function BreakdownCard({
                   clipRule="evenodd"
                 ></path>
               </svg>
-            </button>
+            </Button>
           </div>
         </div>
         <div className="relative h-96">

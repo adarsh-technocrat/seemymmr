@@ -14,6 +14,7 @@ import { MetricsList } from "@/components/dashboard/analytics/MetricsList";
 import { BreakdownCard } from "@/components/dashboard/analytics/BreakdownCard";
 import { GoalsCard } from "@/components/dashboard/analytics/GoalsCard";
 import { MentionsDialog } from "@/components/dashboard/analytics/MentionsDialog";
+import { Button } from "@/components/ui/button";
 import { useWebsiteAnalytics } from "@/hooks/use-website-analytics";
 import { isValidObjectId } from "@/utils/validation";
 import { useRouter } from "next/navigation";
@@ -87,8 +88,10 @@ export default function WebsiteAnalyticsPage({
               onGranularityChange={setSelectedGranularity}
             />
             {/* Refresh Button */}
-            <button
-              className="single-item-join-divider group btn btn-square btn-sm h-8 w-8 max-md:hidden border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md p-0 flex items-center justify-center"
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8 max-md:hidden border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md"
               title="Refresh analytics data (Cmd+R / Ctrl+R)"
               onClick={() => analytics.refetch()}
               disabled={analytics.loading}
@@ -105,7 +108,7 @@ export default function WebsiteAnalyticsPage({
                   clipRule="evenodd"
                 ></path>
               </svg>
-            </button>
+            </Button>
           </div>
         </section>
 

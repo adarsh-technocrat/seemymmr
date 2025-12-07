@@ -182,12 +182,7 @@ export function APISettings({
                   onChange={(e) => setKeyName(e.target.value)}
                   disabled={creating}
                 />
-                <Button
-                  type="submit"
-                  size="sm"
-                  disabled={creating}
-                  className="btn btn-primary btn-sm"
-                >
+                <Button type="submit" size="sm" disabled={creating}>
                   Create Key
                 </Button>
               </div>
@@ -232,20 +227,22 @@ export function APISettings({
                       </td>
                       <td>
                         <div className="flex gap-2">
-                          <button
+                          <Button
                             type="button"
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleRollKey(apiKey._id)}
-                            className="btn-simple btn btn-sm"
                           >
                             Roll
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="destructive"
+                            size="sm"
                             onClick={() => handleDeleteKey(apiKey._id)}
-                            className="btn-simple btn btn-sm hover:btn-error"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>

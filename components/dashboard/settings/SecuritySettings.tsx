@@ -218,8 +218,8 @@ export function SecuritySettings({
             </DialogTitle>
             <Button
               variant="ghost"
-              size="sm"
-              className="btn btn-square btn-ghost btn-sm h-8 w-8 p-0"
+              size="icon"
+              className="h-8 w-8"
               onClick={handleCancelAutoActivate}
             >
               <svg

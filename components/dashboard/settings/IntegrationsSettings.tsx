@@ -50,13 +50,11 @@ export function IntegrationsSettings({
   };
 
   const handleInstallGitHubApp = () => {
-    // TODO: Implement GitHub App installation flow
     window.location.href = `/api/websites/${websiteId}/integrations/github/install`;
   };
 
   return (
     <div className="space-y-6">
-      {/* Google Search Console */}
       <Card className="custom-card bg-base-100">
         <div className="custom-card-head flex items-center justify-between gap-4">
           <div>
@@ -121,7 +119,7 @@ export function IntegrationsSettings({
           <div className="space-y-2">
             <Button
               size="sm"
-              className="btn btn-primary btn-sm w-full"
+              className="w-full"
               onClick={handleConnectGoogleSearchConsole}
             >
               Connect Google Search Console
@@ -170,10 +168,7 @@ export function IntegrationsSettings({
               </p>
             </div>
             <div className="w-full max-w-xs space-y-3">
-              <Button
-                className="btn btn-primary btn-wide"
-                onClick={handleUpgradeToGrowth}
-              >
+              <Button className="w-full" onClick={handleUpgradeToGrowth}>
                 Upgrade to Growth
               </Button>
             </div>
@@ -228,7 +223,7 @@ export function IntegrationsSettings({
           <div className="space-y-2">
             <Button
               size="sm"
-              className="btn btn-primary btn-sm w-full"
+              className="w-full"
               onClick={handleInstallGitHubApp}
             >
               Install GitHub App

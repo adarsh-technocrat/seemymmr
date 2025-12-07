@@ -7,6 +7,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Switch } from "@/components/ui/switch";
+import { Button } from "@/components/ui/button";
 
 interface Mention {
   type: string;
@@ -42,9 +44,11 @@ export function MentionsDialog({
           <DialogTitle className="text-textSecondary text-sm font-medium uppercase tracking-wider">
             {mentionData?.fullDate || mentionData?.date}
           </DialogTitle>
-          <button
+          <Button
             onClick={() => onOpenChange(false)}
-            className="btn btn-circle btn-ghost btn-sm"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -61,7 +65,7 @@ export function MentionsDialog({
               <path d="M18 6 6 18"></path>
               <path d="m6 6 12 12"></path>
             </svg>
-          </button>
+          </Button>
         </DialogHeader>
         <div className="relative flex flex-1 flex-col overflow-hidden px-3">
           <Tabs defaultValue="mentions" className="flex flex-1 flex-col">
@@ -196,11 +200,9 @@ export function MentionsDialog({
         </div>
         <div className="shrink-0 border-t border-gray-200 bg-white px-2 py-1">
           <label className="flex cursor-pointer items-center justify-start gap-2 px-2 py-2">
-            <input
-              className="toggle toggle-xs"
-              type="checkbox"
+            <Switch
               checked={showMentionsOnChart}
-              onChange={(e) => onShowMentionsChange(e.target.checked)}
+              onCheckedChange={onShowMentionsChange}
             />
             <span className="text-xs text-textPrimary">
               Show mentions on chart
