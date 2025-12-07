@@ -11,7 +11,6 @@ import {
   Tooltip,
   ResponsiveContainer,
   ComposedChart,
-  CartesianAxis,
 } from "recharts";
 import NumberFlow from "@number-flow/react";
 
@@ -78,37 +77,21 @@ export function Chart({
     }
   };
 
-  const calculateDomainMax = (
-    dataMax: number,
-    isRevenue: boolean = false
-  ): number => {
+  const calculateDomainMax = (dataMax: number): number => {
     if (dataMax <= 0) {
-      // Special handling for zero data
-      return isRevenue ? 60 : 5; // Revenue: 0-60, Visitors: 0-5
+      return 5;
     }
     const paddedMax = dataMax * 1.2;
 
-    // Round to nearest nice number (not always up) to reduce top gap
-    // Ensures numbers that, when divided by 4, give nice round quarter values
     if (paddedMax < 100) {
-      // Round to nearest multiple of 20: Ticks at 0, 5, 10, 15, 20 or 0, 20, 40, 60, 80
       return Math.round(paddedMax / 20) * 20 || 20;
     } else if (paddedMax < 500) {
-      // Round to nearest multiple of 100: Ticks at 0, 25, 50, 75, 100 or 0, 100, 200, 300, 400
       return Math.round(paddedMax / 100) * 100 || 100;
     } else if (paddedMax < 1000) {
-      // Round to nearest multiple of 200: Ticks at 0, 50, 100, 150, 200 or 0, 200, 400, 600, 800
       return Math.round(paddedMax / 200) * 200 || 200;
     } else if (paddedMax < 5000) {
-      // Round to nearest multiple of 1000: Ticks at 0, 250, 500, 750, 1000 or 0, 1000, 2000, 3000, 4000
       return Math.round(paddedMax / 1000) * 1000 || 1000;
     } else if (paddedMax < 10000) {
-      // Prefer multiples of 2000, 4000, 5000, or 8000 for nice quarters
-      // 2000: Ticks at 0, 500, 1000, 1500, 2000 or 0, 2000, 4000, 6000, 8000
-      // 4000: Ticks at 0, 1000, 2000, 3000, 4000 or 0, 4000, 8000
-      // 5000: Ticks at 0, 1250, 2500, 3750, 5000 or 0, 5000, 10000
-      // 8000: Ticks at 0, 2000, 4000, 6000, 8000
-      // 10000: Ticks at 0, 2500, 5000, 7500, 10000
       const candidates = [
         Math.round(paddedMax / 2000) * 2000,
         Math.round(paddedMax / 4000) * 4000,
@@ -116,15 +99,11 @@ export function Chart({
         Math.round(paddedMax / 8000) * 8000,
         Math.round(paddedMax / 10000) * 10000,
       ];
-      // Choose the smallest candidate that's >= paddedMax, or the closest one
       const validCandidates = candidates.filter((c) => c >= paddedMax);
       return validCandidates.length > 0
         ? Math.min(...validCandidates)
         : Math.max(...candidates);
     } else if (paddedMax < 50000) {
-      // Prefer multiples of 5000 or 10000 for nice quarters
-      // 5000: Ticks at 0, 1250, 2500, 3750, 5000 or 0, 5000, 10000, 15000, 20000
-      // 10000: Ticks at 0, 2500, 5000, 7500, 10000 or 0, 10000, 20000, 30000, 40000
       const candidates = [
         Math.round(paddedMax / 5000) * 5000,
         Math.round(paddedMax / 10000) * 10000,
@@ -134,47 +113,24 @@ export function Chart({
         ? Math.min(...validCandidates)
         : Math.max(...candidates);
     } else {
-      // Round to nearest multiple of 10000: Ticks at 0, 2500, 5000, 7500, 10000 increments
       return Math.round(paddedMax / 10000) * 10000 || 10000;
     }
   };
 
-  // Calculate 5 evenly spaced ticks for the domain
-  const calculateTicks = (
-    dataMax: number,
-    isRevenue: boolean = false
-  ): number[] => {
+  const calculateTicks = (dataMax: number): number[] => {
     if (dataMax <= 0) {
-      // Special ticks for zero data
-      if (isRevenue) {
-        // Revenue: User specified 0, 30, 60 (3 ticks)
-        // Domain max is 60, so ticks are: 0, 30, 60
-        return [0, 30, 60];
-      } else {
-        // Visitors: User specified 0, 1, 2, 3, 4, 5 (6 ticks)
-        // Domain max is 5, so we generate ticks: 0, 1, 2, 3, 4, 5
-        return [0, 1, 2, 3, 4, 5];
-      }
+      return [0, 1, 2, 3, 4, 5];
     }
-    const max = calculateDomainMax(dataMax, isRevenue);
-    // Generate 5 evenly spaced values: 0, 1/4, 1/2, 3/4, 1 of max
+    const max = calculateDomainMax(dataMax);
     return [0, max * 0.25, max * 0.5, max * 0.75, max];
   };
 
-  // Calculate max values from data
   const maxVisitors = Math.max(...data.map((d) => d.visitors), 0);
-  const maxRevenue = showRevenue
-    ? Math.max(...data.map((d) => d.revenue || 0), 0)
-    : 0;
 
-  // Calculate ticks for both axes
-  const visitorTicks = calculateTicks(maxVisitors, false);
-  const revenueTicks = showRevenue ? calculateTicks(maxRevenue, true) : [];
+  const visitorTicks = calculateTicks(maxVisitors);
 
   const calculateVisitorDomainMax = (dataMax: number) =>
-    calculateDomainMax(dataMax, false);
-  const calculateRevenueDomainMax = (dataMax: number) =>
-    calculateDomainMax(dataMax, true);
+    calculateDomainMax(dataMax);
 
   const visitorDomain:
     | [number, number]
@@ -450,8 +406,8 @@ export function Chart({
                 return formatter.format(value);
               }}
               tickMargin={8}
-              domain={[0, (dataMax: number) => dataMax * 3, 50]}
-              ticks={5}
+              domain={[0, (dataMax: number) => Math.max(dataMax * 1.5, 50)]}
+              tickCount={5}
             />
           )}
 
@@ -511,8 +467,7 @@ export function Chart({
                       ? profileMentions
                           .slice(0, 3)
                           .map((mention: Mention, idx: number) => {
-                            // Grouped overlapping avatars - offset each one slightly
-                            const offsetX = idx * -6; // Overlap by 6px
+                            const offsetX = idx * -6;
                             const offsetY = 0;
                             const avatarSize = 20;
                             const avatarRadius = avatarSize / 2;
