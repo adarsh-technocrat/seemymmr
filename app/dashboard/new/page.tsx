@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useDomainIcon } from "@/hooks/use-domain-icon";
+import { ArrowLeftIcon } from "@/components/icons";
 
 export default function AddSitePage() {
   const [currentTime, setCurrentTime] = useState("");
@@ -42,18 +43,7 @@ export default function AddSitePage() {
             className: "mb-4 text-textPrimary hover:bg-gray-100",
           })}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 16 16"
-            fill="currentColor"
-            className="size-4"
-          >
-            <path
-              fillRule="evenodd"
-              d="M14 8a.75.75 0 0 1-.75.75H4.56l1.22 1.22a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1 0-1.06l2.5-2.5a.75.75 0 0 1 1.06 1.06L4.56 7.25h8.69A.75.75 0 0 1 14 8Z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <ArrowLeftIcon className="size-4" />
           Dashboard
         </Link>
 

@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchWebsites } from "@/store/slices/websitesSlice";
 import { WebsiteCard } from "@/components/dashboard/WebsiteCard";
+import { PlusIcon, XIcon, ChatIcon } from "@/components/icons";
 
 export default function DashboardPage() {
   const [showVideo, setShowVideo] = useState(true);
@@ -37,21 +38,7 @@ export default function DashboardPage() {
                   "border-borderColor bg-white text-textPrimary hover:bg-gray-50",
               })}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="24"
-                height="24"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="size-4"
-              >
-                <path d="M5 12h14"></path>
-                <path d="M12 5v14"></path>
-              </svg>
+              <PlusIcon className="size-4" />
               Website
             </Link>
           </div>
@@ -101,14 +88,7 @@ export default function DashboardPage() {
               className="w-8 h-8 rounded-full bg-white hover:bg-gray-100 text-textPrimary flex items-center justify-center shadow-md border border-gray-200 transition-colors"
               onClick={() => setShowVideo(false)}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-                className="size-5 text-textPrimary"
-              >
-                <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z"></path>
-              </svg>
+              <XIcon className="size-5 text-textPrimary" />
             </button>
           </div>
         </div>
@@ -117,18 +97,7 @@ export default function DashboardPage() {
       {/* Chat Button */}
       <div className="fixed bottom-4 right-4 z-50 md:bottom-8 md:right-8">
         <button className="w-14 h-14 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center shadow-lg transition-colors">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-6 h-6 text-white"
-          >
-            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-          </svg>
+          <ChatIcon className="w-6 h-6 text-white" />
         </button>
       </div>
     </>

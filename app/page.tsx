@@ -4,6 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { useDomainIcon } from "@/hooks/use-domain-icon";
+import {
+  GlobeIcon,
+  ArrowRightIcon,
+  ChartBarIcon,
+  TrendingUpIcon,
+  DollarSignIcon,
+  LiveDemoIcon,
+} from "@/components/icons";
 
 export default function Home() {
   const [domain, setDomain] = useState("");
@@ -145,19 +153,7 @@ export default function Home() {
                         ) : loading ? (
                           <div className="!h-6 !w-6 shrink-0 animate-pulse rounded bg-gray-300" />
                         ) : (
-                          <svg
-                            className="w-5 h-5 text-textPrimary opacity-75"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-                            />
-                          </svg>
+                          <GlobeIcon className="w-5 h-5 text-textPrimary opacity-75" />
                         )}
                       </div>
                       <input
@@ -175,19 +171,7 @@ export default function Home() {
                       className="w-full bg-[#E16540] text-white px-6 py-2.5 rounded-lg text-sm font-medium hover:bg-[#d15a38] transition-colors shadow-[0_1px_1px_0_rgba(0,0,0,0.06),0_0_0_1px_rgba(225,101,64,0.157),0_8px_16px_-8px_rgba(225,101,64,0.64),0_-1px_2px_0_rgba(181,81,51,0.48)_inset] flex items-center justify-center gap-2"
                     >
                       <span>Add my website</span>
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13 7l5 5m0 0l-5 5m5-5H6"
-                        />
-                      </svg>
+                      <ArrowRightIcon className="w-4 h-4" />
                     </Link>
                     <div className="text-center text-sm text-textPrimary opacity-80">
                       Free 14-day trial • No credit card required
@@ -234,12 +218,7 @@ export default function Home() {
           <div className="w-full max-w-6xl 2xl:max-w-7xl mx-auto rounded-[1.3rem] border border-gray-100 bg-gray-50/50 p-1.5">
             <div className="relative hidden md:block">
               <div className="absolute -top-4 right-4 flex -translate-y-full items-center gap-2">
-                <svg
-                  className="w-8 -rotate-[24deg] opacity-60 fill-textPrimary"
-                  viewBox="0 0 32 32"
-                >
-                  <path d="M16 2L2 9l14 7 14-7-14-7zm0 18l-14-7v10l14 7 14-7V13l-14 7z" />
-                </svg>
+                <LiveDemoIcon className="w-8 -rotate-[24deg] opacity-60 fill-textPrimary" />
                 <span className="text-sm text-textPrimary">Live demo</span>
               </div>
 
@@ -300,19 +279,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
             <div className="bg-white border border-gray-100 rounded-xl p-6">
               <div className="w-12 h-12 bg-[#E16540]/10 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-[#E16540]"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-                  />
-                </svg>
+                <ChartBarIcon className="w-6 h-6 text-[#E16540]" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 Revenue Attribution
@@ -324,19 +291,7 @@ export default function Home() {
 
             <div className="bg-white border border-gray-100 rounded-xl p-6">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-primary"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"
-                  />
-                </svg>
+                <TrendingUpIcon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 Real-time Tracking
@@ -348,19 +303,7 @@ export default function Home() {
 
             <div className="bg-white border border-gray-100 rounded-xl p-6">
               <div className="w-12 h-12 bg-green-500/10 rounded-lg flex items-center justify-center mb-4">
-                <svg
-                  className="w-6 h-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
+                <DollarSignIcon className="w-6 h-6 text-green-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-900 mb-2">
                 Customer Journey

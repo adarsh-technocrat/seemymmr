@@ -17,6 +17,12 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  ChevronDownIcon,
+  CalendarIcon,
+} from "@/components/icons";
 
 interface PeriodSelectorProps {
   selectedPeriod: string;
@@ -138,20 +144,7 @@ export function PeriodSelector({
           className="join-item h-8 w-8 p-0 border-0 bg-transparent text-textPrimary hover:bg-gray-50"
           aria-label="Previous period"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-chevron-left size-4"
-          >
-            <path d="m15 18-6-6 6-6"></path>
-          </svg>
+          <ChevronLeftIcon className="size-4" />
         </Button>
         <Popover
           open={customDatePickerOpen}
@@ -176,20 +169,7 @@ export function PeriodSelector({
                       ? `${selectedPeriod} (${periodOffset} ago)`
                       : selectedPeriod}
                   </h3>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="lucide lucide-chevron-down size-3.5 shrink-0 opacity-30 duration-200"
-                  >
-                    <path d="m6 9 6 6 6-6"></path>
-                  </svg>
+                  <ChevronDownIcon className="size-3.5 shrink-0 opacity-30 duration-200" />
                 </Button>
               </DropdownMenuTrigger>
             </PopoverTrigger>
@@ -220,30 +200,7 @@ export function PeriodSelector({
                     >
                       <div className="flex items-center justify-between w-full">
                         <span>Custom</span>
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="ml-2"
-                        >
-                          <rect
-                            width="18"
-                            height="18"
-                            x="3"
-                            y="4"
-                            rx="2"
-                            ry="2"
-                          />
-                          <line x1="16" x2="16" y1="2" y2="6" />
-                          <line x1="8" x2="8" y1="2" y2="6" />
-                          <line x1="3" x2="21" y1="10" y2="10" />
-                        </svg>
+                        <CalendarIcon className="ml-2" size={16} />
                       </div>
                     </DropdownMenuItem>
                   ) : (
@@ -330,20 +287,7 @@ export function PeriodSelector({
           }`}
           aria-label="Next period"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="lucide lucide-chevron-right size-4"
-          >
-            <path d="m9 18 6-6-6-6"></path>
-          </svg>
+          <ChevronRightIcon className="size-4" />
         </Button>
       </div>
     </div>
