@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import connectDB from "@/db";
+import { getWebsiteByTrackingCode } from "@/utils/database/website";
 
 /**
  * Generate tracking script for a website
@@ -16,16 +18,55 @@ export async function GET(request: NextRequest) {
     });
   }
 
+  // Validate tracking code format (should be 24-character hex string)
+  // This prevents injection attacks by ensuring only valid format is accepted
+  if (!/^[a-f0-9]{24}$/i.test(trackingCode)) {
+    return new NextResponse("// Invalid tracking code format", {
+      status: 400,
+      headers: {
+        "Content-Type": "application/javascript",
+      },
+    });
+  }
+
+  // Verify tracking code exists in database to prevent unauthorized script generation
+  try {
+    await connectDB();
+    const website = await getWebsiteByTrackingCode(trackingCode);
+    if (!website) {
+      return new NextResponse("// Website not found", {
+        status: 404,
+        headers: {
+          "Content-Type": "application/javascript",
+        },
+      });
+    }
+  } catch (error) {
+    console.error("Error verifying tracking code:", error);
+    return new NextResponse("// Error verifying tracking code", {
+      status: 500,
+      headers: {
+        "Content-Type": "application/javascript",
+      },
+    });
+  }
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  const trackUrl = `${appUrl}/api/track?site=${trackingCode}`;
+
+  // Use JSON.stringify to safely escape values and prevent XSS/RCE
+  // This ensures proper escaping of quotes, backslashes, and special characters
+  const safeTrackingCode = JSON.stringify(trackingCode);
+  const safeTrackUrl = JSON.stringify(
+    `${appUrl}/api/track?site=${trackingCode}`
+  );
 
   const script = `
 (function() {
   'use strict';
   
   // Configuration
-  var TRACKING_CODE = '${trackingCode}';
-  var TRACK_URL = '${trackUrl}';
+  var TRACKING_CODE = ${safeTrackingCode};
+  var TRACK_URL = ${safeTrackUrl};
   var SESSION_TIMEOUT = 30 * 60 * 1000; // 30 minutes
   
   // State
