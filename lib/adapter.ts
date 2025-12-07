@@ -29,7 +29,7 @@ export function MongooseAdapter(): Adapter {
         email: newUser.email,
         emailVerified: null,
         name: newUser.name || "",
-        image: newUser.avatarUrl || null,
+        image: newUser.avatarUrl || undefined,
       };
       return adapterUser;
     },
@@ -42,7 +42,7 @@ export function MongooseAdapter(): Adapter {
         email: user.email,
         emailVerified: null,
         name: user.name || "",
-        image: user.avatarUrl || null,
+        image: user.avatarUrl || undefined,
       };
       return adapterUser;
     },
@@ -55,7 +55,7 @@ export function MongooseAdapter(): Adapter {
         email: user.email,
         emailVerified: null,
         name: user.name || "",
-        image: user.avatarUrl || null,
+        image: user.avatarUrl || undefined,
       };
       return adapterUser;
     },
@@ -72,7 +72,7 @@ export function MongooseAdapter(): Adapter {
         email: user.email,
         emailVerified: null,
         name: user.name || "",
-        image: user.avatarUrl || null,
+        image: user.avatarUrl || undefined,
       };
       return adapterUser;
     },
@@ -93,7 +93,7 @@ export function MongooseAdapter(): Adapter {
         email: updatedUser.email,
         emailVerified: null,
         name: updatedUser.name || "",
-        image: updatedUser.avatarUrl || null,
+        image: updatedUser.avatarUrl || undefined,
       };
       return adapterUser;
     },

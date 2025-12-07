@@ -8,15 +8,22 @@ if (!MONGODB_URI) {
   );
 }
 
+interface CachedConnection {
+  conn: typeof mongoose.connection | null;
+  promise: Promise<typeof mongoose.connection> | null;
+}
+
 /**
  * Global is used here to maintain a cached connection across hot reloads
  * in development. This prevents connections growing exponentially
  * during API Route usage.
  */
-let cached = global.mongoose;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let cached: CachedConnection | undefined = (global as any).mongoose;
 
 if (!cached) {
-  cached = global.mongoose = { conn: null, promise: null };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  cached = (global as any).mongoose = { conn: null, promise: null };
 }
 
 async function connectDB() {
@@ -29,9 +36,7 @@ async function connectDB() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
-    });
+    cached.promise = mongoose.connect(MONGODB_URI, opts);
   }
 
   try {

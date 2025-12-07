@@ -78,11 +78,14 @@ export async function POST(request: NextRequest) {
     // Try to link payment to visitor if visitorId/sessionId provided
     if (visitorId || sessionId) {
       try {
-        await linkPaymentToVisitor(payment._id.toString(), {
-          visitorId,
-          sessionId,
-          customerEmail,
-        });
+        await linkPaymentToVisitor(
+          {
+            metadata,
+            customerEmail,
+            timestamp: new Date(),
+          },
+          websiteId
+        );
       } catch (error) {
         console.error("Error linking payment to visitor:", error);
         // Don't fail the request if linking fails
@@ -96,7 +99,7 @@ export async function POST(request: NextRequest) {
         message: "Payment recorded successfully",
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error recording payment:", error);
     return NextResponse.json(
       {
