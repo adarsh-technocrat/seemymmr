@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAppDispatch } from "@/store/hooks";
+import { updateWebsiteSettingsAndConfiguration } from "@/store/slices/websitesSlice";
 import {
   Card,
   CardContent,
@@ -88,6 +90,7 @@ export function ExclusionsSettings({
   websiteId,
   onUpdate,
 }: ExclusionsSettingsProps) {
+  const dispatch = useAppDispatch();
   const [excludeIps, setExcludeIps] = useState<string[]>([]);
   const [excludePaths, setExcludePaths] = useState<string[]>([]);
   const [excludeHostnames, setExcludeHostnames] = useState<string[]>([]);
@@ -132,19 +135,18 @@ export function ExclusionsSettings({
   }) => {
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            ...updates,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              ...updates,
+            },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating exclusions:", error);
     } finally {

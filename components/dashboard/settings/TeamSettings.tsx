@@ -2,6 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/firebase/auth-context";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchAllTeamMembersForWebsite,
+  inviteTeamMemberToWebsite,
+  updateTeamMemberRoleForWebsite,
+  removeTeamMemberFromWebsite,
+} from "@/store/slices/websitesSlice";
 import {
   Card,
   CardContent,
@@ -76,13 +83,14 @@ export function TeamSettings({
   onUpdate,
 }: TeamSettingsProps) {
   const { user: firebaseUser } = useAuth();
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
-  const [owner, setOwner] = useState<Owner | null>(null);
+  const dispatch = useAppDispatch();
+  const { teamMembers, teamOwner, teamLoading, teamError } = useAppSelector(
+    (state) => state.websites
+  );
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"viewer" | "editor" | "admin">(
     "viewer"
   );
-  const [loading, setLoading] = useState(false);
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -107,26 +115,10 @@ export function TeamSettings({
     String(website.userId) === String(currentUserId);
 
   useEffect(() => {
-    const fetchTeamMembers = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/websites/${websiteId}/team`);
-        if (response.ok) {
-          const data = await response.json();
-          setTeamMembers(data.teamMembers || []);
-          setOwner(data.owner || null);
-        }
-      } catch (error) {
-        console.error("Error fetching team members:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (websiteId) {
-      fetchTeamMembers();
+      dispatch(fetchAllTeamMembersForWebsite(websiteId));
     }
-  }, [websiteId]);
+  }, [websiteId, dispatch]);
 
   const handleInvite = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -138,33 +130,20 @@ export function TeamSettings({
     setInviting(true);
     setError(null);
     try {
-      const response = await fetch(`/api/websites/${websiteId}/team`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      await dispatch(
+        inviteTeamMemberToWebsite({
+          websiteId,
           email: inviteEmail.trim(),
           role: inviteRole,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setInviteEmail("");
-        setInviteRole("viewer");
-        // Refresh team members
-        const refreshResponse = await fetch(`/api/websites/${websiteId}/team`);
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          setTeamMembers(refreshData.teamMembers || []);
-          setOwner(refreshData.owner || null);
-        }
-        onUpdate();
-      } else {
-        setError(data.error || "Failed to invite team member");
-      }
+        })
+      ).unwrap();
+      setInviteEmail("");
+      setInviteRole("viewer");
+      // Refresh team members
+      await dispatch(fetchAllTeamMembersForWebsite(websiteId));
+      onUpdate();
     } catch (error: any) {
-      setError(error.message || "Failed to invite team member");
+      setError(error || "Failed to invite team member");
     } finally {
       setInviting(false);
     }
@@ -176,23 +155,15 @@ export function TeamSettings({
     }
 
     try {
-      const response = await fetch(
-        `/api/websites/${websiteId}/team/${memberId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (response.ok) {
-        // Refresh team members
-        const refreshResponse = await fetch(`/api/websites/${websiteId}/team`);
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          setTeamMembers(refreshData.teamMembers || []);
-          setOwner(refreshData.owner || null);
-        }
-        onUpdate();
-      }
+      await dispatch(
+        removeTeamMemberFromWebsite({
+          websiteId,
+          memberId,
+        })
+      ).unwrap();
+      // Refresh team members
+      await dispatch(fetchAllTeamMembersForWebsite(websiteId));
+      onUpdate();
     } catch (error) {
       console.error("Error removing team member:", error);
     }
@@ -203,25 +174,16 @@ export function TeamSettings({
     newRole: "viewer" | "editor" | "admin"
   ) => {
     try {
-      const response = await fetch(
-        `/api/websites/${websiteId}/team/${memberId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ role: newRole }),
-        }
-      );
-
-      if (response.ok) {
-        // Refresh team members
-        const refreshResponse = await fetch(`/api/websites/${websiteId}/team`);
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          setTeamMembers(refreshData.teamMembers || []);
-          setOwner(refreshData.owner || null);
-        }
-        onUpdate();
-      }
+      await dispatch(
+        updateTeamMemberRoleForWebsite({
+          websiteId,
+          memberId,
+          role: newRole,
+        })
+      ).unwrap();
+      // Refresh team members
+      await dispatch(fetchAllTeamMembersForWebsite(websiteId));
+      onUpdate();
     } catch (error) {
       console.error("Error updating role:", error);
     }
@@ -282,11 +244,11 @@ export function TeamSettings({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {loading ? (
+          {teamLoading ? (
             <div className="text-center py-8 text-textSecondary">
               Loading team members...
             </div>
-          ) : !owner && teamMembers.length === 0 ? (
+          ) : !teamOwner && teamMembers.length === 0 ? (
             <div className="text-center py-8 text-textSecondary">
               No team members yet. Invite someone to get started.
             </div>
@@ -304,26 +266,26 @@ export function TeamSettings({
               </TableHeader>
               <TableBody>
                 {/* Owner row */}
-                {owner && (
+                {teamOwner && (
                   <TableRow>
                     <TableCell>
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
                           <AvatarImage
-                            src={owner.avatarUrl}
-                            alt={owner.name || owner.email}
+                            src={teamOwner.avatarUrl}
+                            alt={teamOwner.name || teamOwner.email}
                           />
                           <AvatarFallback>
-                            {owner.name?.charAt(0).toUpperCase() ||
-                              owner.email.charAt(0).toUpperCase()}
+                            {teamOwner.name?.charAt(0).toUpperCase() ||
+                              teamOwner.email.charAt(0).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
                           <span className="text-sm font-medium capitalize">
-                            {owner.name || owner.email.split("@")[0]}
+                            {teamOwner.name || teamOwner.email.split("@")[0]}
                           </span>
                           <span className="text-xs text-textSecondary">
-                            {owner.email}
+                            {teamOwner.email}
                           </span>
                         </div>
                       </div>
@@ -349,7 +311,8 @@ export function TeamSettings({
                     currentUserId &&
                     String(member.userId._id) === String(currentUserId);
                   const isMemberOwner =
-                    owner && String(member.userId._id) === String(owner._id);
+                    teamOwner &&
+                    String(member.userId._id) === String(teamOwner._id);
                   const canManage = isOwner && !isMemberOwner;
 
                   return (

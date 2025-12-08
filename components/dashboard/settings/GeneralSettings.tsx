@@ -5,6 +5,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAppDispatch } from "@/store/hooks";
+import {
+  updateWebsiteSettingsAndConfiguration,
+  deleteWebsiteById,
+} from "@/store/slices/websitesSlice";
 import {
   Card,
   CardContent,
@@ -62,6 +67,7 @@ export function GeneralSettings({
   onUpdate,
 }: GeneralSettingsProps) {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const [domain, setDomain] = useState("");
   const [nickname, setNickname] = useState("");
   const [timezone, setTimezone] = useState("Asia/Calcutta");
@@ -86,14 +92,13 @@ export function GeneralSettings({
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ domain }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: { domain },
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating domain:", error);
     } finally {
@@ -105,19 +110,18 @@ export function GeneralSettings({
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            nickname,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              nickname,
+            },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating nickname:", error);
     } finally {
@@ -129,19 +133,18 @@ export function GeneralSettings({
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            timezone,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              timezone,
+            },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating timezone:", error);
     } finally {
@@ -153,19 +156,18 @@ export function GeneralSettings({
     setColorScheme(color);
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            colorScheme: color,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              colorScheme: color,
+            },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating color scheme:", error);
     } finally {
@@ -176,25 +178,24 @@ export function GeneralSettings({
   const handleTogglePublicDashboard = async (checked: boolean) => {
     setPublicDashboard(checked);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            publicDashboard: {
-              enabled: checked,
-              shareId:
-                checked && !website?.settings?.publicDashboard?.shareId
-                  ? `share_${websiteId}_${Date.now()}`
-                  : website?.settings?.publicDashboard?.shareId,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              publicDashboard: {
+                enabled: checked,
+                shareId:
+                  checked && !website?.settings?.publicDashboard?.shareId
+                    ? `share_${websiteId}_${Date.now()}`
+                    : website?.settings?.publicDashboard?.shareId,
+              },
             },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating public dashboard:", error);
     }
@@ -556,12 +557,8 @@ export function GeneralSettings({
               )
             ) {
               try {
-                const response = await fetch(`/api/websites/${websiteId}`, {
-                  method: "DELETE",
-                });
-                if (response.ok) {
-                  router.push("/dashboard");
-                }
+                await dispatch(deleteWebsiteById(websiteId)).unwrap();
+                router.push("/dashboard");
               } catch (error) {
                 console.error("Error deleting website:", error);
               }

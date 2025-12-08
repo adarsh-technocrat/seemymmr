@@ -9,8 +9,11 @@ import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
 import { useDomainIcon } from "@/hooks/use-domain-icon";
 import { ArrowLeftIcon } from "@/components/icons";
+import { useAppDispatch } from "@/store/hooks";
+import { createNewWebsiteWithDomain } from "@/store/slices/websitesSlice";
 
 export default function AddSitePage() {
+  const dispatch = useAppDispatch();
   const [currentTime, setCurrentTime] = useState("");
   const [domain, setDomain] = useState("");
   const { iconUrl, loading } = useDomainIcon(domain);
@@ -89,26 +92,17 @@ export default function AddSitePage() {
                 if (!domainValue || typeof domainValue !== "string") return;
 
                 try {
-                  const response = await fetch("/api/websites", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
+                  const website = await dispatch(
+                    createNewWebsiteWithDomain({
                       domain: domainValue,
                       name: domainValue.replace(/^www\./, "").split(".")[0],
                       iconUrl: iconUrl || undefined,
-                    }),
-                  });
-
-                  if (response.ok) {
-                    const data = await response.json();
-                    window.location.href = `/dashboard/${data.website._id}`;
-                  } else {
-                    const error = await response.json();
-                    alert(error.error || "Failed to create website");
-                  }
-                } catch (error) {
+                    })
+                  ).unwrap();
+                  window.location.href = `/dashboard/${website._id}`;
+                } catch (error: any) {
                   console.error("Error creating website:", error);
-                  alert("Failed to create website");
+                  alert(error || "Failed to create website");
                 }
               }}
             >

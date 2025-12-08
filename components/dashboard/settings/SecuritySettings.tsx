@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAppDispatch } from "@/store/hooks";
+import { updateWebsiteSettingsAndConfiguration } from "@/store/slices/websitesSlice";
 import {
   Card,
   CardContent,
@@ -42,6 +44,7 @@ export function SecuritySettings({
   websiteId,
   onUpdate,
 }: SecuritySettingsProps) {
+  const dispatch = useAppDispatch();
   const [attackModeEnabled, setAttackModeEnabled] = useState(false);
   const [autoActivate, setAutoActivate] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -60,29 +63,26 @@ export function SecuritySettings({
     setAttackModeEnabled(checked);
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            attackMode: {
-              enabled: checked,
-              autoActivate:
-                website?.settings?.attackMode?.autoActivate || false,
-              threshold: website?.settings?.attackMode?.threshold || 1000,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              attackMode: {
+                enabled: checked,
+                autoActivate:
+                  website?.settings?.attackMode?.autoActivate || false,
+                threshold: website?.settings?.attackMode?.threshold || 1000,
+              },
             },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      } else {
-        // Revert on error
-        setAttackModeEnabled(!checked);
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating attack mode:", error);
+      // Revert on error
       setAttackModeEnabled(!checked);
     } finally {
       setLoading(false);
@@ -104,28 +104,25 @@ export function SecuritySettings({
     setAutoActivate(checked);
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            attackMode: {
-              enabled: website?.settings?.attackMode?.enabled || false,
-              autoActivate: checked,
-              threshold: website?.settings?.attackMode?.threshold || 1000,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              attackMode: {
+                enabled: website?.settings?.attackMode?.enabled || false,
+                autoActivate: checked,
+                threshold: website?.settings?.attackMode?.threshold || 1000,
+              },
             },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      } else {
-        // Revert on error
-        setAutoActivate(!checked);
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating auto-activate:", error);
+      // Revert on error
       setAutoActivate(!checked);
     } finally {
       setLoading(false);

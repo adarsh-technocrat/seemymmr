@@ -5,7 +5,7 @@ import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchWebsites } from "@/store/slices/websitesSlice";
+import { fetchAllUserWebsites } from "@/store/slices/websitesSlice";
 import { WebsiteCard } from "@/components/dashboard/WebsiteCard";
 import { PlusIcon, XIcon, ChatIcon } from "@/components/icons";
 
@@ -21,7 +21,7 @@ export default function DashboardPage() {
   const loading = useAppSelector((state) => state.websites.loading) as boolean;
 
   useEffect(() => {
-    dispatch(fetchWebsites());
+    dispatch(fetchAllUserWebsites());
   }, [dispatch]);
 
   return (

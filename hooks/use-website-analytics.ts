@@ -10,7 +10,7 @@ import {
   setSelectedSystemTab,
   setSelectedGoalTab,
 } from "@/store/slices/uiSlice";
-import { fetchWebsiteById } from "@/store/slices/websitesSlice";
+import { fetchWebsiteDetailsById } from "@/store/slices/websitesSlice";
 import { fetchAnalytics } from "@/store/slices/analyticsSlice";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useRealtimeVisitors } from "@/hooks/use-realtime-visitors";
@@ -304,7 +304,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
   // Fetch website data on mount
   useEffect(() => {
     if (websiteId) {
-      dispatch(fetchWebsiteById(websiteId));
+      dispatch(fetchWebsiteDetailsById(websiteId));
     }
   }, [websiteId, dispatch]);
 

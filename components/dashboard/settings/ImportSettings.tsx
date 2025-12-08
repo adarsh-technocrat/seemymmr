@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useAppDispatch } from "@/store/hooks";
+import { importPlausibleDataForWebsite } from "@/store/slices/websitesSlice";
 
 interface ImportSettingsProps {
   website: {
@@ -20,6 +22,7 @@ export function ImportSettings({
   websiteId,
   onUpdate,
 }: ImportSettingsProps) {
+  const dispatch = useAppDispatch();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -39,39 +42,28 @@ export function ImportSettings({
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", selectedFile);
-
-      const response = await fetch(
-        `/api/websites/${websiteId}/plausible-import`,
-        {
-          method: "POST",
-          body: formData,
-        }
+      const data = await dispatch(
+        importPlausibleDataForWebsite({
+          websiteId,
+          file: selectedFile,
+        })
+      ).unwrap();
+      alert(
+        data.message || `Imported ${data.imported || 0} records successfully`
       );
-
-      if (response.ok) {
-        const data = await response.json();
-        alert(
-          data.message || `Imported ${data.imported || 0} records successfully`
-        );
-        setSelectedFile(null);
-        // Reset file input
-        const form = e.currentTarget;
-        const fileInput = form.querySelector(
-          'input[type="file"]'
-        ) as HTMLInputElement;
-        if (fileInput) {
-          fileInput.value = "";
-        }
-        onUpdate();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to import data");
+      setSelectedFile(null);
+      // Reset file input
+      const form = e.currentTarget;
+      const fileInput = form.querySelector(
+        'input[type="file"]'
+      ) as HTMLInputElement;
+      if (fileInput) {
+        fileInput.value = "";
       }
-    } catch (error) {
+      onUpdate();
+    } catch (error: any) {
       console.error("Error importing data:", error);
-      alert("Failed to import data");
+      alert(error || "Failed to import data");
     } finally {
       setUploading(false);
     }

@@ -2,6 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchAllApiKeysForWebsite,
+  createNewApiKeyForWebsite,
+  deleteApiKeyByIdFromWebsite,
+} from "@/store/slices/websitesSlice";
 import {
   Card,
   CardContent,
@@ -44,9 +50,9 @@ export function APISettings({
   websiteId,
   onUpdate,
 }: APISettingsProps) {
-  const [apiKeys, setApiKeys] = useState<ApiKey[]>([]);
+  const dispatch = useAppDispatch();
+  const { apiKeys, apiKeysLoading } = useAppSelector((state) => state.websites);
   const [keyName, setKeyName] = useState("");
-  const [loading, setLoading] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newKey, setNewKey] = useState<{
     key: string;
@@ -56,60 +62,33 @@ export function APISettings({
 
   // Fetch API keys
   useEffect(() => {
-    const fetchApiKeys = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(`/api/websites/${websiteId}/api-keys`);
-        if (response.ok) {
-          const data = await response.json();
-          setApiKeys(data.apiKeys || []);
-        }
-      } catch (error) {
-        console.error("Error fetching API keys:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (websiteId) {
-      fetchApiKeys();
+      dispatch(fetchAllApiKeysForWebsite(websiteId));
     }
-  }, [websiteId]);
+  }, [websiteId, dispatch]);
 
   const handleCreateKey = async (e: React.FormEvent) => {
     e.preventDefault();
     setCreating(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}/api-keys`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const apiKey = await dispatch(
+        createNewApiKeyForWebsite({
+          websiteId,
           name: keyName.trim() || "Unnamed Key",
-        }),
+        })
+      ).unwrap();
+      setNewKey({
+        key: apiKey.key,
+        name: apiKey.name,
       });
-
-      if (response.ok) {
-        const data = await response.json();
-        setNewKey({
-          key: data.apiKey.key,
-          name: data.apiKey.name,
-        });
-        setShowKeyDialog(true);
-        setKeyName("");
-        // Refresh the list
-        const listResponse = await fetch(`/api/websites/${websiteId}/api-keys`);
-        if (listResponse.ok) {
-          const listData = await listResponse.json();
-          setApiKeys(listData.apiKeys || []);
-        }
-        onUpdate();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to create API key");
-      }
-    } catch (error) {
+      setShowKeyDialog(true);
+      setKeyName("");
+      // Refresh the list
+      await dispatch(fetchAllApiKeysForWebsite(websiteId));
+      onUpdate();
+    } catch (error: any) {
       console.error("Error creating API key:", error);
-      alert("Failed to create API key");
+      alert(error || "Failed to create API key");
     } finally {
       setCreating(false);
     }
@@ -121,23 +100,16 @@ export function APISettings({
     }
 
     try {
-      const response = await fetch(
-        `/api/websites/${websiteId}/api-keys/${keyId}`,
-        {
-          method: "DELETE",
-        }
-      );
-
-      if (response.ok) {
-        setApiKeys(apiKeys.filter((key) => key._id !== keyId));
-        onUpdate();
-      } else {
-        const error = await response.json();
-        alert(error.error || "Failed to delete API key");
-      }
-    } catch (error) {
+      await dispatch(
+        deleteApiKeyByIdFromWebsite({
+          websiteId,
+          keyId,
+        })
+      ).unwrap();
+      onUpdate();
+    } catch (error: any) {
       console.error("Error deleting API key:", error);
-      alert("Failed to delete API key");
+      alert(error || "Failed to delete API key");
     }
   };
 
@@ -193,7 +165,7 @@ export function APISettings({
 
       {/* API Keys List */}
       <div className="space-y-4">
-        {loading ? (
+        {apiKeysLoading ? (
           <div className="text-center py-8 text-textSecondary">
             Loading API keys...
           </div>

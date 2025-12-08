@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/lib/firebase/auth-context";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  fetchNotificationSettingsForWebsite,
+  updateNotificationSettingsForWebsite,
+} from "@/store/slices/websitesSlice";
 
 interface ReportsSettingsProps {
   website: {
@@ -21,36 +26,26 @@ export function ReportsSettings({
   onUpdate,
 }: ReportsSettingsProps) {
   const { user: firebaseUser } = useAuth();
+  const dispatch = useAppDispatch();
+  const { notifications, notificationsLoading } = useAppSelector(
+    (state) => state.websites
+  );
   const [weeklySummary, setWeeklySummary] = useState(false);
   const [trafficSpike, setTrafficSpike] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    const fetchNotifications = async () => {
-      setLoading(true);
-      try {
-        const response = await fetch(
-          `/api/websites/${websiteId}/notifications`
-        );
-        if (response.ok) {
-          const data = await response.json();
-          if (data.notification) {
-            setWeeklySummary(data.notification.weeklySummary || false);
-            setTrafficSpike(data.notification.trafficSpike || false);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching notifications:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (websiteId) {
-      fetchNotifications();
+      dispatch(fetchNotificationSettingsForWebsite(websiteId));
     }
-  }, [websiteId]);
+  }, [websiteId, dispatch]);
+
+  useEffect(() => {
+    if (notifications) {
+      setWeeklySummary(notifications.weeklySummary || false);
+      setTrafficSpike(notifications.trafficSpike || false);
+    }
+  }, [notifications]);
 
   const handleToggle = async (
     type: "weeklySummary" | "trafficSpike",
@@ -58,35 +53,32 @@ export function ReportsSettings({
   ) => {
     setUpdating(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}/notifications`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          weeklySummary: type === "weeklySummary" ? value : weeklySummary,
-          trafficSpike: type === "trafficSpike" ? value : trafficSpike,
-        }),
-      });
+      const newWeeklySummary = type === "weeklySummary" ? value : weeklySummary;
+      const newTrafficSpike = type === "trafficSpike" ? value : trafficSpike;
 
-      if (response.ok) {
-        if (type === "weeklySummary") {
-          setWeeklySummary(value);
-        } else {
-          setTrafficSpike(value);
-        }
-        onUpdate();
+      await dispatch(
+        updateNotificationSettingsForWebsite({
+          websiteId,
+          weeklySummary: newWeeklySummary,
+          trafficSpike: newTrafficSpike,
+        })
+      ).unwrap();
+
+      if (type === "weeklySummary") {
+        setWeeklySummary(value);
       } else {
-        const error = await response.json();
-        alert(error.error || "Failed to update notification settings");
+        setTrafficSpike(value);
       }
-    } catch (error) {
+      onUpdate();
+    } catch (error: any) {
       console.error("Error updating notifications:", error);
-      alert("Failed to update notification settings");
+      alert(error || "Failed to update notification settings");
     } finally {
       setUpdating(false);
     }
   };
 
-  if (loading) {
+  if (notificationsLoading) {
     return (
       <div className="text-center py-8 text-textSecondary">
         Loading notification settings...

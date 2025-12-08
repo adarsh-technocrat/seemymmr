@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useAppDispatch } from "@/store/hooks";
+import { updateWebsiteSettingsAndConfiguration } from "@/store/slices/websitesSlice";
 
 import {
   Card,
@@ -205,6 +207,7 @@ export function RevenueSettings({
   websiteId,
   onUpdate,
 }: RevenueSettingsProps) {
+  const dispatch = useAppDispatch();
   const [selectedProvider, setSelectedProvider] = useState("stripe");
   const [stripeApiKey, setStripeApiKey] = useState("");
   const [currency, setCurrency] = useState("USD");
@@ -221,24 +224,21 @@ export function RevenueSettings({
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          paymentProviders: {
-            ...website?.paymentProviders,
-            stripe: {
-              apiKey: stripeApiKey,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            paymentProviders: {
+              ...website?.paymentProviders,
+              stripe: {
+                apiKey: stripeApiKey,
+              },
             },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-        setStripeApiKey("");
-      }
+        })
+      ).unwrap();
+      onUpdate();
+      setStripeApiKey("");
     } catch (error) {
       console.error("Error connecting Stripe:", error);
     } finally {
@@ -255,19 +255,16 @@ export function RevenueSettings({
         delete updatedPaymentProviders.stripe;
       }
 
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          paymentProviders: updatedPaymentProviders,
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-        setShowDisconnectDialog(false);
-      }
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            paymentProviders: updatedPaymentProviders,
+          },
+        })
+      ).unwrap();
+      onUpdate();
+      setShowDisconnectDialog(false);
     } catch (error) {
       console.error("Error disconnecting Stripe:", error);
     } finally {
@@ -282,19 +279,18 @@ export function RevenueSettings({
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await fetch(`/api/websites/${websiteId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          settings: {
-            ...website?.settings,
-            currency,
+      await dispatch(
+        updateWebsiteSettingsAndConfiguration({
+          websiteId,
+          updates: {
+            settings: {
+              ...website?.settings,
+              currency,
+            },
           },
-        }),
-      });
-      if (response.ok) {
-        onUpdate();
-      }
+        })
+      ).unwrap();
+      onUpdate();
     } catch (error) {
       console.error("Error updating currency:", error);
     } finally {

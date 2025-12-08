@@ -4,7 +4,7 @@ import Link from "next/link";
 import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
-import { fetchWebsiteById } from "@/store/slices/websitesSlice";
+import { fetchWebsiteDetailsById } from "@/store/slices/websitesSlice";
 import {
   Card,
   CardDescription,
@@ -103,12 +103,12 @@ export default function SettingsPage({
 
   useEffect(() => {
     if (websiteId) {
-      dispatch(fetchWebsiteById(websiteId));
+      dispatch(fetchWebsiteDetailsById(websiteId));
     }
   }, [websiteId, dispatch]);
 
   const handleUpdate = () => {
-    dispatch(fetchWebsiteById(websiteId));
+    dispatch(fetchWebsiteDetailsById(websiteId));
   };
 
   return (
