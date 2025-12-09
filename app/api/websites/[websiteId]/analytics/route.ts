@@ -296,28 +296,112 @@ function processDataIntoBuckets(
   const customersMap = new Map<string, { customers: number; sales: number }>();
   const goalsMap = new Map<string, number>();
 
-  // Helper function to create a normalized key based on granularity
-  const createKey = (date: Date, granularity: Granularity): string => {
-    const d = new Date(date);
+  // Helper function to get IST date components from UTC date
+  const getISTComponentsFromUTC = (utcDate: Date) => {
+    // IST is UTC+5:30
+    const istOffsetMs = 5.5 * 60 * 60 * 1000;
+    const istTime = utcDate.getTime() + istOffsetMs;
+    const istDate = new Date(istTime);
+
+    return {
+      year: istDate.getUTCFullYear(),
+      month: istDate.getUTCMonth() + 1,
+      day: istDate.getUTCDate(),
+      hour: istDate.getUTCHours(),
+    };
+  };
+
+  // Helper function to get IST date components from local date (assuming local = IST)
+  const getISTComponentsFromLocal = (localDate: Date) => {
+    return {
+      year: localDate.getFullYear(),
+      month: localDate.getMonth() + 1,
+      day: localDate.getDate(),
+      hour: localDate.getHours(),
+    };
+  };
+
+  // Helper function to create a normalized key from IST components
+  const createKeyFromIST = (
+    year: number,
+    month: number,
+    day: number,
+    hour: number,
+    granularity: Granularity
+  ): string => {
     // Normalize to start of period based on granularity
+    let normalizedYear = year;
+    let normalizedMonth = month;
+    let normalizedDay = day;
+    let normalizedHour = hour;
+
     switch (granularity) {
       case "hourly":
-        d.setMinutes(0, 0, 0);
+        // Already at hour level
         break;
       case "daily":
-        d.setHours(0, 0, 0, 0);
+        normalizedHour = 0;
         break;
       case "weekly":
-        d.setHours(0, 0, 0, 0);
-        const day = d.getDay();
-        d.setDate(d.getDate() - day);
+        normalizedHour = 0;
+        // Calculate start of week (Sunday = 0)
+        const date = new Date(year, month - 1, day);
+        const dayOfWeek = date.getDay();
+        const startOfWeek = new Date(date);
+        startOfWeek.setDate(date.getDate() - dayOfWeek);
+        normalizedYear = startOfWeek.getFullYear();
+        normalizedMonth = startOfWeek.getMonth() + 1;
+        normalizedDay = startOfWeek.getDate();
         break;
       case "monthly":
-        d.setDate(1);
-        d.setHours(0, 0, 0, 0);
+        normalizedHour = 0;
+        normalizedDay = 1;
         break;
     }
-    return d.toISOString();
+
+    const monthStr = String(normalizedMonth).padStart(2, "0");
+    const dayStr = String(normalizedDay).padStart(2, "0");
+
+    switch (granularity) {
+      case "hourly":
+        const hourStr = String(normalizedHour).padStart(2, "0");
+        return `${normalizedYear}-${monthStr}-${dayStr}T${hourStr}:00:00`;
+      case "daily":
+        return `${normalizedYear}-${monthStr}-${dayStr}`;
+      case "weekly":
+        return `${normalizedYear}-${monthStr}-${dayStr}`;
+      case "monthly":
+        return `${normalizedYear}-${monthStr}`;
+      default:
+        return `${normalizedYear}-${monthStr}-${dayStr}`;
+    }
+  };
+
+  // Helper function to create a normalized key from UTC date (for MongoDB dates)
+  const createKey = (utcDate: Date, granularity: Granularity): string => {
+    const ist = getISTComponentsFromUTC(utcDate);
+    return createKeyFromIST(
+      ist.year,
+      ist.month,
+      ist.day,
+      ist.hour,
+      granularity
+    );
+  };
+
+  // Helper function to create a normalized key from local date (for bucket dates)
+  const createKeyFromLocal = (
+    localDate: Date,
+    granularity: Granularity
+  ): string => {
+    const ist = getISTComponentsFromLocal(localDate);
+    return createKeyFromIST(
+      ist.year,
+      ist.month,
+      ist.day,
+      ist.hour,
+      granularity
+    );
   };
 
   visitors.forEach((item) => {
@@ -391,26 +475,8 @@ function processDataIntoBuckets(
 
   while (current <= end) {
     const bucketDate = new Date(current);
-    // Normalize bucket date to start of period for key matching
-    const normalizedDate = new Date(bucketDate);
-    switch (granularity) {
-      case "hourly":
-        normalizedDate.setMinutes(0, 0, 0);
-        break;
-      case "daily":
-        normalizedDate.setHours(0, 0, 0, 0);
-        break;
-      case "weekly":
-        normalizedDate.setHours(0, 0, 0, 0);
-        const day = normalizedDate.getDay();
-        normalizedDate.setDate(normalizedDate.getDate() - day);
-        break;
-      case "monthly":
-        normalizedDate.setDate(1);
-        normalizedDate.setHours(0, 0, 0, 0);
-        break;
-    }
-    const key = normalizedDate.toISOString();
+    // Create key from bucket date (treating local time as IST)
+    const key = createKeyFromLocal(bucketDate, granularity);
 
     // Get revenue data
     const revenueData = revenueMap.get(key);
