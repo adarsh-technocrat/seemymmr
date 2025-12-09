@@ -6,7 +6,8 @@ export interface IPayment extends Document {
   providerPaymentId: string;
   amount: number;
   currency: string;
-  status: "completed" | "refunded" | "failed";
+  renewal: boolean;
+  refunded: boolean;
 
   customerEmail?: string;
   customerId?: string;
@@ -57,10 +58,16 @@ const PaymentSchema = new Schema<IPayment>(
       required: true,
       default: "usd",
     },
-    status: {
-      type: String,
-      enum: ["completed", "refunded", "failed"],
+    renewal: {
+      type: Boolean,
       required: true,
+      default: false,
+      index: true,
+    },
+    refunded: {
+      type: Boolean,
+      required: true,
+      default: false,
       index: true,
     },
     customerEmail: {
@@ -87,7 +94,8 @@ const PaymentSchema = new Schema<IPayment>(
 
 // Compound indexes
 PaymentSchema.index({ websiteId: 1, timestamp: -1 });
-PaymentSchema.index({ websiteId: 1, status: 1, timestamp: -1 });
+PaymentSchema.index({ websiteId: 1, renewal: 1, timestamp: -1 });
+PaymentSchema.index({ websiteId: 1, refunded: 1, timestamp: -1 });
 PaymentSchema.index({ provider: 1, providerPaymentId: 1 }, { unique: true });
 
 // Prevent model re-compilation during hot reload in development

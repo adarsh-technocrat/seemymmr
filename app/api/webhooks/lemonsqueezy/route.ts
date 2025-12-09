@@ -85,9 +85,10 @@ async function handleOrderCreated(order: any) {
     websiteId,
     provider: "lemonsqueezy",
     providerPaymentId: order.id,
-    amount: Math.round(amount * 100), // Convert to cents
+    amount: Math.round(amount * 100),
     currency: currency.toLowerCase(),
-    status: order.attributes.status === "paid" ? "completed" : "failed",
+    renewal: false,
+    refunded: false,
     customerEmail,
     customerId,
     metadata: {

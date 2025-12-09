@@ -21,9 +21,6 @@ function getDateTruncUnit(granularity: Granularity): string {
   }
 }
 
-/**
- * Get visitors over time
- */
 export async function getVisitorsOverTime(
   websiteId: string,
   startDate: Date,
@@ -74,6 +71,11 @@ export async function getVisitorsOverTime(
 
 /**
  * Get revenue over time
+ * Returns raw revenue components separately - frontend should calculate net revenue if needed
+ * - revenue: sum of non-refunded payments (gross revenue)
+ * - revenueNew: sum of non-refunded, non-renewal payments
+ * - revenueRefund: sum of refunded payments
+ * Note: Net revenue = revenue - revenueRefund (calculated in frontend)
  */
 export async function getRevenueOverTime(
   websiteId: string,
@@ -91,7 +93,6 @@ export async function getRevenueOverTime(
       $match: {
         websiteId: websiteObjectId,
         timestamp: { $gte: startDate, $lte: endDate },
-        status: "completed",
       },
     },
     {
@@ -102,15 +103,28 @@ export async function getRevenueOverTime(
             unit: unit,
           },
         },
-        revenue: { $sum: "$amount" },
+        revenue: {
+          $sum: {
+            $cond: [{ $eq: ["$refunded", false] }, "$amount", 0],
+          },
+        },
         revenueNew: {
           $sum: {
-            $cond: [{ $eq: ["$status", "completed"] }, "$amount", 0],
+            $cond: [
+              {
+                $and: [
+                  { $eq: ["$refunded", false] },
+                  { $eq: ["$renewal", false] },
+                ],
+              },
+              "$amount",
+              0,
+            ],
           },
         },
         revenueRefund: {
           $sum: {
-            $cond: [{ $eq: ["$status", "refunded"] }, "$amount", 0],
+            $cond: [{ $eq: ["$refunded", true] }, "$amount", 0],
           },
         },
       },
@@ -381,6 +395,10 @@ export async function getSystemBreakdown(
 
 /**
  * Get overall metrics
+ * Returns raw revenue components separately - frontend should calculate net revenue if needed
+ * - revenue: total non-refunded payments (gross revenue)
+ * - revenueRefund: total refunded payments
+ * Note: Net revenue = revenue - revenueRefund (calculated in frontend)
  */
 export async function getMetrics(
   websiteId: string,
@@ -391,34 +409,35 @@ export async function getMetrics(
 
   const websiteObjectId = new Types.ObjectId(websiteId);
 
-  // Get unique visitors
   const uniqueVisitors = await PageView.distinct("visitorId", {
     websiteId: websiteObjectId,
     timestamp: { $gte: startDate, $lte: endDate },
   });
 
-  // Get total page views
   const totalPageViews = await PageView.countDocuments({
     websiteId: websiteObjectId,
     timestamp: { $gte: startDate, $lte: endDate },
   });
 
-  // Get total revenue
+  // Get raw revenue components (not net revenue)
   const revenueResult = await Payment.aggregate([
     {
       $match: {
         websiteId: websiteObjectId,
         timestamp: { $gte: startDate, $lte: endDate },
-        status: "completed",
       },
     },
     {
       $group: {
         _id: null,
-        totalRevenue: { $sum: "$amount" },
+        totalRevenue: {
+          $sum: {
+            $cond: [{ $eq: ["$refunded", false] }, "$amount", 0],
+          },
+        },
         totalRefunds: {
           $sum: {
-            $cond: [{ $eq: ["$status", "refunded"] }, "$amount", 0],
+            $cond: [{ $eq: ["$refunded", true] }, "$amount", 0],
           },
         },
       },
@@ -450,7 +469,7 @@ export async function getMetrics(
   const sessionsWithPayments = await Payment.distinct("sessionId", {
     websiteId: websiteObjectId,
     timestamp: { $gte: startDate, $lte: endDate },
-    status: "completed",
+    refunded: false,
   });
 
   const conversionRate =
@@ -473,9 +492,6 @@ export async function getMetrics(
   };
 }
 
-/**
- * Get real-time visitor count (last 5 minutes)
- */
 export async function getVisitorsNow(websiteId: string) {
   await connectDB();
 

@@ -2,16 +2,14 @@ import connectDB from "@/db";
 import Payment from "@/db/models/Payment";
 import { linkPaymentToVisitor } from "@/utils/revenue/linkPayment";
 
-/**
- * Create a payment record
- */
 export async function createPayment(data: {
   websiteId: string;
   provider: "stripe" | "lemonsqueezy" | "polar" | "paddle" | "other";
   providerPaymentId: string;
-  amount: number; // in cents
+  amount: number;
   currency: string;
-  status: "completed" | "refunded" | "failed";
+  renewal: boolean;
+  refunded: boolean;
   customerEmail?: string;
   customerId?: string;
   metadata?: Record<string, any>;
@@ -20,22 +18,23 @@ export async function createPayment(data: {
   await connectDB();
 
   try {
-    // Check if payment already exists (upsert to prevent duplicates)
     const existingPayment = await Payment.findOne({
       provider: data.provider,
       providerPaymentId: data.providerPaymentId,
     });
 
     if (existingPayment) {
-      // Update existing payment if needed
-      if (existingPayment.status !== data.status) {
-        existingPayment.status = data.status;
+      if (
+        existingPayment.renewal !== data.renewal ||
+        existingPayment.refunded !== data.refunded
+      ) {
+        existingPayment.renewal = data.renewal;
+        existingPayment.refunded = data.refunded;
         await existingPayment.save();
       }
       return existingPayment;
     }
 
-    // Try to link to visitor/session
     const link = await linkPaymentToVisitor(
       {
         metadata: data.metadata,
@@ -51,7 +50,8 @@ export async function createPayment(data: {
       providerPaymentId: data.providerPaymentId,
       amount: data.amount,
       currency: data.currency,
-      status: data.status,
+      renewal: data.renewal,
+      refunded: data.refunded,
       customerEmail: data.customerEmail,
       customerId: data.customerId,
       metadata: data.metadata,
@@ -69,25 +69,25 @@ export async function createPayment(data: {
 }
 
 /**
- * Update payment status (e.g., for refunds)
+ * Update payment refunded status
  */
-export async function updatePaymentStatus(
+export async function updatePaymentRefunded(
   provider: string,
   providerPaymentId: string,
-  status: "completed" | "refunded" | "failed"
+  refunded: boolean
 ) {
   await connectDB();
 
   try {
     const payment = await Payment.findOneAndUpdate(
       { provider, providerPaymentId },
-      { $set: { status } },
+      { $set: { refunded } },
       { new: true }
     );
 
     return payment;
   } catch (error) {
-    console.error("Error updating payment:", error);
+    console.error("Error updating payment refunded status:", error);
     throw error;
   }
 }

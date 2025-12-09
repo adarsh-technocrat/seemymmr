@@ -50,6 +50,8 @@ export async function GET(
     // Get all analytics data
     // Note: All data comes from our database (source of truth)
     // Revenue data is synced from Stripe when the key is added and kept up-to-date via webhooks
+    // Revenue components are returned separately (revenue, revenueNew, revenueRefund)
+    // Frontend should calculate net revenue if needed (revenue - revenueRefund)
     const [
       visitors,
       revenue,

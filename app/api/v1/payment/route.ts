@@ -57,14 +57,14 @@ export async function POST(request: NextRequest) {
 
     await connectDB();
 
-    // Create payment record
     const payment = new Payment({
       websiteId,
       provider,
       providerPaymentId,
-      amount: Math.round(amount * 100), // Convert to cents
+      amount: Math.round(amount * 100),
       currency,
-      status: "completed",
+      renewal: false,
+      refunded: false,
       customerEmail,
       customerId,
       sessionId,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createPayment, updatePaymentStatus } from "@/utils/database/payment";
+import { createPayment, updatePaymentRefunded } from "@/utils/database/payment";
 import { getWebsiteById } from "@/utils/database/website";
 
 // Stripe SDK is optional - uncomment and install if needed for signature verification
@@ -100,7 +100,8 @@ async function handleCheckoutSession(session: any) {
     providerPaymentId: session.id,
     amount,
     currency,
-    status: "completed",
+    renewal: false,
+    refunded: false,
     customerEmail,
     customerId,
     metadata: session.metadata,
@@ -133,7 +134,8 @@ async function handlePaymentIntent(paymentIntent: any) {
     providerPaymentId: paymentIntent.id,
     amount,
     currency,
-    status: "completed",
+    renewal: false,
+    refunded: false,
     customerEmail: paymentIntent.receipt_email,
     customerId: paymentIntent.customer,
     metadata: paymentIntent.metadata,
@@ -145,11 +147,10 @@ async function handlePaymentIntent(paymentIntent: any) {
  * Handle Stripe refund
  */
 async function handleRefund(charge: any) {
-  // Find payment by charge ID
-  const payment = await updatePaymentStatus(
+  const payment = await updatePaymentRefunded(
     "stripe",
     charge.payment_intent || charge.id,
-    "refunded"
+    true
   );
 
   if (!payment) {
