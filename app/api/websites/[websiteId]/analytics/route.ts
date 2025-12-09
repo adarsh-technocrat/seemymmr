@@ -61,8 +61,7 @@ export async function GET(
       endDate = dateRange.endDate;
     }
 
-    // If period is "today" or "last24h", sync latest Stripe payments for today
-    // This ensures we have the most up-to-date revenue data when refreshing
+    // Sync Stripe payments for "today" or "last24h" periods
     const periodLower = period.toLowerCase();
     const stripeApiKey = website.paymentProviders?.stripe?.apiKey;
     const shouldSyncToday =
@@ -72,23 +71,14 @@ export async function GET(
       stripeApiKey;
 
     if (shouldSyncToday && stripeApiKey) {
-      // Sync today's Stripe payments before fetching analytics
-      // Use Promise.race with a timeout to avoid hanging if sync takes too long
       try {
         await Promise.race([
-          syncStripePayments(
-            websiteId,
-            stripeApiKey,
-            startDate, // Today's start
-            endDate // Today's end (current time)
-          ),
+          syncStripePayments(websiteId, stripeApiKey, startDate, endDate),
           new Promise((_, reject) =>
             setTimeout(() => reject(new Error("Sync timeout")), 10000)
-          ), // 10 second timeout
+          ),
         ]);
       } catch (error: any) {
-        // Log error but continue with analytics fetch
-        // If sync fails or times out, we'll still show existing data
         console.error(
           "Error syncing Stripe payments on refresh:",
           error.message
@@ -120,14 +110,14 @@ export async function GET(
       startDate,
       endDate,
       granularity,
-      timezone
+      timezone,
+      period
     );
 
     // Calculate totals
     const totals = calculateTotals(processedData, metrics);
 
-    // Calculate percentage changes (comparing with previous period)
-    // For "all" period, don't calculate percentage changes (no previous period)
+    // Calculate percentage changes compared to previous period
     let percentageChange: Record<string, string | null>;
     if (period.toLowerCase() === "all" || period.toLowerCase() === "all time") {
       percentageChange = {
@@ -170,7 +160,7 @@ export async function GET(
       totalGoal: totals.goal,
       revenuePerVisitor: totals.revenuePerVisitor,
       conversionRate: totals.conversionRate,
-      goalConversionRate: null, // TODO: Implement if needed
+      goalConversionRate: null,
       bounceRate: totals.bounceRate,
       sessionDuration: totals.sessionDuration,
       currency: "$",
@@ -213,11 +203,8 @@ function getDateRangeForPeriod(
   const periodLower = period.toLowerCase();
   const now = new Date();
 
-  // Helper function to get start of day in a specific timezone
   const getStartOfDayInTimezone = (date: Date, tz: string): Date => {
-    // Get the date components in the target timezone
     const components = getTimezoneComponents(date, tz);
-    // Create UTC date representing 00:00:00 in the target timezone
     return createUTCDateFromTimezoneComponents(
       components.year,
       components.month,
@@ -227,10 +214,8 @@ function getDateRangeForPeriod(
     );
   };
 
-  // Helper function to get end of day in a specific timezone
   const getEndOfDayInTimezone = (date: Date, tz: string): Date => {
     const startOfDay = getStartOfDayInTimezone(date, tz);
-    // Add 23:59:59.999 (one millisecond before next day)
     return new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1);
   };
 
@@ -278,7 +263,6 @@ function getDateRangeForPeriod(
     case "week":
     case "week to date":
       endDate = getEndOfDayInTimezone(now, timezone);
-      // Get start of week in the target timezone
       const nowInTz = new Date(
         now.toLocaleString("en-US", { timeZone: timezone })
       );
@@ -308,7 +292,6 @@ function getDateRangeForPeriod(
       startDate = new Date(0); // Epoch start
       break;
     default:
-      // Default to today
       startDate = getStartOfDayInTimezone(now, timezone);
       endDate = getEndOfDayInTimezone(now, timezone);
   }
@@ -331,23 +314,41 @@ function getPreviousPeriodDateRange(
 }
 
 /**
- * Get timezone offset in milliseconds for a given timezone at a specific date
+ * Get timezone offset in milliseconds
+ * Returns positive value if timezone is ahead of UTC (e.g., IST is +5:30 = +19800000 ms)
  */
 function getTimezoneOffset(timezone: string, date: Date): number {
-  // Use Intl to get the offset
-  const utcTime = date.getTime();
-  const tzTime = new Date(
-    date.toLocaleString("en-US", { timeZone: timezone })
-  ).getTime();
-  const utcTime2 = new Date(
-    date.toLocaleString("en-US", { timeZone: "UTC" })
-  ).getTime();
-  return tzTime - utcTime2;
+  const utcDate = new Date(date.getTime());
+  const utcComponents = {
+    year: utcDate.getUTCFullYear(),
+    month: utcDate.getUTCMonth() + 1,
+    day: utcDate.getUTCDate(),
+    hour: utcDate.getUTCHours(),
+  };
+  const tzComponents = getTimezoneComponents(utcDate, timezone);
+
+  const utcAsLocal = Date.UTC(
+    utcComponents.year,
+    utcComponents.month - 1,
+    utcComponents.day,
+    utcComponents.hour,
+    0,
+    0
+  );
+  const tzAsLocal = Date.UTC(
+    tzComponents.year,
+    tzComponents.month - 1,
+    tzComponents.day,
+    tzComponents.hour,
+    0,
+    0
+  );
+
+  return tzAsLocal - utcAsLocal;
 }
 
 /**
- * Create a UTC Date from timezone components
- * Given year/month/day/hour in a timezone, create the equivalent UTC Date
+ * Create UTC Date from timezone components
  */
 function createUTCDateFromTimezoneComponents(
   year: number,
@@ -356,23 +357,16 @@ function createUTCDateFromTimezoneComponents(
   hour: number,
   timezone: string
 ): Date {
-  // Create a date string and parse it as if it's in the timezone
-  const dateStr = `${year}-${String(month).padStart(2, "0")}-${String(
-    day
-  ).padStart(2, "0")}T${String(hour).padStart(2, "0")}:00:00`;
-
-  // Use Intl to convert: create a date in UTC that represents this time in the timezone
-  // We'll use a workaround: create the date and adjust by the offset
-  const tempDate = new Date(dateStr + "Z"); // Parse as UTC first
-  const offset = getTimezoneOffset(timezone, tempDate);
-  return new Date(tempDate.getTime() - offset);
+  const utcTimestamp = Date.UTC(year, month - 1, day, hour, 0, 0);
+  const testDate = new Date(utcTimestamp);
+  const offsetMs = getTimezoneOffset(timezone, testDate);
+  return new Date(utcTimestamp - offsetMs);
 }
 
 /**
- * Convert UTC date to user's timezone and get components
+ * Get timezone components from UTC date
  */
 function getTimezoneComponents(utcDate: Date, timezone: string) {
-  // Use Intl.DateTimeFormat to get components in the target timezone
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone: timezone,
     year: "numeric",
@@ -400,6 +394,43 @@ function getTimezoneComponents(utcDate: Date, timezone: string) {
 }
 
 /**
+ * Format timestamp from timezone components
+ */
+function formatTimestampFromComponents(
+  components: {
+    year: number;
+    month: number;
+    day: number;
+    hour: number;
+    minute: number;
+  },
+  timezone: string,
+  granularity: Granularity,
+  utcDate: Date
+): string {
+  const year = String(components.year);
+  const month = String(components.month).padStart(2, "0");
+  const day = String(components.day).padStart(2, "0");
+  const offsetMs = getTimezoneOffset(timezone, utcDate);
+  const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
+  const offsetMinutes = Math.floor(
+    (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000)
+  );
+  const offsetSign = offsetMs >= 0 ? "+" : "-";
+  const offsetStr = `${offsetSign}${String(offsetHours).padStart(
+    2,
+    "0"
+  )}:${String(offsetMinutes).padStart(2, "0")}`;
+
+  if (granularity === "hourly") {
+    const hour = String(components.hour).padStart(2, "0");
+    return `${year}-${month}-${day}T${hour}:00:00${offsetStr}`;
+  } else {
+    return `${year}-${month}-${day}T00:00:00${offsetStr}`;
+  }
+}
+
+/**
  * Format timestamp with timezone offset
  */
 function formatTimestampWithTimezone(
@@ -411,8 +442,6 @@ function formatTimestampWithTimezone(
   const year = String(components.year);
   const month = String(components.month).padStart(2, "0");
   const day = String(components.day).padStart(2, "0");
-
-  // Get timezone offset string (e.g., "+05:30")
   const offsetMs = getTimezoneOffset(timezone, date);
   const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
   const offsetMinutes = Math.floor(
@@ -448,7 +477,8 @@ function processDataIntoBuckets(
   startDate: Date,
   endDate: Date,
   granularity: Granularity,
-  timezone: string
+  timezone: string,
+  period?: string
 ): Array<{
   name: string;
   visitors: number | null;
@@ -460,7 +490,7 @@ function processDataIntoBuckets(
   sales: number | null;
   goalCount: number | null;
 }> {
-  // Create maps for efficient lookup
+  // Create lookup maps
   const visitorsMap = new Map<string, number>();
   const revenueMap = new Map<
     string,
@@ -469,17 +499,13 @@ function processDataIntoBuckets(
   const customersMap = new Map<string, { customers: number; sales: number }>();
   const goalsMap = new Map<string, number>();
 
-  // Helper function to create a normalized key from UTC date
-  // Converts UTC to user's timezone, then creates key based on timezone components
+  // Create normalized key from UTC date
   const createKey = (
     utcDate: Date,
     granularity: Granularity,
     timezone: string
   ): string => {
-    // Get components in user's timezone
     const tzComponents = getTimezoneComponents(utcDate, timezone);
-
-    // Normalize to start of period based on granularity
     let year = tzComponents.year;
     let month = tzComponents.month;
     let day = tzComponents.day;
@@ -487,19 +513,15 @@ function processDataIntoBuckets(
 
     switch (granularity) {
       case "hourly":
-        // Already at hour level, just normalize minutes
         break;
       case "daily":
         hour = 0;
         break;
       case "weekly":
         hour = 0;
-        // Calculate start of week in user's timezone
-        // Create a date in the user's timezone to get day of week
         const tzDateStr = `${year}-${String(month).padStart(2, "0")}-${String(
           day
         ).padStart(2, "0")}T00:00:00`;
-        // Parse as if it's in the timezone (we'll use a workaround)
         const tempDate = new Date(
           tzDateStr + getTimezoneOffsetString(timezone, utcDate)
         );
@@ -535,7 +557,7 @@ function processDataIntoBuckets(
     }
   };
 
-  // Helper to get timezone offset as string for date construction
+  // Get timezone offset as string
   function getTimezoneOffsetString(timezone: string, date: Date): string {
     const offsetMs = getTimezoneOffset(timezone, date);
     const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
@@ -549,14 +571,12 @@ function processDataIntoBuckets(
   }
 
   visitors.forEach((item) => {
-    // Ensure date is a Date object (MongoDB returns UTC dates)
     const date = item.date instanceof Date ? item.date : new Date(item.date);
     const key = createKey(date, granularity, timezone);
     visitorsMap.set(key, item.visitors);
   });
 
   revenue.forEach((item) => {
-    // Ensure date is a Date object (MongoDB returns UTC dates)
     const date = item.date instanceof Date ? item.date : new Date(item.date);
     const key = createKey(date, granularity, timezone);
     revenueMap.set(key, {
@@ -567,7 +587,6 @@ function processDataIntoBuckets(
   });
 
   customersAndSales.forEach((item) => {
-    // Ensure date is a Date object (MongoDB returns UTC dates)
     const date = item.date instanceof Date ? item.date : new Date(item.date);
     const key = createKey(date, granularity, timezone);
     customersMap.set(key, {
@@ -577,7 +596,6 @@ function processDataIntoBuckets(
   });
 
   goals.forEach((item) => {
-    // Ensure date is a Date object (MongoDB returns UTC dates)
     const date = item.date instanceof Date ? item.date : new Date(item.date);
     const key = createKey(date, granularity, timezone);
     goalsMap.set(key, item.goalCount);
@@ -596,36 +614,19 @@ function processDataIntoBuckets(
     goalCount: number | null;
   }> = [];
 
-  // startDate and endDate are in server local time, but we interpret them as user's timezone
-  // We need to generate buckets in the user's timezone
-  // Create a date representing startDate in the user's timezone
-  const startDateStr = `${startDate.getFullYear()}-${String(
-    startDate.getMonth() + 1
-  ).padStart(2, "0")}-${String(startDate.getDate()).padStart(2, "0")}T${String(
-    startDate.getHours()
-  ).padStart(2, "0")}:${String(startDate.getMinutes()).padStart(
-    2,
-    "0"
-  )}:${String(startDate.getSeconds()).padStart(2, "0")}`;
+  // Get timezone components for current time and date range
+  const now = new Date();
+  const nowTZ = getTimezoneComponents(now, timezone);
+  const startTZ = getTimezoneComponents(startDate, timezone);
+  const endTZ = getTimezoneComponents(endDate, timezone);
 
-  // Parse as if it's in the user's timezone by creating UTC date and adjusting
-  // We'll work with the timezone components directly
-  const startTZ = getTimezoneComponents(
-    new Date(startDate.getTime() - getTimezoneOffset(timezone, startDate)),
-    timezone
-  );
-  const endTZ = getTimezoneComponents(
-    new Date(endDate.getTime() - getTimezoneOffset(timezone, endDate)),
-    timezone
-  );
+  const isToday = period?.toLowerCase().trim() === "today";
 
-  // Create current bucket date in user's timezone (start with normalized start date)
-  let currentYear = startTZ.year;
-  let currentMonth = startTZ.month;
-  let currentDay = startTZ.day;
-  let currentHour = startTZ.hour;
-
-  // Normalize to start of period
+  // Initialize bucket date
+  let currentYear = isToday ? nowTZ.year : startTZ.year;
+  let currentMonth = isToday ? nowTZ.month : startTZ.month;
+  let currentDay = isToday ? nowTZ.day : startTZ.day;
+  let currentHour = 0;
   switch (granularity) {
     case "hourly":
       currentHour = Math.floor(currentHour);
@@ -635,7 +636,6 @@ function processDataIntoBuckets(
       break;
     case "weekly":
       currentHour = 0;
-      // Calculate start of week - create a date to get day of week
       const weekStartDate = new Date(
         Date.UTC(currentYear, currentMonth - 1, currentDay)
       );
@@ -654,18 +654,7 @@ function processDataIntoBuckets(
 
   // Generate buckets by iterating in user's timezone
   while (true) {
-    // Create a UTC date representing this bucket in user's timezone
-    // We need to construct a date that, when converted to user's timezone, gives us currentYear/Month/Day/Hour
-    const bucketDateStr = `${currentYear}-${String(currentMonth).padStart(
-      2,
-      "0"
-    )}-${String(currentDay).padStart(2, "0")}T${String(currentHour).padStart(
-      2,
-      "0"
-    )}:00:00`;
-
-    // Create date as if it's in UTC, then adjust for timezone offset
-    // This is a bit tricky - we'll use a helper to create the proper UTC date
+    // Create UTC date representing this bucket in user's timezone
     const bucketDateUTC = createUTCDateFromTimezoneComponents(
       currentYear,
       currentMonth,
@@ -675,23 +664,27 @@ function processDataIntoBuckets(
     );
 
     // Check if we've exceeded end date
+    const endYear = isToday ? nowTZ.year : endTZ.year;
+    const endMonth = isToday ? nowTZ.month : endTZ.month;
+    const endDay = isToday ? nowTZ.day : endTZ.day;
+    const endHour = endTZ.hour;
+
     const bucketEndTZ = getTimezoneComponents(bucketDateUTC, timezone);
     if (
-      bucketEndTZ.year > endTZ.year ||
-      (bucketEndTZ.year === endTZ.year && bucketEndTZ.month > endTZ.month) ||
-      (bucketEndTZ.year === endTZ.year &&
-        bucketEndTZ.month === endTZ.month &&
-        bucketEndTZ.day > endTZ.day) ||
+      bucketEndTZ.year > endYear ||
+      (bucketEndTZ.year === endYear && bucketEndTZ.month > endMonth) ||
+      (bucketEndTZ.year === endYear &&
+        bucketEndTZ.month === endMonth &&
+        bucketEndTZ.day > endDay) ||
       (granularity === "hourly" &&
-        bucketEndTZ.year === endTZ.year &&
-        bucketEndTZ.month === endTZ.month &&
-        bucketEndTZ.day === endTZ.day &&
-        bucketEndTZ.hour > endTZ.hour)
+        bucketEndTZ.year === endYear &&
+        bucketEndTZ.month === endMonth &&
+        bucketEndTZ.day === endDay &&
+        bucketEndTZ.hour > endHour)
     ) {
       break;
     }
 
-    // Create key from UTC date (MongoDB dates are UTC, we convert them to user timezone in createKey)
     const key = createKey(bucketDateUTC, granularity, timezone);
 
     // Get revenue data
@@ -702,22 +695,35 @@ function processDataIntoBuckets(
       : null;
 
     // Format name and timestamp in user's timezone
-    const tzComponents = getTimezoneComponents(bucketDateUTC, timezone);
+    const tzComponents = isToday
+      ? {
+          year: currentYear,
+          month: currentMonth,
+          day: currentDay,
+          hour: currentHour,
+          minute: 0,
+        }
+      : getTimezoneComponents(bucketDateUTC, timezone);
+
     const name = formatBucketNameFromComponents(
       tzComponents,
       granularity,
       timezone
     );
-    const timestamp = formatTimestampWithTimezone(
-      bucketDateUTC,
-      timezone,
-      granularity
-    );
+
+    const timestamp = isToday
+      ? formatTimestampFromComponents(
+          tzComponents,
+          timezone,
+          granularity,
+          bucketDateUTC
+        )
+      : formatTimestampWithTimezone(bucketDateUTC, timezone, granularity);
 
     buckets.push({
       name,
       visitors: visitorsMap.get(key) ?? null,
-      revenue: newRevenue, // New revenue only (not including renewals)
+      revenue: newRevenue,
       timestamp: timestamp,
       renewalRevenue: renewalRevenue,
       refundedRevenue: revenueData ? revenueData.revenueRefund / 100 : null,
@@ -726,14 +732,13 @@ function processDataIntoBuckets(
       goalCount: goalsMap.get(key) ?? null,
     });
 
-    // Increment based on granularity (in user's timezone)
+    // Increment bucket date
     switch (granularity) {
       case "hourly":
         currentHour++;
         if (currentHour >= 24) {
           currentHour = 0;
           currentDay++;
-          // Check for month/year rollover
           const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
           if (currentDay > daysInMonth) {
             currentDay = 1;
@@ -814,7 +819,6 @@ function formatBucketNameFromComponents(
       const month = monthNames[components.month - 1];
       return `${day} ${month}`;
     case "weekly":
-      // For weekly, we'll use the start of week date
       const weekDate = new Date(
         Date.UTC(components.year, components.month - 1, components.day)
       );
@@ -845,64 +849,6 @@ function formatBucketNameFromComponents(
 }
 
 /**
- * Format bucket name based on granularity
- * date is a Date object adjusted to IST (UTC time + 5.5 hours)
- * Use UTC methods to get IST values
- */
-function formatBucketName(date: Date, granularity: Granularity): string {
-  switch (granularity) {
-    case "hourly":
-      // Use UTC hours since date is adjusted to IST
-      const hour = date.getUTCHours();
-      const hour12 = hour % 12 || 12;
-      const ampm = hour < 12 ? "am" : "pm";
-      return `${hour12}${ampm}`;
-    case "daily":
-      // Format: "01 Nov", "02 Nov", etc.
-      const day = date.getUTCDate().toString().padStart(2, "0");
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      const month = monthNames[date.getUTCMonth()];
-      return `${day} ${month}`;
-    case "weekly":
-      return `Week ${getWeekNumber(date)}`;
-    case "monthly":
-      // Format: "May 2024", "Jun 2024", etc.
-      const monthNames2 = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      const monthName = monthNames2[date.getUTCMonth()];
-      const year = date.getUTCFullYear();
-      return `${monthName} ${year}`;
-    default:
-      return date.toISOString().split("T")[0];
-  }
-}
-
-/**
  * Get week number in year
  */
 function getWeekNumber(date: Date): number {
@@ -913,26 +859,6 @@ function getWeekNumber(date: Date): number {
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-}
-
-/**
- * Increment date based on granularity (using UTC methods)
- */
-function incrementDate(date: Date, granularity: Granularity): void {
-  switch (granularity) {
-    case "hourly":
-      date.setUTCHours(date.getUTCHours() + 1);
-      break;
-    case "daily":
-      date.setUTCDate(date.getUTCDate() + 1);
-      break;
-    case "weekly":
-      date.setUTCDate(date.getUTCDate() + 7);
-      break;
-    case "monthly":
-      date.setUTCMonth(date.getUTCMonth() + 1);
-      break;
-  }
 }
 
 /**
@@ -970,11 +896,10 @@ function calculateTotals(
     (sum, item) => sum + (item.sales ?? 0),
     0
   );
-  // revenue in buckets is new revenue only
   const totalNewRevenue = processedData.reduce(
     (sum, item) => sum + (item.revenue ?? 0) * 100,
     0
-  ); // Convert back to cents
+  );
   const totalRenewalRevenue = processedData.reduce(
     (sum, item) => sum + (item.renewalRevenue ?? 0) * 100,
     0
@@ -994,7 +919,7 @@ function calculateTotals(
     sessions: totalSessions,
     customers: totalCustomers,
     sales: totalSales,
-    revenue: totalRevenue / 100, // Convert to dollars
+    revenue: totalRevenue / 100,
     newRevenue: totalNewRevenue / 100,
     renewalRevenue: totalRenewalRevenue / 100,
     refundedRevenue: totalRefundedRevenue / 100,
@@ -1043,7 +968,6 @@ function calculatePercentageChange(
     return change.toFixed(1);
   };
 
-  // Calculate new revenue (revenue - refunds)
   const currentNewRevenue = current.revenue - current.revenueRefund;
   const previousNewRevenue = previous.revenue - previous.revenueRefund;
   const currentRenewalRevenue = current.revenue - currentNewRevenue;
@@ -1052,8 +976,8 @@ function calculatePercentageChange(
   return {
     totalVisitors: calculateChange(current.visitors, previous.visitors),
     totalSessions: calculateChange(current.sessions, previous.sessions),
-    totalCustomers: null, // Would need previous period customer data
-    totalSales: null, // Would need previous period sales data
+    totalCustomers: null,
+    totalSales: null,
     totalRevenue: calculateChange(current.revenue, previous.revenue),
     totalNewRevenue: calculateChange(currentNewRevenue, previousNewRevenue),
     totalRenewalRevenue: calculateChange(
@@ -1064,7 +988,7 @@ function calculatePercentageChange(
       current.revenueRefund,
       previous.revenueRefund
     ),
-    totalGoal: null, // Would need previous period goal data
+    totalGoal: null,
     revenuePerVisitor: calculateChange(
       current.revenuePerVisitor,
       previous.revenuePerVisitor
