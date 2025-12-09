@@ -45,6 +45,9 @@ export async function GET(
     const startDateStr = searchParams.get("startDate");
     const endDateStr = searchParams.get("endDate");
 
+    // Get timezone from website settings (default to Asia/Calcutta/IST)
+    const timezone = website.settings?.timezone || "Asia/Calcutta";
+
     // Calculate date range based on period or use provided dates
     let startDate: Date;
     let endDate: Date;
@@ -53,7 +56,7 @@ export async function GET(
       startDate = new Date(startDateStr);
       endDate = new Date(endDateStr);
     } else {
-      const dateRange = getDateRangeForPeriod(period);
+      const dateRange = getDateRangeForPeriod(period, timezone);
       startDate = dateRange.startDate;
       endDate = dateRange.endDate;
     }
@@ -107,9 +110,6 @@ export async function GET(
         getGoalsOverTime(websiteId, startDate, endDate, granularity),
         getMetrics(websiteId, startDate, endDate),
       ]);
-
-    // Get timezone from website settings (default to Asia/Calcutta/IST)
-    const timezone = website.settings?.timezone || "Asia/Calcutta";
 
     // Process data into time buckets
     const processedData = processDataIntoBuckets(
@@ -190,36 +190,62 @@ export async function GET(
 
 /**
  * Get date range based on period string
+ * @param period - The period string (e.g., "today", "yesterday", etc.)
+ * @param timezone - The timezone to use for date calculations (e.g., "Asia/Calcutta")
  */
-function getDateRangeForPeriod(period: string): {
+function getDateRangeForPeriod(
+  period: string,
+  timezone: string = "UTC"
+): {
   startDate: Date;
   endDate: Date;
 } {
-  let endDate = new Date();
-  let startDate = new Date();
-
   // Handle custom period format: custom:YYYY-MM-DD:YYYY-MM-DD
   if (period.startsWith("custom:")) {
     const parts = period.split(":");
     if (parts.length === 3) {
-      startDate = new Date(parts[1] + "T00:00:00");
-      endDate = new Date(parts[2] + "T23:59:59");
+      const startDate = new Date(parts[1] + "T00:00:00");
+      const endDate = new Date(parts[2] + "T23:59:59");
       return { startDate, endDate };
     }
   }
 
   const periodLower = period.toLowerCase();
+  const now = new Date();
+
+  // Helper function to get start of day in a specific timezone
+  const getStartOfDayInTimezone = (date: Date, tz: string): Date => {
+    // Get the date components in the target timezone
+    const components = getTimezoneComponents(date, tz);
+    // Create UTC date representing 00:00:00 in the target timezone
+    return createUTCDateFromTimezoneComponents(
+      components.year,
+      components.month,
+      components.day,
+      0,
+      tz
+    );
+  };
+
+  // Helper function to get end of day in a specific timezone
+  const getEndOfDayInTimezone = (date: Date, tz: string): Date => {
+    const startOfDay = getStartOfDayInTimezone(date, tz);
+    // Add 23:59:59.999 (one millisecond before next day)
+    return new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1);
+  };
+
+  let startDate: Date;
+  let endDate: Date;
 
   switch (periodLower) {
     case "today":
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
+      startDate = getStartOfDayInTimezone(now, timezone);
+      endDate = getEndOfDayInTimezone(now, timezone);
       break;
     case "yesterday":
-      startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      startDate.setHours(0, 0, 0, 0);
-      endDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      endDate.setHours(23, 59, 59, 999);
+      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+      startDate = getStartOfDayInTimezone(yesterday, timezone);
+      endDate = getEndOfDayInTimezone(yesterday, timezone);
       break;
     case "last24h":
     case "last 24 hours":
@@ -229,58 +255,62 @@ function getDateRangeForPeriod(period: string): {
     case "last7d":
     case "last7days":
     case "last 7 days":
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = getEndOfDayInTimezone(now, timezone);
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      startDate = getStartOfDayInTimezone(sevenDaysAgo, timezone);
       break;
     case "last30d":
     case "last30days":
     case "last 30 days":
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = getEndOfDayInTimezone(now, timezone);
+      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      startDate = getStartOfDayInTimezone(thirtyDaysAgo, timezone);
       break;
     case "last12m":
     case "last12months":
     case "last 12 months":
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(endDate);
-      startDate.setMonth(startDate.getMonth() - 12);
-      startDate.setDate(1);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = getEndOfDayInTimezone(now, timezone);
+      const twelveMonthsAgo = new Date(now);
+      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+      twelveMonthsAgo.setDate(1);
+      startDate = getStartOfDayInTimezone(twelveMonthsAgo, timezone);
       break;
     case "week":
     case "week to date":
-      endDate.setHours(23, 59, 59, 999);
-      const dayOfWeek = endDate.getDay();
-      startDate = new Date(endDate);
-      startDate.setDate(endDate.getDate() - dayOfWeek);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = getEndOfDayInTimezone(now, timezone);
+      // Get start of week in the target timezone
+      const nowInTz = new Date(
+        now.toLocaleString("en-US", { timeZone: timezone })
+      );
+      const dayOfWeek = nowInTz.getDay();
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - dayOfWeek);
+      startDate = getStartOfDayInTimezone(weekStart, timezone);
       break;
     case "month":
     case "month to date":
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(endDate);
-      startDate.setDate(1);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = getEndOfDayInTimezone(now, timezone);
+      const monthStart = new Date(now);
+      monthStart.setDate(1);
+      startDate = getStartOfDayInTimezone(monthStart, timezone);
       break;
     case "year":
     case "year to date":
-      endDate.setHours(23, 59, 59, 999);
-      startDate = new Date(endDate);
-      startDate.setMonth(0);
-      startDate.setDate(1);
-      startDate.setHours(0, 0, 0, 0);
+      endDate = getEndOfDayInTimezone(now, timezone);
+      const yearStart = new Date(now);
+      yearStart.setMonth(0);
+      yearStart.setDate(1);
+      startDate = getStartOfDayInTimezone(yearStart, timezone);
       break;
     case "all":
     case "all time":
-      endDate.setHours(23, 59, 59, 999);
+      endDate = getEndOfDayInTimezone(now, timezone);
       startDate = new Date(0); // Epoch start
       break;
     default:
       // Default to today
-      startDate.setHours(0, 0, 0, 0);
-      endDate.setHours(23, 59, 59, 999);
+      startDate = getStartOfDayInTimezone(now, timezone);
+      endDate = getEndOfDayInTimezone(now, timezone);
   }
 
   return { startDate, endDate };
