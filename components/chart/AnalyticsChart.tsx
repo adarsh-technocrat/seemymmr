@@ -14,6 +14,8 @@ import {
   ReferenceLine,
 } from "recharts";
 import NumberFlow from "@number-flow/react";
+import { getCurrentTimeIndex } from "@/utils/analytics/chart";
+import { NotesIcon } from "@/components/icons";
 
 export interface Mention {
   text: string;
@@ -64,6 +66,10 @@ interface ChartDotProps extends DotProps {
   onMentionClick?: (data: ChartDataPoint) => void;
 }
 
+interface ActiveDotProps extends DotProps {
+  onClick?: (data: ChartDataPoint) => void;
+}
+
 interface AnalyticsChartProps {
   data: ChartDataPoint[];
   avatarUrls?: string[];
@@ -71,155 +77,8 @@ interface AnalyticsChartProps {
   showRevenue?: boolean;
   currency?: string;
   onMentionClick?: (data: ChartDataPoint) => void;
+  onNoteClick?: (data: ChartDataPoint) => void;
   height?: string;
-}
-
-function ChartDot({
-  cx,
-  cy,
-  payload,
-  index,
-  currentTimeIndex,
-  forecastData,
-  showMentionsOnChart,
-  onMentionClick,
-}: ChartDotProps) {
-  const handleMentionClick = (data: ChartDataPoint, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onMentionClick) {
-      onMentionClick(data);
-    }
-  };
-
-  // Show dot at current time
-  if (currentTimeIndex !== null && index === currentTimeIndex && cx && cy) {
-    return (
-      <g>
-        <circle cx={cx} cy={cy} r={4} fill="#8dcdff" />
-        <circle
-          cx={cx}
-          cy={cy}
-          r={7}
-          fill="#8dcdff"
-          className="animate-pulse"
-          opacity={0.3}
-        />
-      </g>
-    );
-  }
-
-  // Show mention avatars if present
-  if (payload?.hasMention && cx && cy && showMentionsOnChart) {
-    const avatarIndex = forecastData.findIndex((d) => d.date === payload.date);
-    const profileMentions = payload.mentions
-      ? payload.mentions.filter((m: Mention) => m.type === "profile")
-      : [];
-
-    return (
-      <g key={`mention-${payload.date}`} style={{ pointerEvents: "auto" }}>
-        <circle
-          cx={cx}
-          cy={cy}
-          r={12}
-          fill="white"
-          stroke="#8dcdff"
-          strokeWidth={2}
-        />
-        {profileMentions.length > 0
-          ? profileMentions.slice(0, 3).map((mention: Mention, idx: number) => {
-              const offsetX = idx * -6;
-              const offsetY = 0;
-              const avatarSize = 20;
-              const avatarRadius = avatarSize / 2;
-
-              return (
-                <g
-                  key={`avatar-${payload.date}-${idx}`}
-                  style={{
-                    cursor: onMentionClick ? "pointer" : "default",
-                  }}
-                  onClick={(e) => handleMentionClick(payload, e)}
-                >
-                  <circle
-                    cx={cx + offsetX}
-                    cy={cy + offsetY}
-                    r={avatarRadius + 2}
-                    fill="white"
-                    stroke="#8dcdff"
-                    strokeWidth={2}
-                  />
-                  <circle
-                    cx={cx + offsetX}
-                    cy={cy + offsetY}
-                    r={avatarRadius}
-                    fill={`hsl(${
-                      ((avatarIndex + idx) * 137.5) % 360
-                    }, 70%, 50%)`}
-                  />
-                  <text
-                    x={cx + offsetX}
-                    y={cy + offsetY}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    fontSize="10"
-                    fontWeight="bold"
-                    fill="white"
-                    style={{ pointerEvents: "none" }}
-                  >
-                    {mention.text?.charAt(0)?.toUpperCase() || "?"}
-                  </text>
-                  <defs>
-                    <clipPath id={`avatarClip-${payload.date}-${idx}`}>
-                      <circle
-                        cx={cx + offsetX}
-                        cy={cy + offsetY}
-                        r={avatarRadius}
-                      />
-                    </clipPath>
-                  </defs>
-                </g>
-              );
-            })
-          : [
-              <g
-                key={`avatar-${payload.date}`}
-                style={{
-                  cursor: onMentionClick ? "pointer" : "default",
-                }}
-                onClick={(e) => handleMentionClick(payload, e)}
-              >
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={12}
-                  fill="white"
-                  stroke="#8dcdff"
-                  strokeWidth={2}
-                />
-                <circle
-                  cx={cx}
-                  cy={cy}
-                  r={10}
-                  fill={`hsl(${(avatarIndex * 137.5) % 360}, 70%, 50%)`}
-                />
-                <text
-                  x={cx}
-                  y={cy}
-                  textAnchor="middle"
-                  dominantBaseline="central"
-                  fontSize="10"
-                  fontWeight="bold"
-                  fill="white"
-                  style={{ pointerEvents: "none" }}
-                >
-                  {payload.mentions?.[0]?.text?.charAt(0)?.toUpperCase() || "?"}
-                </text>
-              </g>,
-            ]}
-      </g>
-    );
-  }
-  return <g />;
 }
 
 function AnalyticsChartComponent({
@@ -229,6 +88,7 @@ function AnalyticsChartComponent({
   showRevenue = true,
   currency = "USD",
   onMentionClick,
+  onNoteClick,
   height = "h-72 md:h-96",
 }: AnalyticsChartProps) {
   const [showMentionsOnChart, setShowMentionsOnChart] = useState(showMentions);
@@ -295,54 +155,8 @@ function AnalyticsChartComponent({
       ? ([0, 5] as [number, number])
       : [0, calculateVisitorDomainMax];
 
-  // Calculate current time index for forecast line
-  const getCurrentTimeIndex = (): number | null => {
-    if (!data || data.length === 0) return null;
+  const currentTimeIndex = getCurrentTimeIndex(data);
 
-    const now = new Date();
-    const currentHour = now.getHours();
-
-    // Check if data is hourly format (e.g., "12am", "1am", etc.)
-    const firstDate = data[0]?.date;
-    if (firstDate && (firstDate.includes("am") || firstDate.includes("pm"))) {
-      // Find the index of the current hour in the data
-      const hour12 = currentHour % 12 || 12;
-      const ampm = currentHour < 12 ? "am" : "pm";
-      const formattedHour = `${hour12}${ampm}`;
-
-      const exactIndex = data.findIndex((d) => d.date === formattedHour);
-      if (exactIndex !== -1) {
-        return exactIndex;
-      }
-
-      // Find the closest hour
-      const hourValues = data.map((d, idx) => {
-        const hourStr = d.date.replace(/[^0-9]/g, "");
-        const hour = parseInt(hourStr) || 12;
-        const isPM = d.date.includes("pm");
-        const hour24 = hour === 12 ? (isPM ? 12 : 0) : hour + (isPM ? 12 : 0);
-        return {
-          index: idx,
-          hour24: hour24,
-        };
-      });
-
-      const closest = hourValues.reduce((prev, curr) => {
-        const prevDiff = Math.abs(prev.hour24 - currentHour);
-        const currDiff = Math.abs(curr.hour24 - currentHour);
-        return currDiff < prevDiff ? curr : prev;
-      });
-
-      return closest.index;
-    }
-
-    // For non-hourly data, return null (no forecast)
-    return null;
-  };
-
-  const currentTimeIndex = getCurrentTimeIndex();
-
-  // Mark forecast data points and add computed values for line rendering
   const forecastData: ForecastDataPoint[] = data.map((item, index) => {
     const isForecast = currentTimeIndex !== null && index > currentTimeIndex;
     return {
@@ -674,7 +488,9 @@ function AnalyticsChartComponent({
                 onMentionClick={onMentionClick}
               />
             )}
-            activeDot={false}
+            activeDot={(props: DotProps) => (
+              <ActiveDot {...props} onClick={onNoteClick} />
+            )}
             connectNulls={false}
           />
         </ComposedChart>
@@ -683,4 +499,210 @@ function AnalyticsChartComponent({
   );
 }
 
+function ChartDot({
+  cx,
+  cy,
+  payload,
+  index,
+  currentTimeIndex,
+  forecastData,
+  showMentionsOnChart,
+  onMentionClick,
+}: ChartDotProps) {
+  const handleMentionClick = (data: ChartDataPoint, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onMentionClick) {
+      onMentionClick(data);
+    }
+  };
+
+  // Show dot at current time
+  if (currentTimeIndex !== null && index === currentTimeIndex && cx && cy) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={4} fill="#8dcdff" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={7}
+          fill="#8dcdff"
+          className="animate-pulse"
+          opacity={0.3}
+        />
+      </g>
+    );
+  }
+
+  // Show mention avatars if present
+  if (payload?.hasMention && cx && cy && showMentionsOnChart) {
+    const avatarIndex = forecastData.findIndex((d) => d.date === payload.date);
+    const profileMentions = payload.mentions
+      ? payload.mentions.filter((m: Mention) => m.type === "profile")
+      : [];
+
+    return (
+      <g key={`mention-${payload.date}`} style={{ pointerEvents: "auto" }}>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={12}
+          fill="white"
+          stroke="#8dcdff"
+          strokeWidth={2}
+        />
+        {profileMentions.length > 0
+          ? profileMentions.slice(0, 3).map((mention: Mention, idx: number) => {
+              const offsetX = idx * -6;
+              const offsetY = 0;
+              const avatarSize = 20;
+              const avatarRadius = avatarSize / 2;
+
+              return (
+                <g
+                  key={`avatar-${payload.date}-${idx}`}
+                  style={{
+                    cursor: onMentionClick ? "pointer" : "default",
+                  }}
+                  onClick={(e) => handleMentionClick(payload, e)}
+                >
+                  <circle
+                    cx={cx + offsetX}
+                    cy={cy + offsetY}
+                    r={avatarRadius + 2}
+                    fill="white"
+                    stroke="#8dcdff"
+                    strokeWidth={2}
+                  />
+                  <circle
+                    cx={cx + offsetX}
+                    cy={cy + offsetY}
+                    r={avatarRadius}
+                    fill={`hsl(${
+                      ((avatarIndex + idx) * 137.5) % 360
+                    }, 70%, 50%)`}
+                  />
+                  <text
+                    x={cx + offsetX}
+                    y={cy + offsetY}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize="10"
+                    fontWeight="bold"
+                    fill="white"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {mention.text?.charAt(0)?.toUpperCase() || "?"}
+                  </text>
+                  <defs>
+                    <clipPath id={`avatarClip-${payload.date}-${idx}`}>
+                      <circle
+                        cx={cx + offsetX}
+                        cy={cy + offsetY}
+                        r={avatarRadius}
+                      />
+                    </clipPath>
+                  </defs>
+                </g>
+              );
+            })
+          : [
+              <g
+                key={`avatar-${payload.date}`}
+                style={{
+                  cursor: onMentionClick ? "pointer" : "default",
+                }}
+                onClick={(e) => handleMentionClick(payload, e)}
+              >
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={12}
+                  fill="white"
+                  stroke="#8dcdff"
+                  strokeWidth={2}
+                />
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={10}
+                  fill={`hsl(${(avatarIndex * 137.5) % 360}, 70%, 50%)`}
+                />
+                <text
+                  x={cx}
+                  y={cy}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize="10"
+                  fontWeight="bold"
+                  fill="white"
+                  style={{ pointerEvents: "none" }}
+                >
+                  {payload.mentions?.[0]?.text?.charAt(0)?.toUpperCase() || "?"}
+                </text>
+              </g>,
+            ]}
+      </g>
+    );
+  }
+  return <g />;
+}
+
+function ActiveDot({ cx, cy, payload, onClick }: ActiveDotProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  if (!cx || !cy || !payload) return null;
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onClick) {
+      onClick(payload);
+    }
+  };
+
+  const iconSize = 14;
+  const buttonSize = 24;
+  const offsetY = buttonSize / 20;
+  const scale = isHovered ? 1.1 : 1;
+  const radius = (buttonSize / 2) * scale;
+
+  return (
+    <g
+      style={{ pointerEvents: "auto", cursor: "pointer" }}
+      transform={`translate(${cx}, ${cy + offsetY})`}
+      onClick={handleClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <circle
+        cx={0}
+        cy={0}
+        r={radius}
+        fill="rgba(107, 114, 128, 0.8)"
+        className="backdrop-blur-sm"
+        style={{ filter: "blur(4px)", transition: "r 0.2s ease" }}
+        opacity={0.6}
+      />
+      <circle
+        cx={0}
+        cy={0}
+        r={radius}
+        fill="#1f1f1f"
+        stroke="rgba(255, 255, 255, 0.2)"
+        strokeWidth={1}
+        style={{ transition: "r 0.2s ease" }}
+      />
+      <foreignObject
+        x={-iconSize / 2}
+        y={-iconSize / 2}
+        width={iconSize}
+        height={iconSize}
+        style={{ pointerEvents: "none" }}
+      >
+        <div className="flex items-center justify-center w-full h-full">
+          <NotesIcon size={iconSize} className="text-white" />
+        </div>
+      </foreignObject>
+    </g>
+  );
+}
 export const AnalyticsChart = memo(AnalyticsChartComponent);

@@ -20,3 +20,4 @@ export { TwitterIcon } from "./TwitterIcon";
 export { LiveDemoIcon } from "./LiveDemoIcon";
 export { TrashIcon } from "./TrashIcon";
 export { EditIcon } from "./EditIcon";
+export { NotesIcon } from "./NotesIcon";
