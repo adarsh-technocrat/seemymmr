@@ -11,6 +11,7 @@ import {
   Tooltip,
   ResponsiveContainer,
   ComposedChart,
+  ReferenceLine,
 } from "recharts";
 import NumberFlow from "@number-flow/react";
 
@@ -33,6 +34,12 @@ export interface ChartDataPoint {
   mentions?: Mention[];
 }
 
+interface ForecastDataPoint extends ChartDataPoint {
+  isForecast?: boolean;
+  solidLineValue?: number | null;
+  dashedLineValue?: number | null;
+}
+
 interface TooltipProps {
   active?: boolean;
   payload?: Array<{
@@ -47,6 +54,14 @@ interface DotProps {
   cy?: number;
   payload?: ChartDataPoint;
   value?: number;
+  index?: number;
+}
+
+interface ChartDotProps extends DotProps {
+  currentTimeIndex: number | null;
+  forecastData: ForecastDataPoint[];
+  showMentionsOnChart: boolean;
+  onMentionClick?: (data: ChartDataPoint) => void;
 }
 
 interface AnalyticsChartProps {
@@ -59,6 +74,154 @@ interface AnalyticsChartProps {
   height?: string;
 }
 
+function ChartDot({
+  cx,
+  cy,
+  payload,
+  index,
+  currentTimeIndex,
+  forecastData,
+  showMentionsOnChart,
+  onMentionClick,
+}: ChartDotProps) {
+  const handleMentionClick = (data: ChartDataPoint, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onMentionClick) {
+      onMentionClick(data);
+    }
+  };
+
+  // Show dot at current time
+  if (currentTimeIndex !== null && index === currentTimeIndex && cx && cy) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={4} fill="#8dcdff" />
+        <circle
+          cx={cx}
+          cy={cy}
+          r={7}
+          fill="#8dcdff"
+          className="animate-pulse"
+          opacity={0.3}
+        />
+      </g>
+    );
+  }
+
+  // Show mention avatars if present
+  if (payload?.hasMention && cx && cy && showMentionsOnChart) {
+    const avatarIndex = forecastData.findIndex((d) => d.date === payload.date);
+    const profileMentions = payload.mentions
+      ? payload.mentions.filter((m: Mention) => m.type === "profile")
+      : [];
+
+    return (
+      <g key={`mention-${payload.date}`} style={{ pointerEvents: "auto" }}>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={12}
+          fill="white"
+          stroke="#8dcdff"
+          strokeWidth={2}
+        />
+        {profileMentions.length > 0
+          ? profileMentions.slice(0, 3).map((mention: Mention, idx: number) => {
+              const offsetX = idx * -6;
+              const offsetY = 0;
+              const avatarSize = 20;
+              const avatarRadius = avatarSize / 2;
+
+              return (
+                <g
+                  key={`avatar-${payload.date}-${idx}`}
+                  style={{
+                    cursor: onMentionClick ? "pointer" : "default",
+                  }}
+                  onClick={(e) => handleMentionClick(payload, e)}
+                >
+                  <circle
+                    cx={cx + offsetX}
+                    cy={cy + offsetY}
+                    r={avatarRadius + 2}
+                    fill="white"
+                    stroke="#8dcdff"
+                    strokeWidth={2}
+                  />
+                  <circle
+                    cx={cx + offsetX}
+                    cy={cy + offsetY}
+                    r={avatarRadius}
+                    fill={`hsl(${
+                      ((avatarIndex + idx) * 137.5) % 360
+                    }, 70%, 50%)`}
+                  />
+                  <text
+                    x={cx + offsetX}
+                    y={cy + offsetY}
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    fontSize="10"
+                    fontWeight="bold"
+                    fill="white"
+                    style={{ pointerEvents: "none" }}
+                  >
+                    {mention.text?.charAt(0)?.toUpperCase() || "?"}
+                  </text>
+                  <defs>
+                    <clipPath id={`avatarClip-${payload.date}-${idx}`}>
+                      <circle
+                        cx={cx + offsetX}
+                        cy={cy + offsetY}
+                        r={avatarRadius}
+                      />
+                    </clipPath>
+                  </defs>
+                </g>
+              );
+            })
+          : [
+              <g
+                key={`avatar-${payload.date}`}
+                style={{
+                  cursor: onMentionClick ? "pointer" : "default",
+                }}
+                onClick={(e) => handleMentionClick(payload, e)}
+              >
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={12}
+                  fill="white"
+                  stroke="#8dcdff"
+                  strokeWidth={2}
+                />
+                <circle
+                  cx={cx}
+                  cy={cy}
+                  r={10}
+                  fill={`hsl(${(avatarIndex * 137.5) % 360}, 70%, 50%)`}
+                />
+                <text
+                  x={cx}
+                  y={cy}
+                  textAnchor="middle"
+                  dominantBaseline="central"
+                  fontSize="10"
+                  fontWeight="bold"
+                  fill="white"
+                  style={{ pointerEvents: "none" }}
+                >
+                  {payload.mentions?.[0]?.text?.charAt(0)?.toUpperCase() || "?"}
+                </text>
+              </g>,
+            ]}
+      </g>
+    );
+  }
+  return <g />;
+}
+
 function AnalyticsChartComponent({
   data,
   avatarUrls = [],
@@ -69,13 +232,6 @@ function AnalyticsChartComponent({
   height = "h-72 md:h-96",
 }: AnalyticsChartProps) {
   const [showMentionsOnChart, setShowMentionsOnChart] = useState(showMentions);
-
-  const handleMentionClick = (payload: ChartDataPoint, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (onMentionClick) {
-      onMentionClick(payload);
-    }
-  };
 
   const calculateDomainMax = (dataMax: number): number => {
     if (dataMax <= 0) {
@@ -138,6 +294,72 @@ function AnalyticsChartComponent({
     maxVisitors <= 0
       ? ([0, 5] as [number, number])
       : [0, calculateVisitorDomainMax];
+
+  // Calculate current time index for forecast line
+  const getCurrentTimeIndex = (): number | null => {
+    if (!data || data.length === 0) return null;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+
+    // Check if data is hourly format (e.g., "12am", "1am", etc.)
+    const firstDate = data[0]?.date;
+    if (firstDate && (firstDate.includes("am") || firstDate.includes("pm"))) {
+      // Find the index of the current hour in the data
+      const hour12 = currentHour % 12 || 12;
+      const ampm = currentHour < 12 ? "am" : "pm";
+      const formattedHour = `${hour12}${ampm}`;
+
+      const exactIndex = data.findIndex((d) => d.date === formattedHour);
+      if (exactIndex !== -1) {
+        return exactIndex;
+      }
+
+      // Find the closest hour
+      const hourValues = data.map((d, idx) => {
+        const hourStr = d.date.replace(/[^0-9]/g, "");
+        const hour = parseInt(hourStr) || 12;
+        const isPM = d.date.includes("pm");
+        const hour24 = hour === 12 ? (isPM ? 12 : 0) : hour + (isPM ? 12 : 0);
+        return {
+          index: idx,
+          hour24: hour24,
+        };
+      });
+
+      const closest = hourValues.reduce((prev, curr) => {
+        const prevDiff = Math.abs(prev.hour24 - currentHour);
+        const currDiff = Math.abs(curr.hour24 - currentHour);
+        return currDiff < prevDiff ? curr : prev;
+      });
+
+      return closest.index;
+    }
+
+    // For non-hourly data, return null (no forecast)
+    return null;
+  };
+
+  const currentTimeIndex = getCurrentTimeIndex();
+
+  // Mark forecast data points and add computed values for line rendering
+  const forecastData: ForecastDataPoint[] = data.map((item, index) => {
+    const isForecast = currentTimeIndex !== null && index > currentTimeIndex;
+    return {
+      ...item,
+      isForecast,
+      // Solid line value: index exists and index is less than or equal to currentTimeIndex
+      solidLineValue:
+        currentTimeIndex !== null && index <= currentTimeIndex
+          ? item.visitors
+          : null,
+      // Dashed line value: only for currentTimeIndex
+      dashedLineValue:
+        currentTimeIndex !== null && index === currentTimeIndex
+          ? item.visitors
+          : null,
+    };
+  });
 
   const CustomTooltip = ({ active, payload }: TooltipProps) => {
     if (active && payload && payload.length > 0) {
@@ -327,7 +549,7 @@ function AnalyticsChartComponent({
     <div className={height}>
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
-          data={data}
+          data={forecastData}
           margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
           barCategoryGap="10%"
         >
@@ -432,146 +654,28 @@ function AnalyticsChartComponent({
               maxBarSize={30}
             />
           )}
+
           <Line
             yAxisId="left"
             type="monotone"
-            dataKey="visitors"
+            dataKey="solidLineValue"
             stroke="#8dcdff"
             strokeWidth={2.5}
             strokeLinecap="round"
-            dot={(props: DotProps) => {
-              const { cx, cy, payload } = props;
-              if (payload?.hasMention && cx && cy && showMentionsOnChart) {
-                const avatarIndex = data.findIndex(
-                  (d) => d.date === payload.date
-                );
-                const profileMentions = payload.mentions
-                  ? payload.mentions.filter(
-                      (m: Mention) => m.type === "profile"
-                    )
-                  : [];
-
-                return (
-                  <g
-                    key={`mention-${payload.date}`}
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <circle
-                      cx={cx}
-                      cy={cy}
-                      r={12}
-                      fill="white"
-                      stroke="#8dcdff"
-                      strokeWidth={2}
-                    />
-                    {profileMentions.length > 0
-                      ? profileMentions
-                          .slice(0, 3)
-                          .map((mention: Mention, idx: number) => {
-                            const offsetX = idx * -6;
-                            const offsetY = 0;
-                            const avatarSize = 20;
-                            const avatarRadius = avatarSize / 2;
-
-                            return (
-                              <g
-                                key={`avatar-${payload.date}-${idx}`}
-                                style={{
-                                  cursor: onMentionClick
-                                    ? "pointer"
-                                    : "default",
-                                }}
-                                onClick={(e) => handleMentionClick(payload, e)}
-                              >
-                                <circle
-                                  cx={cx + offsetX}
-                                  cy={cy + offsetY}
-                                  r={avatarRadius + 2}
-                                  fill="white"
-                                  stroke="#8dcdff"
-                                  strokeWidth={2}
-                                />
-                                <circle
-                                  cx={cx + offsetX}
-                                  cy={cy + offsetY}
-                                  r={avatarRadius}
-                                  fill={`hsl(${
-                                    ((avatarIndex + idx) * 137.5) % 360
-                                  }, 70%, 50%)`}
-                                />
-                                <text
-                                  x={cx + offsetX}
-                                  y={cy + offsetY}
-                                  textAnchor="middle"
-                                  dominantBaseline="central"
-                                  fontSize="10"
-                                  fontWeight="bold"
-                                  fill="white"
-                                  style={{ pointerEvents: "none" }}
-                                >
-                                  {mention.text?.charAt(0)?.toUpperCase() ||
-                                    "?"}
-                                </text>
-                                <defs>
-                                  <clipPath
-                                    id={`avatarClip-${payload.date}-${idx}`}
-                                  >
-                                    <circle
-                                      cx={cx + offsetX}
-                                      cy={cy + offsetY}
-                                      r={avatarRadius}
-                                    />
-                                  </clipPath>
-                                </defs>
-                              </g>
-                            );
-                          })
-                      : [
-                          <g
-                            key={`avatar-${payload.date}`}
-                            style={{
-                              cursor: onMentionClick ? "pointer" : "default",
-                            }}
-                            onClick={(e) => handleMentionClick(payload, e)}
-                          >
-                            <circle
-                              cx={cx}
-                              cy={cy}
-                              r={12}
-                              fill="white"
-                              stroke="#8dcdff"
-                              strokeWidth={2}
-                            />
-                            <circle
-                              cx={cx}
-                              cy={cy}
-                              r={10}
-                              fill={`hsl(${
-                                (avatarIndex * 137.5) % 360
-                              }, 70%, 50%)`}
-                            />
-                            <text
-                              x={cx}
-                              y={cy}
-                              textAnchor="middle"
-                              dominantBaseline="central"
-                              fontSize="10"
-                              fontWeight="bold"
-                              fill="white"
-                              style={{ pointerEvents: "none" }}
-                            >
-                              {payload.mentions?.[0]?.text
-                                ?.charAt(0)
-                                ?.toUpperCase() || "?"}
-                            </text>
-                          </g>,
-                        ]}
-                  </g>
-                );
-              }
-              return <g />;
-            }}
+            isAnimationActive={true}
+            animationBegin={0}
+            animationDuration={800}
+            dot={(props: DotProps) => (
+              <ChartDot
+                {...props}
+                currentTimeIndex={currentTimeIndex}
+                forecastData={forecastData}
+                showMentionsOnChart={showMentionsOnChart}
+                onMentionClick={onMentionClick}
+              />
+            )}
             activeDot={false}
+            connectNulls={false}
           />
         </ComposedChart>
       </ResponsiveContainer>
