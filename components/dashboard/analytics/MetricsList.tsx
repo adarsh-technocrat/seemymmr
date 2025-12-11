@@ -4,6 +4,13 @@ import NumberFlow from "@number-flow/react";
 import { parseFormattedNumber } from "@/utils/number-utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronUpIcon } from "@/components/icons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipArrow,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface Metric {
   value: string;
@@ -23,6 +30,11 @@ interface MetricsListProps {
   showMentionsOnChart: boolean;
   isConnected: boolean;
   currency?: string;
+  revenueBreakdown?: {
+    newRevenue: number;
+    renewalRevenue: number;
+    refundedRevenue: number;
+  } | null;
   onShowRevenueChange: (checked: boolean) => void;
   onShowMentionsChange: (checked: boolean) => void;
 }
@@ -39,6 +51,7 @@ export function MetricsList({
   showMentionsOnChart,
   isConnected,
   currency = "USD",
+  revenueBreakdown,
   onShowRevenueChange,
   onShowMentionsChange,
 }: MetricsListProps) {
@@ -92,19 +105,133 @@ export function MetricsList({
             </div>
           </div>
           <div className="flex flex-col items-start">
-            <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
-              <NumberFlow
-                value={parseFormattedNumber(revenue.value)}
-                locales="en-US"
-                format={{
-                  style: "currency",
-                  currency: currency,
-                  currencyDisplay: "symbol",
-                  notation: "compact",
-                  trailingZeroDisplay: "stripIfInteger",
-                }}
-              />
-            </div>
+            <TooltipProvider delayDuration={100} skipDelayDuration={0}>
+              <Tooltip disableHoverableContent>
+                <TooltipTrigger asChild>
+                  <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary cursor-help">
+                    <NumberFlow
+                      value={parseFormattedNumber(revenue.value)}
+                      locales="en-US"
+                      format={{
+                        style: "currency",
+                        currency: currency,
+                        currencyDisplay: "symbol",
+                        notation: "compact",
+                        trailingZeroDisplay: "stripIfInteger",
+                      }}
+                    />
+                  </div>
+                </TooltipTrigger>
+                {revenueBreakdown &&
+                  (revenueBreakdown.newRevenue > 0 ||
+                    revenueBreakdown.renewalRevenue > 0 ||
+                    revenueBreakdown.refundedRevenue > 0) && (
+                    <TooltipContent
+                      side="top"
+                      sideOffset={8}
+                      className="bg-white border border-gray-200 rounded-lg p-2 min-w-[170px] shadow-lg"
+                    >
+                      <TooltipArrow
+                        className="fill-white"
+                        width={11}
+                        height={5}
+                        style={{
+                          filter: "drop-shadow(0 1px 0 rgb(229 231 235))",
+                        }}
+                      />
+                      <div className="space-y-1.5">
+                        <div className="text-xs font-semibold text-textPrimary">
+                          REVENUE
+                          <span className="ml-1.5 text-textPrimary">
+                            {new Intl.NumberFormat("en-US", {
+                              style: "currency",
+                              currency: currency,
+                              currencyDisplay: "symbol",
+                            }).format(
+                              revenueBreakdown.newRevenue +
+                                revenueBreakdown.renewalRevenue
+                            )}
+                          </span>
+                        </div>
+                        {revenueBreakdown.refundedRevenue > 0 && (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <div
+                                className="w-3 h-3 rounded-sm border-[1.5px] border-dashed opacity-80 overflow-hidden"
+                                style={{
+                                  borderColor: "#E16540",
+                                }}
+                              >
+                                <div
+                                  className="h-full w-full opacity-35"
+                                  style={{
+                                    backgroundColor: "#E16540",
+                                  }}
+                                ></div>
+                              </div>
+                              <span className="text-[11px] text-textSecondary">
+                                Refunds
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-medium text-textPrimary">
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: currency,
+                                currencyDisplay: "symbol",
+                              }).format(revenueBreakdown.refundedRevenue)}
+                            </span>
+                          </div>
+                        )}
+                        {revenueBreakdown.renewalRevenue > 0 && (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <div
+                                className="w-3 h-3 rounded-sm"
+                                style={{
+                                  backgroundColor: "#E16540",
+                                  opacity: 0.6,
+                                }}
+                              ></div>
+                              <span className="text-[11px] text-textSecondary">
+                                Renewal
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-medium text-textPrimary">
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: currency,
+                                currencyDisplay: "symbol",
+                              }).format(revenueBreakdown.renewalRevenue)}
+                            </span>
+                          </div>
+                        )}
+                        {revenueBreakdown.newRevenue > 0 && (
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1">
+                              <div
+                                className="w-3 h-3 rounded-sm"
+                                style={{
+                                  backgroundColor: "#E16540",
+                                }}
+                              ></div>
+                              <span className="text-[11px] text-textSecondary">
+                                New
+                              </span>
+                            </div>
+                            <span className="text-[11px] font-medium text-textPrimary">
+                              {new Intl.NumberFormat("en-US", {
+                                style: "currency",
+                                currency: currency,
+                                currencyDisplay: "symbol",
+                              }).format(revenueBreakdown.newRevenue)}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  )}
+              </Tooltip>
+            </TooltipProvider>
             <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
               <span className="text-textSecondary text-xs opacity-80">
                 {revenue.variation}

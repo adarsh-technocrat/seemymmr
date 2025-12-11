@@ -563,6 +563,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     analytics,
     chartData,
     metricsData,
+    revenueBreakdown: analytics.revenueBreakdown,
     sourceData,
     pathData,
     locationData,

@@ -79,6 +79,11 @@ interface AnalyticsState {
     sessionTime: string;
     visitorsNow: string;
   } | null;
+  revenueBreakdown: {
+    newRevenue: number;
+    renewalRevenue: number;
+    refundedRevenue: number;
+  } | null;
   breakdowns: {
     source: {
       channel: BreakdownData[];
@@ -113,6 +118,7 @@ interface AnalyticsState {
 const initialState: AnalyticsState = {
   chartData: [],
   metrics: null,
+  revenueBreakdown: null,
   breakdowns: null,
   loading: false,
   error: null,
@@ -130,6 +136,7 @@ const analyticsSlice = createSlice({
     clearAnalytics: (state) => {
       state.chartData = [];
       state.metrics = null;
+      state.revenueBreakdown = null;
       state.breakdowns = null;
       state.error = null;
       state.lastFetched = null;
@@ -189,6 +196,13 @@ const analyticsSlice = createSlice({
             ? formatDuration(action.payload.sessionDuration)
             : "0m 0s",
           visitorsNow: "0", // TODO: Get from real-time if available
+        };
+
+        // Store revenue breakdown
+        state.revenueBreakdown = {
+          newRevenue: action.payload.totalNewRevenue || 0,
+          renewalRevenue: action.payload.totalRenewalRevenue || 0,
+          refundedRevenue: action.payload.totalRefundedRevenue || 0,
         };
 
         // Store breakdowns (not in new API response, set to null for now)

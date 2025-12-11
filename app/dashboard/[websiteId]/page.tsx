@@ -50,6 +50,7 @@ export default function WebsiteAnalyticsPage({
     analytics,
     chartData,
     metricsData,
+    revenueBreakdown,
     sourceData,
     pathData,
     locationData,
@@ -140,6 +141,7 @@ export default function WebsiteAnalyticsPage({
                     currency={
                       (website?.settings as WebsiteSettings)?.currency || "USD"
                     }
+                    revenueBreakdown={revenueBreakdown}
                     onShowRevenueChange={(checked) =>
                       dispatch(setShowRevenueOnChart(checked))
                     }
