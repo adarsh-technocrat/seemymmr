@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans } from "next/font/google";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import Script from "next/script";
 import "./globals.css";
 import { Providers } from "./providers";
 
@@ -29,6 +30,13 @@ export default function RootLayout({
       >
         <Providers>{children}</Providers>
         <SpeedInsights />
+        <Script
+          defer
+          data-website-id="pmid_fdf703b82d846f2109a76457"
+          data-domain="postmetric.io"
+          src="https://www.postmetric.io/js/script.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
