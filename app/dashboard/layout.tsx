@@ -6,6 +6,9 @@ import connectDB from "@/db";
 import User from "@/db/models/User";
 import { calculateTrialDaysRemaining } from "@/utils/trial";
 
+// Force dynamic rendering since we use cookies for session
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
