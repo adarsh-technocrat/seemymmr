@@ -115,13 +115,14 @@ function RevenueRenewalBarShape(props: any) {
 
   const hasRadius = shouldHaveRadiusForRenewal(props);
   const radius = 4;
+  const opacity = 0.6; // Reduced opacity to distinguish from revenueNew
 
   if (hasRadius) {
     return (
       <path
         d={createRoundedTopRectPath(x, y, width, height, radius)}
         fill={fill}
-        style={{ opacity: 0.8 }}
+        style={{ opacity }}
       />
     );
   }
@@ -133,7 +134,7 @@ function RevenueRenewalBarShape(props: any) {
       width={width}
       height={height}
       fill={fill}
-      style={{ opacity: 0.8 }}
+      style={{ opacity }}
     />
   );
 }
@@ -409,7 +410,8 @@ function AnalyticsChartComponent({
                     <div
                       className="w-3 h-3 rounded-sm"
                       style={{
-                        backgroundColor: "#B87333",
+                        backgroundColor: "#E16540",
+                        opacity: 0.6,
                       }}
                     ></div>
                     <span className="text-textSecondary">Renewal</span>
@@ -658,7 +660,7 @@ function AnalyticsChartComponent({
             <Bar
               yAxisId="right"
               dataKey="revenueRenewal"
-              fill="#B87333"
+              fill="#E16540"
               stackId={"stack"}
               shape={RevenueRenewalBarShape}
               maxBarSize={30}
