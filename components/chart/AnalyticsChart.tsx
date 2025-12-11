@@ -11,13 +11,15 @@ import {
   Tooltip,
   ResponsiveContainer,
   ComposedChart,
-  ReferenceLine,
-  BarProps,
 } from "recharts";
 import NumberFlow from "@number-flow/react";
 import {
   getCurrentTimeIndex,
   formatDateDisplay,
+  shouldHaveRadiusForNew,
+  shouldHaveRadiusForRenewal,
+  shouldHaveRadiusForRefund,
+  createRoundedTopRectPath,
 } from "@/utils/analytics/chart";
 import { NotesIcon } from "@/components/icons";
 
@@ -76,13 +78,23 @@ interface ActiveDotProps extends DotProps {
   onClick?: (data: ChartDataPoint) => void;
 }
 
-// Custom bar shape for solid bars (New revenue, Renewal)
-function SolidBarShape(props: any) {
+// Custom bar shape for revenueNew (solid bars)
+function RevenueNewBarShape(props: any) {
   const { x, y, width, height, fill } = props;
   if (!x || !y || !width || !height) return <g />;
 
+  const hasRadius = shouldHaveRadiusForNew(props);
   const radius = 4;
-  const isPositive = height > 0;
+
+  if (hasRadius) {
+    return (
+      <path
+        d={createRoundedTopRectPath(x, y, width, height, radius)}
+        fill={fill}
+        style={{ opacity: 0.8 }}
+      />
+    );
+  }
 
   return (
     <rect
@@ -91,8 +103,36 @@ function SolidBarShape(props: any) {
       width={width}
       height={height}
       fill={fill}
-      rx={isPositive ? radius : 0}
-      ry={isPositive ? radius : 0}
+      style={{ opacity: 0.8 }}
+    />
+  );
+}
+
+// Custom bar shape for revenueRenewal (solid bars)
+function RevenueRenewalBarShape(props: any) {
+  const { x, y, width, height, fill } = props;
+  if (!x || !y || !width || !height) return <g />;
+
+  const hasRadius = shouldHaveRadiusForRenewal(props);
+  const radius = 4;
+
+  if (hasRadius) {
+    return (
+      <path
+        d={createRoundedTopRectPath(x, y, width, height, radius)}
+        fill={fill}
+        style={{ opacity: 0.8 }}
+      />
+    );
+  }
+
+  return (
+    <rect
+      x={x}
+      y={y}
+      width={width}
+      height={height}
+      fill={fill}
       style={{ opacity: 0.8 }}
     />
   );
@@ -103,11 +143,30 @@ function DashedBarShape(props: any) {
   const { x, y, width, height, fill } = props;
   if (!x || !y || !width || !height) return <g />;
 
-  const radius = 4;
-  const isPositive = height > 0;
   const borderWidth = 1.5;
   const fillOpacity = 0.35;
   const borderOpacity = 0.8;
+  const hasRadius = shouldHaveRadiusForRefund(props);
+  const radius = 4;
+
+  if (hasRadius) {
+    const pathData = createRoundedTopRectPath(x, y, width, height, radius);
+    return (
+      <g>
+        {/* Background fill with opacity */}
+        <path d={pathData} fill={fill} fillOpacity={fillOpacity} />
+        {/* Dashed border */}
+        <path
+          d={pathData}
+          fill="none"
+          stroke={fill}
+          strokeWidth={borderWidth}
+          strokeDasharray="4 2"
+          strokeOpacity={borderOpacity}
+        />
+      </g>
+    );
+  }
 
   return (
     <g>
@@ -119,8 +178,6 @@ function DashedBarShape(props: any) {
         height={height}
         fill={fill}
         fillOpacity={fillOpacity}
-        rx={isPositive ? radius : 0}
-        ry={isPositive ? radius : 0}
       />
       {/* Dashed border */}
       <rect
@@ -133,8 +190,6 @@ function DashedBarShape(props: any) {
         strokeWidth={borderWidth}
         strokeDasharray="4 2"
         strokeOpacity={borderOpacity}
-        rx={isPositive ? radius : 0}
-        ry={isPositive ? radius : 0}
       />
     </g>
   );
@@ -592,20 +647,20 @@ function AnalyticsChartComponent({
           {showRevenue && (
             <Bar
               yAxisId="right"
-              dataKey="revenueRenewal"
-              fill="#B87333"
+              dataKey="revenueNew"
+              fill="#E16540"
               stackId={"stack"}
-              shape={SolidBarShape}
+              shape={RevenueNewBarShape}
               maxBarSize={30}
             />
           )}
           {showRevenue && (
             <Bar
               yAxisId="right"
-              dataKey="revenueNew"
-              fill="#E16540"
+              dataKey="revenueRenewal"
+              fill="#B87333"
               stackId={"stack"}
-              shape={SolidBarShape}
+              shape={RevenueRenewalBarShape}
               maxBarSize={30}
             />
           )}
