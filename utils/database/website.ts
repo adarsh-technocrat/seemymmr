@@ -41,7 +41,12 @@ export async function getWebsiteByTrackingCode(
   await connectDB();
 
   try {
-    const website = await Website.findOne({ trackingCode });
+    // Strip pmid_ prefix if present for lookup (DB stores without prefix)
+    const codeForLookup = trackingCode.startsWith("pmid_")
+      ? trackingCode.substring(5)
+      : trackingCode;
+
+    const website = await Website.findOne({ trackingCode: codeForLookup });
     if (website && hostname) {
       const mainDomain = website.domain.toLowerCase();
       const checkHostname = hostname.toLowerCase();

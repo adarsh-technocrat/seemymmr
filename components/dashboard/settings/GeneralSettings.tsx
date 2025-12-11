@@ -201,8 +201,18 @@ export function GeneralSettings({
     }
   };
 
-  const trackingCode =
-    website?.trackingCode || websiteId || "pmid_" + websiteId?.slice(0, 20);
+  // Ensure tracking code always has pmid_ prefix when displaying
+  const getTrackingCodeForDisplay = () => {
+    const code =
+      website?.trackingCode || websiteId || "pmid_" + websiteId?.slice(0, 20);
+    // Add prefix if it doesn't already have it
+    if (code && !code.startsWith("pmid_")) {
+      return "pmid_" + code;
+    }
+    return code;
+  };
+
+  const trackingCode = getTrackingCodeForDisplay();
 
   return (
     <section className="space-y-4">
