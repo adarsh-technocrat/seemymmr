@@ -11,7 +11,9 @@
     "docs:check": "cd docs && mintlify broken-links",
     "dev:sync": "tsx scripts/dev-sync.ts",
     "dev:sync:process": "tsx scripts/dev-sync.ts --process-only",
-    "dev:sync:create": "tsx scripts/dev-sync.ts --create-only"
+    "dev:sync:create": "tsx scripts/dev-sync.ts --create-only",
+    "test:tracking": "tsx scripts/test-tracking-script.ts",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@number-flow/react": "^0.5.10",
@@ -84,6 +86,7 @@
     "@types/ua-parser-js": "^0.7.39",
     "eslint": "^9",
     "eslint-config-next": "16.0.7",
+    "husky": "^9.1.7",
     "mintlify": "^4.2.219",
     "tailwindcss": "^4",
     "terser": "^5.44.1",

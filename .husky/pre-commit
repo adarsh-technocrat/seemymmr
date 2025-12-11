@@ -1,0 +1,16 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Check if tracking script has changed
+TRACKING_SCRIPT="lib/tracking/script.js"
+
+if git diff --cached --name-only | grep -q "^${TRACKING_SCRIPT}$"; then
+  echo "🔍 Tracking script changed, running tests..."
+  pnpm test:tracking
+  if [ $? -ne 0 ]; then
+    echo "❌ Tracking script tests failed. Please fix the issues before committing."
+    exit 1
+  fi
+  echo "✅ Tracking script tests passed!"
+fi
+

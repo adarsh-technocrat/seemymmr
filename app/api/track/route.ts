@@ -103,23 +103,12 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
     const referrer = headers.get("referer") || headers.get("referrer");
     const ip = getIPFromHeaders(headers);
 
-    // Get or generate visitor ID
-    let visitorId = getVisitorIdFromCookie(cookieHeader);
-    if (!visitorId) {
-      visitorId = generateVisitorId();
-    }
-
-    // Get or generate session ID
-    let sessionId = getSessionIdFromCookie(cookieHeader);
-    const isNewSession = !sessionId;
-    if (!sessionId) {
-      sessionId = generateSessionId();
-    }
-
-    // Parse request body for POST requests
+    // Parse request body for POST requests first (to get visitorId/sessionId if available)
     let path = request.nextUrl.searchParams.get("path") || "/";
     let title = request.nextUrl.searchParams.get("title") || undefined;
     let hostname = hostnameForValidation; // Use the hostname we already extracted
+    let bodyVisitorId: string | null = null;
+    let bodySessionId: string | null = null;
 
     if (method === "POST") {
       try {
@@ -127,9 +116,31 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
         path = body.path || path;
         title = body.title || title;
         hostname = body.hostname || hostname;
+        bodyVisitorId = body.visitorId || null;
+        bodySessionId = body.sessionId || null;
       } catch (e) {
         // Ignore JSON parse errors
       }
+    }
+
+    // Get or generate visitor ID (prefer cookie, fallback to POST body, then generate)
+    let visitorId = getVisitorIdFromCookie(cookieHeader);
+    if (!visitorId && bodyVisitorId) {
+      visitorId = bodyVisitorId;
+    }
+    if (!visitorId) {
+      visitorId = generateVisitorId();
+    }
+
+    // Get or generate session ID (prefer cookie, fallback to POST body, then generate)
+    let sessionId = getSessionIdFromCookie(cookieHeader);
+    if (!sessionId && bodySessionId) {
+      sessionId = bodySessionId;
+    }
+    // Determine if this is a new session (no sessionId found from cookie or body)
+    const isNewSession = !sessionId;
+    if (!sessionId) {
+      sessionId = generateSessionId();
     }
 
     // Sanitize and validate inputs
