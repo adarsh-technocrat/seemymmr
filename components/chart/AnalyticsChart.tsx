@@ -143,7 +143,7 @@ function DashedBarShape(props: any) {
   const { x, y, width, height, fill } = props;
   if (!x || !y || !width || !height) return <g />;
 
-  const borderWidth = 1.5;
+  const borderWidth = 0.75;
   const fillOpacity = 0.35;
   const borderOpacity = 0.8;
   const hasRadius = shouldHaveRadiusForRefund(props);
@@ -151,14 +151,40 @@ function DashedBarShape(props: any) {
 
   if (hasRadius) {
     const pathData = createRoundedTopRectPath(x, y, width, height, radius);
+    // Extract top border path (rounded top only)
+    const topPath = `M ${x} ${y + radius} Q ${x} ${y} ${x + radius} ${y} L ${
+      x + width - radius
+    } ${y} Q ${x + width} ${y} ${x + width} ${y + radius}`;
     return (
       <g>
         {/* Background fill with opacity */}
         <path d={pathData} fill={fill} fillOpacity={fillOpacity} />
-        {/* Dashed border */}
+        {/* Dashed top border (rounded) */}
         <path
-          d={pathData}
+          d={topPath}
           fill="none"
+          stroke={fill}
+          strokeWidth={borderWidth}
+          strokeDasharray="4 2"
+          strokeOpacity={borderOpacity}
+        />
+        {/* Dashed left border */}
+        <line
+          x1={x}
+          y1={y + radius}
+          x2={x}
+          y2={y + height}
+          stroke={fill}
+          strokeWidth={borderWidth}
+          strokeDasharray="4 2"
+          strokeOpacity={borderOpacity}
+        />
+        {/* Dashed right border */}
+        <line
+          x1={x + width}
+          y1={y + radius}
+          x2={x + width}
+          y2={y + height}
           stroke={fill}
           strokeWidth={borderWidth}
           strokeDasharray="4 2"
@@ -179,13 +205,34 @@ function DashedBarShape(props: any) {
         fill={fill}
         fillOpacity={fillOpacity}
       />
-      {/* Dashed border */}
-      <rect
-        x={x}
-        y={y}
-        width={width}
-        height={height}
-        fill="none"
+      {/* Dashed top border */}
+      <line
+        x1={x}
+        y1={y}
+        x2={x + width}
+        y2={y}
+        stroke={fill}
+        strokeWidth={borderWidth}
+        strokeDasharray="4 2"
+        strokeOpacity={borderOpacity}
+      />
+      {/* Dashed left border */}
+      <line
+        x1={x}
+        y1={y}
+        x2={x}
+        y2={y + height}
+        stroke={fill}
+        strokeWidth={borderWidth}
+        strokeDasharray="4 2"
+        strokeOpacity={borderOpacity}
+      />
+      {/* Dashed right border */}
+      <line
+        x1={x + width}
+        y1={y}
+        x2={x + width}
+        y2={y + height}
         stroke={fill}
         strokeWidth={borderWidth}
         strokeDasharray="4 2"
