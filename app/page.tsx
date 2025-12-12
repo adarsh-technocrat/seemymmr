@@ -25,7 +25,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Image
-                src="https://via.placeholder.com/32"
+                src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=128&q=75"
                 alt="PostMetric Logo"
                 width={32}
                 height={32}
@@ -105,22 +105,7 @@ export default function Home() {
                     className="w-4 h-4"
                     unoptimized
                   />
-                  <span>ShipFast</span>
-                </a>
-                <span>•</span>
-                <a
-                  href="#"
-                  className="inline-flex items-center gap-1 hover:underline"
-                >
-                  <Image
-                    src="https://via.placeholder.com/16"
-                    alt=""
-                    width={16}
-                    height={16}
-                    className="w-4 h-4"
-                    unoptimized
-                  />
-                  <span>IndiePage</span>
+                  <span>uxmagic.ai</span>
                 </a>
                 <span>•</span>
                 <a
@@ -237,7 +222,7 @@ export default function Home() {
                     <span className="text-textPrimary opacity-50">
                       https://
                     </span>
-                    <span className="text-gray-900">app.postmetric.com</span>
+                    <span className="text-gray-900">postmetric.io</span>
                   </div>
                 </div>
 
@@ -599,7 +584,7 @@ export default function Home() {
           <div className="border-t border-gray-100 pt-8 flex flex-col md:flex-row items-center justify-between">
             <div className="flex items-center gap-2 mb-4 md:mb-0">
               <Image
-                src="https://via.placeholder.com/24"
+                src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=128&q=75"
                 alt="PostMetric Logo"
                 width={24}
                 height={24}
@@ -609,7 +594,7 @@ export default function Home() {
               <span className="font-semibold text-gray-900">PostMetric</span>
             </div>
             <div className="text-sm text-textPrimary">
-              © 2024 PostMetric. All rights reserved.
+              © 2025 PostMetric. All rights reserved.
             </div>
           </div>
         </div>

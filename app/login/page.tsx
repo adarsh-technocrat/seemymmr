@@ -199,7 +199,7 @@ function LoginForm() {
           </p>
           <p>
             <span className="cursor-pointer hover:underline">
-              © 2024 PostMetric
+              © 2025 PostMetric
             </span>
           </p>
         </div>
