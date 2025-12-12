@@ -25,6 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TimezoneSelector } from "./TimezoneSelector";
 import { CodeBlock } from "@/components/ui/code-block";
 
 const COLOR_OPTIONS = [
@@ -377,26 +378,11 @@ export function GeneralSettings({
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-2">
-            <Select value={timezone} onValueChange={setTimezone}>
-              <SelectTrigger className="input-sm w-full border-base-content/10">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Asia/Calcutta">Asia - Calcutta</SelectItem>
-                <SelectItem value="America/New_York">
-                  America - New York
-                </SelectItem>
-                <SelectItem value="America/Los_Angeles">
-                  America - Los Angeles
-                </SelectItem>
-                <SelectItem value="Europe/London">Europe - London</SelectItem>
-                <SelectItem value="Europe/Paris">Europe - Paris</SelectItem>
-                <SelectItem value="Asia/Tokyo">Asia - Tokyo</SelectItem>
-                <SelectItem value="Australia/Sydney">
-                  Australia - Sydney
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <TimezoneSelector
+              value={timezone}
+              onChange={setTimezone}
+              disabled={loading}
+            />
             <div className="flex justify-end">
               <Button
                 type="submit"
