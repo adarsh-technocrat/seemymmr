@@ -1,0 +1,228 @@
+<svg width="1366" height="450" viewBox="0 0 1366 450" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M316 145C316 133.954 324.954 125 336 125H338V325H336C324.954 325 316 316.046 316 305V145Z" fill="#21262C" fill-opacity="0.04"/>
+  <g clip-path="url(#clip0_484_1489)">
+    <rect width="1" height="450" transform="translate(316)" fill="url(#paint0_linear_484_1489)"/>
+    <rect x="316.5" y="0.5" width="1" height="449" stroke="white" stroke-dasharray="3 2"/>
+  </g>
+  <g clip-path="url(#clip1_484_1489)">
+    <rect width="1021" height="1" transform="translate(-683 125)" fill="#E2E2E2"/>
+    <rect x="-682.5" y="125.5" width="1020" height="1" stroke="white" stroke-dasharray="3 2"/>
+  </g>
+  <g clip-path="url(#clip2_484_1489)">
+    <rect width="1021" height="1" transform="translate(-683 324)" fill="#E2E2E2"/>
+    <rect x="-682.5" y="324.5" width="1020" height="1" stroke="white" stroke-dasharray="3 2"/>
+  </g>
+  <g clip-path="url(#clip3_484_1489)">
+    <g clip-path="url(#clip4_484_1489)">
+      <g clip-path="url(#clip5_484_1489)">
+        <path d="M316.5 120V131M311 125.5H322" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#clip6_484_1489)">
+    <g clip-path="url(#clip7_484_1489)">
+      <g clip-path="url(#clip8_484_1489)">
+        <path d="M316.5 319V330M311 324.5H322" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <path d="M1038 125H1040C1051.05 125 1060 133.954 1060 145V305C1060 316.046 1051.05 325 1040 325H1038V125Z" fill="#21262C" fill-opacity="0.04"/>
+  <g clip-path="url(#clip9_484_1489)">
+    <rect width="1021" height="1" transform="translate(1038 324)" fill="url(#paint1_linear_484_1489)"/>
+    <rect x="1038.5" y="324.5" width="1020" height="1" stroke="white" stroke-dasharray="3 2"/>
+  </g>
+  <g clip-path="url(#clip10_484_1489)">
+    <rect width="1" height="450" transform="translate(1059)" fill="url(#paint2_linear_484_1489)"/>
+    <rect x="1059.5" y="0.5" width="1" height="449" stroke="white" stroke-dasharray="3 2"/>
+  </g>
+  <g clip-path="url(#clip11_484_1489)">
+    <rect width="1021" height="1" transform="translate(1038 125)" fill="url(#paint3_linear_484_1489)"/>
+    <rect x="1038.5" y="125.5" width="1020" height="1" stroke="white" stroke-dasharray="3 2"/>
+  </g>
+  <g clip-path="url(#clip12_484_1489)">
+    <g clip-path="url(#clip13_484_1489)">
+      <g clip-path="url(#clip14_484_1489)">
+        <path d="M1059.5 120V131M1054 125.5H1065" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#clip15_484_1489)">
+    <g clip-path="url(#clip16_484_1489)">
+      <g clip-path="url(#clip17_484_1489)">
+        <path d="M1059.5 319V330M1054 324.5H1065" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <rect width="1646" height="1" transform="translate(-135 85)" fill="url(#paint4_linear_484_1489)"/>
+  <rect width="1646" height="1" transform="translate(-135 364)" fill="url(#paint5_linear_484_1489)"/>
+  <rect width="1" height="440" transform="translate(1037 5)" fill="url(#paint6_linear_484_1489)"/>
+  <rect width="1" height="440" transform="translate(338 5)" fill="url(#paint7_linear_484_1489)"/>
+  <rect x="338.5" y="85.5" width="699" height="279" rx="39.5" stroke="#E2E2E2"/>
+  <g clip-path="url(#clip18_484_1489)">
+    <g clip-path="url(#clip19_484_1489)">
+      <g clip-path="url(#clip20_484_1489)">
+        <path d="M338.5 359V370M333 364.5H344" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#clip21_484_1489)">
+    <g clip-path="url(#clip22_484_1489)">
+      <g clip-path="url(#clip23_484_1489)">
+        <path d="M338.5 80V91M333 85.5H344" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#clip24_484_1489)">
+    <g clip-path="url(#clip25_484_1489)">
+      <g clip-path="url(#clip26_484_1489)">
+        <path d="M1037.5 359V370M1032 364.5H1043" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <g clip-path="url(#clip27_484_1489)">
+    <g clip-path="url(#clip28_484_1489)">
+      <g clip-path="url(#clip29_484_1489)">
+        <path d="M1037.5 80V91M1032 85.5H1043" stroke="black" stroke-linejoin="round"/>
+      </g>
+    </g>
+  </g>
+  <defs>
+    <linearGradient id="paint0_linear_484_1489" x1="0.499991" y1="0" x2="0.499991" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="0.1" stop-color="#E2E2E2"/>
+      <stop offset="0.904702" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <linearGradient id="paint1_linear_484_1489" x1="0" y1="0.5" x2="1021" y2="0.5" gradientUnits="userSpaceOnUse">
+      <stop offset="0.02" stop-color="#E2E2E2"/>
+      <stop offset="0.94" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <linearGradient id="paint2_linear_484_1489" x1="0.499991" y1="0" x2="0.499991" y2="450" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="0.1" stop-color="#E2E2E2"/>
+      <stop offset="0.904702" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <linearGradient id="paint3_linear_484_1489" x1="0" y1="0.5" x2="1021" y2="0.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E2E2E2"/>
+      <stop offset="0.94" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <linearGradient id="paint4_linear_484_1489" x1="0" y1="0.5" x2="1646" y2="0.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="0.06" stop-color="#E2E2E2"/>
+      <stop offset="0.94" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <linearGradient id="paint5_linear_484_1489" x1="0" y1="0.5" x2="1646" y2="0.5" gradientUnits="userSpaceOnUse">
+      <stop stop-color="white"/>
+      <stop offset="0.06" stop-color="#E2E2E2"/>
+      <stop offset="0.94" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="white"/>
+    </linearGradient>
+    <linearGradient id="paint6_linear_484_1489" x1="0.5" y1="0" x2="0.5" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E2E2E2" stop-opacity="0"/>
+      <stop offset="0.12" stop-color="#E2E2E2"/>
+      <stop offset="0.88" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="#E2E2E2" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="paint7_linear_484_1489" x1="0.5" y1="0" x2="0.5" y2="440" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#E2E2E2" stop-opacity="0"/>
+      <stop offset="0.12" stop-color="#E2E2E2"/>
+      <stop offset="0.88" stop-color="#E2E2E2"/>
+      <stop offset="1" stop-color="#E2E2E2" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="clip0_484_1489">
+      <rect width="1" height="450" fill="white" transform="translate(316)"/>
+    </clipPath>
+    <clipPath id="clip1_484_1489">
+      <rect width="1021" height="1" fill="white" transform="translate(-683 125)"/>
+    </clipPath>
+    <clipPath id="clip2_484_1489">
+      <rect width="1021" height="1" fill="white" transform="translate(-683 324)"/>
+    </clipPath>
+    <clipPath id="clip3_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(311 120)"/>
+    </clipPath>
+    <clipPath id="clip4_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(311 120)"/>
+    </clipPath>
+    <clipPath id="clip5_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(311 120)"/>
+    </clipPath>
+    <clipPath id="clip6_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(311 319)"/>
+    </clipPath>
+    <clipPath id="clip7_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(311 319)"/>
+    </clipPath>
+    <clipPath id="clip8_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(311 319)"/>
+    </clipPath>
+    <clipPath id="clip9_484_1489">
+      <rect width="1021" height="1" fill="white" transform="translate(1038 324)"/>
+    </clipPath>
+    <clipPath id="clip10_484_1489">
+      <rect width="1" height="450" fill="white" transform="translate(1059)"/>
+    </clipPath>
+    <clipPath id="clip11_484_1489">
+      <rect width="1021" height="1" fill="white" transform="translate(1038 125)"/>
+    </clipPath>
+    <clipPath id="clip12_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1054 120)"/>
+    </clipPath>
+    <clipPath id="clip13_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1054 120)"/>
+    </clipPath>
+    <clipPath id="clip14_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1054 120)"/>
+    </clipPath>
+    <clipPath id="clip15_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1054 319)"/>
+    </clipPath>
+    <clipPath id="clip16_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1054 319)"/>
+    </clipPath>
+    <clipPath id="clip17_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1054 319)"/>
+    </clipPath>
+    <clipPath id="clip18_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(333 359)"/>
+    </clipPath>
+    <clipPath id="clip19_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(333 359)"/>
+    </clipPath>
+    <clipPath id="clip20_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(333 359)"/>
+    </clipPath>
+    <clipPath id="clip21_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(333 80)"/>
+    </clipPath>
+    <clipPath id="clip22_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(333 80)"/>
+    </clipPath>
+    <clipPath id="clip23_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(333 80)"/>
+    </clipPath>
+    <clipPath id="clip24_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1032 359)"/>
+    </clipPath>
+    <clipPath id="clip25_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1032 359)"/>
+    </clipPath>
+    <clipPath id="clip26_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1032 359)"/>
+    </clipPath>
+    <clipPath id="clip27_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1032 80)"/>
+    </clipPath>
+    <clipPath id="clip28_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1032 80)"/>
+    </clipPath>
+    <clipPath id="clip29_484_1489">
+      <rect width="11" height="11" fill="white" transform="translate(1032 80)"/>
+    </clipPath>
+  </defs>
+</svg>
+

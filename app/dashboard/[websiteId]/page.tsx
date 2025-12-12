@@ -1,6 +1,6 @@
 "use client";
 
-import { use, useEffect } from "react";
+import { use, useEffect, useRef } from "react";
 import { useAppDispatch } from "@/store/hooks";
 import {
   setShowMentionsOnChart,
@@ -15,6 +15,7 @@ import { BreakdownCard } from "@/components/dashboard/analytics/BreakdownCard";
 import { GoalsCard } from "@/components/dashboard/analytics/GoalsCard";
 import { MentionsDialog } from "@/components/dashboard/analytics/MentionsDialog";
 import { WaitingForEventsBanner } from "@/components/dashboard/analytics/WaitingForEventsBanner";
+import { FloatingActionButtons } from "@/components/dashboard/analytics/FloatingActionButtons";
 import { Button } from "@/components/ui/button";
 import {
   useWebsiteAnalytics,
@@ -31,6 +32,7 @@ export default function WebsiteAnalyticsPage({
   const { websiteId } = use(params);
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const locationCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isValidObjectId(websiteId)) {
@@ -190,14 +192,16 @@ export default function WebsiteAnalyticsPage({
             chartType="horizontalBar"
           />
 
-          <BreakdownCard
-            title="Location"
-            tabs={["Map", "Country", "Region", "City"] as const}
-            selectedTab={ui.selectedLocationTab}
-            data={locationData}
-            onTabChange={setSelectedLocationTab}
-            chartType="bar"
-          />
+          <div ref={locationCardRef}>
+            <BreakdownCard
+              title="Location"
+              tabs={["Map", "Country", "Region", "City"] as const}
+              selectedTab={ui.selectedLocationTab}
+              data={locationData}
+              onTabChange={setSelectedLocationTab}
+              chartType="bar"
+            />
+          </div>
 
           <BreakdownCard
             title="System"
@@ -225,6 +229,23 @@ export default function WebsiteAnalyticsPage({
         onShowMentionsChange={(checked) =>
           dispatch(setShowMentionsOnChart(checked))
         }
+      />
+
+      <FloatingActionButtons
+        onOpenMap={() => {
+          setSelectedLocationTab("Map");
+          // Scroll to location card
+          if (locationCardRef.current) {
+            locationCardRef.current.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            });
+          }
+        }}
+        onOpenInsights={() => {
+          // Placeholder for insights feature
+          console.log("Insights feature coming soon");
+        }}
       />
     </>
   );
