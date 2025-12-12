@@ -32,7 +32,7 @@ export interface ChartDataPoint {
   date: string;
   fullDate?: string;
   timestamp?: string;
-  visitors: number | null;
+  visitors: number | null | undefined;
   revenue: number;
   revenueNew?: number;
   revenueRenewal?: number;

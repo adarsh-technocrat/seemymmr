@@ -49,7 +49,7 @@ interface ChartDataPoint {
   date: string;
   fullDate?: string;
   timestamp?: string;
-  visitors: number | null;
+  visitors: number;
   revenue: number;
   revenueNew?: number;
   revenueRefund?: number;
@@ -161,24 +161,19 @@ const analyticsSlice = createSlice({
         const processedData = action.payload.processedData || [];
 
         state.chartData = processedData.map((item: any) => {
-          // Preserve null for visitors when there's no data (don't convert to 0)
-          const visitors =
-            item.visitors !== null && item.visitors !== undefined
-              ? item.visitors
-              : null;
-
           return {
             date: item.name,
             fullDate: formatFullDate(item.timestamp),
             timestamp: item.timestamp,
-            visitors: visitors,
+            visitors: item.visitors ?? 0,
             revenue: (item.revenue ?? 0) + (item.renewalRevenue ?? 0), // Total revenue
             revenueNew: item.revenue ?? 0,
             revenueRenewal: item.renewalRevenue ?? 0,
             revenueRefund: item.refundedRevenue ?? 0,
             revenuePerVisitor:
-              visitors !== null && visitors > 0
-                ? ((item.revenue ?? 0) + (item.renewalRevenue ?? 0)) / visitors
+              (item.visitors ?? 0) > 0
+                ? ((item.revenue ?? 0) + (item.renewalRevenue ?? 0)) /
+                  (item.visitors ?? 1)
                 : 0,
             conversionRate: 0, // Will be calculated if needed
           };
