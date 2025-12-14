@@ -22,6 +22,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         embossed:
           "bg-[#5220E3] text-white rounded-[14px] relative overflow-hidden font-semibold",
+        "embossed-secondary":
+          "bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-200 rounded-[14px] relative overflow-hidden font-semibold",
       },
       size: {
         default: "h-10 px-4 py-2",
@@ -47,7 +49,8 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    const isEmbossed = variant === "embossed";
+    const isEmbossed =
+      variant === "embossed" || variant === "embossed-secondary";
     const [isPressed, setIsPressed] = React.useState(false);
     const [isBouncing, setIsBouncing] = React.useState(false);
 
@@ -105,19 +108,34 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
                   : isBouncing
                   ? "scale(1.02) translateY(-1px)"
                   : "scale(1) translateY(0)",
-                boxShadow: isPressed
-                  ? `
-                    inset -1px 0px 0.5px rgba(22, 0, 83, 0.3),
-                    inset 1px 0px 1px rgba(255, 255, 255, 0.15),
-                    inset 0 -2px 1px rgba(21, 0, 83, 0.5),
-                    inset 0 1px 1px rgba(255, 255, 255, 0.25)
-                  `
-                  : `
-                    inset -2px -1px 0.5px rgba(22, 0, 83, 0.2),
-                    inset 2px 1px 1px rgba(255, 255, 255, 0.2),
-                    inset 0 -4px 1px rgba(21, 0, 83, 0.4),
-                    inset 0 3px 1px rgba(255, 255, 255, 0.36)
-                  `,
+                boxShadow:
+                  variant === "embossed"
+                    ? isPressed
+                      ? `
+                        inset -1px 0px 0.5px rgba(22, 0, 83, 0.3),
+                        inset 1px 0px 1px rgba(255, 255, 255, 0.15),
+                        inset 0 -2px 1px rgba(21, 0, 83, 0.5),
+                        inset 0 1px 1px rgba(255, 255, 255, 0.25)
+                      `
+                      : `
+                        inset -2px -1px 0.5px rgba(22, 0, 83, 0.2),
+                        inset 2px 1px 1px rgba(255, 255, 255, 0.2),
+                        inset 0 -4px 1px rgba(21, 0, 83, 0.4),
+                        inset 0 3px 1px rgba(255, 255, 255, 0.36)
+                      `
+                    : isPressed
+                    ? `
+                      inset -1px 0px 0.5px rgba(0, 0, 0, 0.2),
+                      inset 1px 0px 1px rgba(255, 255, 255, 0.4),
+                      inset 0 -2px 1px rgba(0, 0, 0, 0.3),
+                      inset 0 1px 1px rgba(255, 255, 255, 0.5)
+                    `
+                    : `
+                      inset -2px -1px 0.5px rgba(0, 0, 0, 0.15),
+                      inset 2px 1px 1px rgba(255, 255, 255, 0.5),
+                      inset 0 -4px 1px rgba(0, 0, 0, 0.25),
+                      inset 0 3px 1px rgba(255, 255, 255, 0.6)
+                    `,
                 transition: isBouncing
                   ? "transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55), box-shadow 0.2s ease"
                   : "transform 0.075s ease, box-shadow 0.075s ease",
