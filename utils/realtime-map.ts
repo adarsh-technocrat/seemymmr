@@ -119,7 +119,20 @@ export interface PaymentEvent {
   timestamp: string;
 }
 
-export type ActivityItem = Visitor | PaymentEvent;
+export interface PageViewEvent {
+  id: string;
+  type: "pageview";
+  visitorId: string;
+  sessionId: string;
+  userId?: string;
+  country: string;
+  region?: string;
+  city?: string;
+  path: string;
+  timestamp: string;
+}
+
+export type ActivityItem = Visitor | PaymentEvent | PageViewEvent;
 
 export function formatTimeAgo(dateString: string): string {
   const date = new Date(dateString);

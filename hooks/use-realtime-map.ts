@@ -2,6 +2,7 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import {
   type Visitor,
   type PaymentEvent,
+  type PageViewEvent,
   DEFAULT_COORDS,
   getVisitorCoordinates,
 } from "@/utils/realtime-map";
@@ -26,6 +27,7 @@ interface UseRealtimeMapProps {
 export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
+  const [pageViewEvents, setPageViewEvents] = useState<PageViewEvent[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -107,6 +109,7 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
           // But we still deduplicate by visitorId/userId as a safety measure
           const visitorsList = data.visitors || [];
           const paymentEventsList = data.paymentEvents || [];
+          const pageViewEventsList = data.pageViewEvents || [];
 
           const visitorMap = new Map<string, Visitor>();
           visitorsList.forEach((visitor: Visitor) => {
@@ -126,6 +129,7 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
 
           setVisitors(uniqueVisitors);
           setPaymentEvents(paymentEventsList);
+          setPageViewEvents(pageViewEventsList);
         } else {
           console.error("Failed to fetch visitors:", response.status);
         }
@@ -208,6 +212,7 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
   return {
     visitors,
     paymentEvents,
+    pageViewEvents,
     isLoading,
     isMapLoaded,
     progress,

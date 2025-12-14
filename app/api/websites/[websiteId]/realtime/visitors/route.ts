@@ -114,7 +114,12 @@ export async function GET(
           )
         );
 
-        const currentPath = pathMap.get(session.sessionId) || "/";
+        let currentPath = pathMap.get(session.sessionId) || "/";
+
+        // Remove query parameters from path
+        if (currentPath.includes("?")) {
+          currentPath = currentPath.split("?")[0];
+        }
 
         // Log for debugging
         console.log(`[Realtime] Visitor ${session.visitorId}:`, {
@@ -147,6 +152,45 @@ export async function GET(
       }
     );
 
+    // Get recent page views (last 5 minutes) for activity feed
+    const recentPageViews = await PageView.find({
+      websiteId: websiteObjectId,
+      timestamp: { $gte: fiveMinutesAgo },
+    })
+      .sort({ timestamp: -1 })
+      .limit(100)
+      .lean();
+
+    // Get session info for page views
+    const pageViewSessionIds = [
+      ...new Set(recentPageViews.map((pv) => pv.sessionId)),
+    ];
+    const pageViewSessions = await Session.find({
+      sessionId: { $in: pageViewSessionIds },
+    }).lean();
+
+    const sessionMap = new Map(pageViewSessions.map((s) => [s.sessionId, s]));
+
+    const pageViewEvents = recentPageViews.map((pv) => {
+      const session = sessionMap.get(pv.sessionId);
+      let path = pv.path;
+      if (path.includes("?")) {
+        path = path.split("?")[0];
+      }
+      return {
+        id: pv._id.toString(),
+        type: "pageview" as const,
+        visitorId: pv.visitorId,
+        sessionId: pv.sessionId,
+        userId: session?.userId,
+        country: pv.country,
+        region: pv.region,
+        city: pv.city,
+        path,
+        timestamp: pv.timestamp.toISOString(),
+      };
+    });
+
     // Get recent payment events (last 5 minutes, not refunded)
     const recentPayments = await Payment.find({
       websiteId: websiteObjectId,
@@ -168,7 +212,7 @@ export async function GET(
       timestamp: payment.timestamp.toISOString(),
     }));
 
-    return NextResponse.json({ visitors, paymentEvents });
+    return NextResponse.json({ visitors, paymentEvents, pageViewEvents });
   } catch (error: any) {
     console.error("Error fetching real-time visitors:", error);
     return NextResponse.json(

@@ -42,6 +42,13 @@ export default function RootLayout({
           src="https://www.postmetric.io/js/script.js"
           strategy="afterInteractive"
         />
+        <script
+          defer
+          data-website-id="dfid_YuvP5zpTg5hNE8YeNLGbh"
+          data-domain="uxmagic.ai"
+          data-allow-localhost="true"
+          src="https://datafa.st/js/script.js"
+        ></script>
       </body>
     </html>
   );

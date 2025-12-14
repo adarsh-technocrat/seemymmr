@@ -37,6 +37,7 @@ export function RealtimeMapDialog({
   const {
     visitors,
     paymentEvents,
+    pageViewEvents,
     isLoading,
     isMapLoaded,
     progress,
@@ -207,7 +208,11 @@ export function RealtimeMapDialog({
               </div>
             )}
 
-            <ActivityFeed visitors={visitors} paymentEvents={paymentEvents} />
+            <ActivityFeed
+              visitors={visitors}
+              paymentEvents={paymentEvents}
+              pageViewEvents={pageViewEvents}
+            />
           </div>
         </div>
       </DialogContent>

@@ -7,11 +7,13 @@ import {
   generateVisitorName,
   type Visitor,
   type PaymentEvent,
+  type PageViewEvent,
 } from "@/utils/realtime-map";
 
 interface ActivityFeedProps {
   visitors: Visitor[];
   paymentEvents: PaymentEvent[];
+  pageViewEvents: PageViewEvent[];
 }
 
 function formatPaymentAmount(amount: number, currency: string = "usd"): string {
@@ -20,23 +22,54 @@ function formatPaymentAmount(amount: number, currency: string = "usd"): string {
   return `${currencySymbol}${dollars.toFixed(2)}`;
 }
 
-export function ActivityFeed({ visitors, paymentEvents }: ActivityFeedProps) {
+export function ActivityFeed({
+  visitors,
+  paymentEvents,
+  pageViewEvents,
+}: ActivityFeedProps) {
+  // Memoize visitor names to ensure consistency across re-renders
+  const visitorNames = useMemo(() => {
+    const nameMap = new Map<string, string>();
+    // Get names from visitors
+    visitors.forEach((visitor) => {
+      const key = visitor.userId || visitor.visitorId;
+      if (!nameMap.has(key)) {
+        nameMap.set(
+          key,
+          generateVisitorName(visitor.visitorId, visitor.userId)
+        );
+      }
+    });
+    // Get names from page view events
+    pageViewEvents.forEach((pv) => {
+      const key = pv.userId || pv.visitorId;
+      if (!nameMap.has(key)) {
+        nameMap.set(key, generateVisitorName(pv.visitorId, pv.userId));
+      }
+    });
+    // Get names from payment events
+    paymentEvents.forEach((payment) => {
+      if (payment.visitorId && !nameMap.has(payment.visitorId)) {
+        nameMap.set(payment.visitorId, generateVisitorName(payment.visitorId));
+      }
+    });
+    return nameMap;
+  }, [visitors, pageViewEvents, paymentEvents]);
+
   const activityItems = useMemo(() => {
-    const items: (Visitor | PaymentEvent)[] = [...visitors, ...paymentEvents];
+    // Use page view events for activity feed (shows all individual events)
+    const items: (PageViewEvent | PaymentEvent)[] = [
+      ...pageViewEvents,
+      ...paymentEvents,
+    ];
     return items
       .sort((a, b) => {
-        const timeA =
-          "type" in a && a.type === "payment"
-            ? new Date(a.timestamp).getTime()
-            : new Date((a as Visitor).lastSeenAt).getTime();
-        const timeB =
-          "type" in b && b.type === "payment"
-            ? new Date(b.timestamp).getTime()
-            : new Date((b as Visitor).lastSeenAt).getTime();
+        const timeA = new Date(a.timestamp).getTime();
+        const timeB = new Date(b.timestamp).getTime();
         return timeB - timeA;
       })
       .slice(0, 20);
-  }, [visitors, paymentEvents]);
+  }, [pageViewEvents, paymentEvents]);
 
   return (
     <div className="absolute bottom-0 left-0 z-10 max-h-[20vh] w-full max-w-full overflow-hidden bg-white/90 py-3 text-gray-700 ring-1 ring-gray-200 backdrop-blur-sm md:bottom-4 md:left-4 md:max-h-[30vh] md:w-96 md:rounded-box shadow-lg">
@@ -49,7 +82,8 @@ export function ActivityFeed({ visitors, paymentEvents }: ActivityFeedProps) {
               const customerName = payment.customerEmail
                 ? payment.customerEmail.split("@")[0].toUpperCase()
                 : payment.visitorId
-                ? generateVisitorName(payment.visitorId)
+                ? visitorNames.get(payment.visitorId) ||
+                  generateVisitorName(payment.visitorId)
                 : "Customer";
 
               return (
@@ -77,10 +111,16 @@ export function ActivityFeed({ visitors, paymentEvents }: ActivityFeedProps) {
                 </div>
               );
             }
-            const visitor = item as Visitor;
+            // It's a page view event
+            const pageView = item as PageViewEvent;
+            const visitorKey = pageView.userId || pageView.visitorId;
+            const visitorName =
+              visitorNames.get(visitorKey) ||
+              generateVisitorName(pageView.visitorId, pageView.userId);
+
             return (
               <div
-                key={visitor.sessionId}
+                key={pageView.id}
                 className="flex items-start gap-1.5 py-1 text-xs cursor-pointer px-3 duration-100 hover:bg-gray-100"
               >
                 <div className="mt-0.5 shrink-0">
@@ -88,33 +128,31 @@ export function ActivityFeed({ visitors, paymentEvents }: ActivityFeedProps) {
                 </div>
                 <div className="min-w-0 flex-1">
                   <span className="font-medium text-gray-900">
-                    {generateVisitorName(visitor.visitorId, visitor.userId)}
+                    {visitorName}
                   </span>
                   <span className="text-gray-600"> from </span>
                   <span className="inline-flex items-baseline gap-1 truncate font-medium text-gray-900">
                     <div className="inline-flex shrink-0 overflow-hidden rounded-sm shadow-sm h-[10px] w-[15px]">
                       <img
-                        src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${visitor.country}.svg`}
-                        alt={`${visitor.country} flag`}
+                        src={`https://purecatamphetamine.github.io/country-flag-icons/3x2/${pageView.country}.svg`}
+                        alt={`${pageView.country} flag`}
                         className="h-full w-full saturate-[0.9]"
                         loading="lazy"
                       />
                     </div>
                     <span className="font-medium text-gray-900">
-                      {visitor.country}
+                      {pageView.country}
                     </span>
                   </span>
                   <span className="text-gray-600"> visited </span>
                   <span
                     className="-mx-1 -my-0.5 ml-0 rounded bg-gray-100 px-1 py-0.5 font-mono text-[11px]! font-medium text-gray-900"
-                    title={`Path: ${visitor.currentPath || "/"} | Session: ${
-                      visitor.sessionId
-                    }`}
+                    title={`Path: ${pageView.path} | Session: ${pageView.sessionId}`}
                   >
-                    {visitor.currentPath || "/"}
+                    {pageView.path}
                   </span>
                   <div className="mt-0 text-[10px] text-gray-500">
-                    {formatTimeAgo(visitor.lastSeenAt)}
+                    {formatTimeAgo(pageView.timestamp)}
                   </div>
                 </div>
               </div>
