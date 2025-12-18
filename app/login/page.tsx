@@ -59,35 +59,37 @@ function LoginForm() {
   };
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen bg-stone-50 antialiased font-sans">
       <section className="flex w-full flex-col items-center justify-center px-4 py-16 md:px-8 lg:w-1/2">
-        <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-sm md:p-8 md:px-12">
+        <div className="w-full max-w-lg bg-white p-6 md:p-8 md:px-12">
           <div className="mb-8 flex flex-col items-start justify-center gap-4">
             <div className="space-y-1 md:space-y-2">
               <Link
                 href="/"
-                className="inline-flex cursor-pointer items-center justify-center gap-2 duration-200 hover:opacity-80"
+                className="inline-flex cursor-pointer items-center justify-center gap-2 duration-200 hover:opacity-70"
               >
                 <Image
-                  src="https://datafa.st/_next/image?url=%2F_next%2Fstatic%2Fmedia%2Ficon.3a869d3d.png&w=128&q=75"
-                  alt="PostMetric Logo"
+                  src="/icon.svg"
+                  alt="Postmetric Logo"
                   width={40}
                   height={40}
-                  className="h-8 w-8 md:h-10 md:w-10"
-                  unoptimized
+                  className="h-8 w-8 md:h-10 md:w-10 rounded-md"
                 />
+                <span className="font-bold text-stone-800 text-lg tracking-tight hidden sm:inline">
+                  Postmetric
+                </span>
               </Link>
-              <h1 className="text-xl font-bold text-textPrimary md:text-2xl">
-                Sign in to PostMetric
+              <h1 className="text-2xl font-cooper text-stone-900 md:text-3xl">
+                Sign in to Postmetric
               </h1>
             </div>
-            <div className="text-sm text-textSecondary">
+            <div className="text-sm text-stone-500 leading-relaxed">
               <span>
-                If you already have an account, sign in to PostMetric to get
+                If you already have an account, sign in to Postmetric to get
                 started. Or{" "}
                 <Link
                   href="/signup"
-                  className="text-textPrimary underline hover:opacity-80"
+                  className="text-stone-800 hover:text-brand-600 underline underline-offset-2"
                 >
                   create an account
                 </Link>{" "}
@@ -118,7 +120,7 @@ function LoginForm() {
                 type="button"
                 onClick={handleGoogleAuth}
                 disabled={isLoading}
-                className="mb-4 flex w-full items-center justify-center gap-3 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-textPrimary transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="mb-4 flex w-full items-center justify-center gap-3 rounded border border-stone-200 bg-white px-4 py-3 text-xs font-semibold font-mono uppercase text-stone-700 transition-all hover:bg-stone-50 hover:border-stone-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <svg className="h-5 w-5" viewBox="0 0 24 24">
                   <path
@@ -143,10 +145,12 @@ function LoginForm() {
 
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
+                  <div className="w-full border-t border-stone-200"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-4 text-textSecondary">or</span>
+                  <span className="bg-white px-4 text-stone-500 font-mono uppercase text-xs">
+                    or
+                  </span>
                 </div>
               </div>
 
@@ -154,7 +158,7 @@ function LoginForm() {
                 <div>
                   <label
                     htmlFor="email"
-                    className="mb-2 block text-sm font-medium text-textPrimary"
+                    className="mb-2 block text-xs font-semibold font-mono uppercase text-stone-700"
                   >
                     Magic link
                   </label>
@@ -167,18 +171,14 @@ function LoginForm() {
                     placeholder="you@example.com"
                     required
                     disabled={isLoading}
-                    className="w-full rounded-lg border border-borderColor bg-white px-4 py-3 text-sm text-textPrimary placeholder-textSecondary focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full rounded border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 placeholder-stone-400 font-mono focus:border-stone-800 focus:outline-none focus:ring-1 focus:ring-stone-800 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
                 <button
                   type="submit"
                   disabled={isLoading || !email}
-                  className="w-full rounded-lg bg-primary px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    boxShadow:
-                      "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.06) 0px 1px 1px 0px, rgba(225, 101, 64, 0.157) 0px 0px 0px 1px, rgba(225, 101, 64, 0.64) 0px 8px 16px -8px, rgba(181, 81, 51, 0.48) 0px -1px 2px 0px inset",
-                  }}
+                  className="w-full rounded border border-stone-800 bg-stone-800 px-4 py-3 text-xs font-semibold font-mono uppercase text-white transition-all hover:bg-stone-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? "Sending..." : "Sign in with magic link"}
                 </button>
@@ -187,25 +187,29 @@ function LoginForm() {
           )}
         </div>
 
-        <div className="mt-6 space-y-1.5 text-center text-sm text-textSecondary opacity-75">
+        <div className="mt-6 space-y-1.5 text-center text-sm text-stone-500">
           <p>
-            <Link href="/privacy" className="hover:underline">
+            <Link
+              href="/privacy"
+              className="hover:text-stone-700 transition-colors"
+            >
               Privacy Policy
             </Link>
             <span className="mx-2">·</span>
-            <Link href="/terms" className="hover:underline">
+            <Link
+              href="/terms"
+              className="hover:text-stone-700 transition-colors"
+            >
               Terms of Service
             </Link>
           </p>
           <p>
-            <span className="cursor-pointer hover:underline">
-              © 2025 PostMetric
-            </span>
+            <span className="text-stone-400">© 2025 Postmetric LLC</span>
           </p>
         </div>
       </section>
 
-      <div className="hidden h-screen w-1/2 overflow-hidden border-l border-gray-200 lg:block">
+      <div className="hidden h-screen w-1/2 overflow-hidden border-l border-stone-200 lg:block">
         <div className="relative h-full w-full">
           <Image
             src="https://image.mux.com/IAD2rWZEhEc6Mzo3YyejHhnOQpwk00vfIEHdfpUBV5yU/thumbnail.webp"
@@ -225,8 +229,8 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen bg-background items-center justify-center">
-          <div className="text-textSecondary">Loading...</div>
+        <div className="flex min-h-screen bg-stone-50 items-center justify-center">
+          <div className="text-stone-500 font-mono text-sm">Loading...</div>
         </div>
       }
     >

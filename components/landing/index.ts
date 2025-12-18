@@ -1,6 +1,11 @@
 export { Header } from "./Header";
 export { HeroSection } from "./HeroSection";
-export { DashboardSection } from "./DashboardSection";
-export { TestimonialSection } from "./TestimonialSection";
+export { DashboardPreview } from "./DashboardPreview";
+export { FeatureCards } from "./FeatureCards";
+export { IntegrationsSection } from "./IntegrationsSection";
+export { InsightsSection } from "./InsightsSection";
+export { RevenueTrackingSection } from "./RevenueTrackingSection";
+export { FeaturesGrid } from "./FeaturesGrid";
+export { CTASection } from "./CTASection";
 export { Footer } from "./Footer";
 export { Logo } from "./Logo";

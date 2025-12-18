@@ -9,6 +9,21 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          600: "#1D9BF0",
+        },
+        stone: {
+          50: "#FBFAF9",
+          100: "#F5F5F4",
+          200: "#E7E5E4",
+          300: "#D6D3D1",
+          400: "#A8A29E",
+          500: "#78716C",
+          600: "#57534E",
+          700: "#44403C",
+          800: "#292524",
+          900: "#1C1917",
+        },
         primary: {
           DEFAULT: "#7C3AED",
           50: "#F5F3FF",
@@ -103,11 +118,13 @@ const config: Config = {
         borderColor: "#CCCCCC",
       },
       fontFamily: {
+        cooper: ["Georgia", "serif"],
+        mono: ["ui-monospace", "monospace"],
         sans: [
-          "DM Sans",
-          "Inter",
-          "Roboto",
+          "-apple-system",
+          "BlinkMacSystemFont",
           "Segoe UI",
+          "Roboto",
           "Helvetica",
           "Arial",
           "sans-serif",
@@ -127,6 +144,12 @@ const config: Config = {
       spacing: {
         section: "5rem", // Generous vertical spacing between sections
         "card-padding": "1.5rem", // Consistent padding for cards
+        30: "7.5rem",
+        100: "25rem",
+      },
+      lineHeight: {
+        120: "1.2",
+        22: "1.375rem",
       },
       keyframes: {
         "accordion-down": {
