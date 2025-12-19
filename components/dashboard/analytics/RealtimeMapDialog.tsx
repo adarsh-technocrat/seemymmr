@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { X, Share2, Music, Maximize, RefreshCw } from "lucide-react";
 import { useRealtimeMap } from "@/hooks/use-realtime-map";
-import { Logo } from "@/components/landing";
+import { Logo } from "@/components/landing/Logo";
 import {
   StatsSection,
   ActivityFeed,

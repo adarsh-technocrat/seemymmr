@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
-// Diverse user names/emails that will generate different avatars
-// These are deterministic - same seed = same avatar every time
 const AVATAR_USERS = [
   { name: "Alex Thompson", email: "alex.t@example.com" },
   { name: "Maria Garcia", email: "maria.g@example.com" },
