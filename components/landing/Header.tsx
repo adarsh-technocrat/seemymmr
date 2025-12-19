@@ -16,7 +16,7 @@ export function Header() {
           className="w-6 h-6 rounded-md"
         />
         <span className="font-bold text-stone-800 text-lg tracking-tight">
-          Postmetric LLC
+          Postmetric
         </span>
       </Link>
 

@@ -10,9 +10,16 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          600: "#1D9BF0",
+          50: "#F5F5FF",
+          100: "#EBEBFF",
+          200: "#D6D6FF",
+          300: "#B8B8FF",
+          400: "#9A9AFF",
+          500: "#615FFF",
+          600: "#615FFF",
         },
         stone: {
+          0: "#FFFFFF",
           50: "#FBFAF9",
           100: "#F5F5F4",
           200: "#E7E5E4",

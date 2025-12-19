@@ -12,8 +12,8 @@ export function RevenueTrackingSection() {
             Connect revenue to sources
           </h3>
           <p className="text-stone-500 font-normal text-sm text-center leading-relaxed">
-            See exactly how much revenue each marketing channel generates.
-            Optimize your ad spend and focus on what brings in cash.
+            See exactly how much revenue each marketing channel generates. Opti
+            mize your ad spend and focus on what brings in cash.
           </p>
         </div>
       </div>

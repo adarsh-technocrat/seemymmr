@@ -6,6 +6,8 @@ export { IntegrationsSection } from "./IntegrationsSection";
 export { InsightsSection } from "./InsightsSection";
 export { RevenueTrackingSection } from "./RevenueTrackingSection";
 export { FeaturesGrid } from "./FeaturesGrid";
+export { PricingSection } from "./PricingSection";
+export { TestimonialsSection } from "./TestimonialsSection";
 export { CTASection } from "./CTASection";
 export { Footer } from "./Footer";
 export { Logo } from "./Logo";

@@ -15,7 +15,7 @@ export function Footer() {
               className="w-6 h-6 rounded-md grayscale opacity-80"
             />
             <span className="font-bold text-stone-600 text-lg tracking-tight">
-              Postmetric LLC
+              Postmetric
             </span>
           </Link>
           <p className="text-stone-500 text-sm leading-6 max-w-xs">

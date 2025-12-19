@@ -125,34 +125,22 @@ const FEATURES = [
 
 export function FeaturesGrid() {
   return (
-    <div className="flex flex-col gap-6 items-center py-20">
-      <div className="flex flex-col gap-4 items-center lg:px-6 px-4">
-        <p className="text-stone-800 font-normal text-xs uppercase font-mono leading-4">
+    <div className="flex flex-col gap-10 py-24 border-t border-stone-200">
+      <div className="flex flex-col gap-4 items-center justify-center">
+        <p className="text-stone-800 font-normal text-xs uppercase font-mono leading-4 tracking-wider">
           Features
         </p>
-        <p className="text-stone-800 font-normal text-2xl leading-120 text-center font-cooper lg:whitespace-pre-line">
-          Everything you need to grow your business
-        </p>
+        <div className="flex flex-col gap-2 items-center max-w-md">
+          <h3 className="text-stone-800 font-normal text-3xl font-cooper text-center leading-tight">
+            Everything you need to grow your business
+          </h3>
+        </div>
       </div>
-
-      <ul className="grid w-full grid-cols-2 lg:grid-cols-3 border-t border-b lg:border-b-stone-50 border-stone-200 divide-x divide-stone-200">
+      <ul className="grid w-full grid-cols-2 lg:grid-cols-3 border-t border-b border-stone-200 gap-px bg-stone-200">
         {FEATURES.map((feature, index) => {
-          const isLastRow = index >= 3;
-          const isSecondCol = index % 3 === 1;
-          const isLastItem = index === FEATURES.length - 1;
-
           return (
-            <li
-              key={index}
-              className={`${
-                isLastRow
-                  ? "border-b-stone-50 lg:border-b-stone-200"
-                  : "border-b border-stone-200"
-              } h-full flex flex-col ${
-                isSecondCol ? "border-r-stone-50 lg:border-r-stone-200" : ""
-              } ${isLastItem ? "border-r lg:border-b" : ""}`}
-            >
-              <div className="flex flex-col gap-4 py-6 px-4 lg:px-6">
+            <li key={index} className="bg-white h-full flex flex-col">
+              <div className="flex flex-col gap-3 py-4 px-4 lg:px-6">
                 <span className="text-stone-800">{feature.icon}</span>
                 <div className="flex flex-col gap-2">
                   <p className="text-stone-800 font-medium text-sm font-mono leading-5 uppercase">
