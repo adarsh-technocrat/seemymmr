@@ -1,7 +1,30 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 
 export function Header() {
+  const pathname = usePathname();
+
+  const navLinks = [
+    { href: "/#features", label: "Features" },
+    { href: "/pricing", label: "Pricing" },
+    { href: "/#blog", label: "Blog" },
+    { href: "/#changelog", label: "Changelog" },
+  ];
+
+  const isActive = (href: string) => {
+    if (href === "/pricing") {
+      return pathname === "/pricing";
+    }
+    // For hash links, check if we're on the home page
+    if (href.startsWith("/#")) {
+      return pathname === "/";
+    }
+    return false;
+  };
+
   return (
     <header className="grid grid-cols-2 lg:grid-cols-3 h-14 items-center sticky top-0 backdrop-blur-lg w-full gap-2 px-4 lg:px-6 z-50 bg-stone-50/80 border-b border-stone-200/50">
       <Link
@@ -22,31 +45,22 @@ export function Header() {
 
       <div className="w-full hidden lg:flex items-center justify-center">
         <div className="lg:flex gap-2 justify-center items-center hidden">
-          <button className="relative inline-block py-3 w-full group cursor-pointer">
-            <div className="flex w-full font-mono justify-between px-3 py-1 gap-1 items-center uppercase text-xs">
-              <span className="hover:text-brand-600 text-stone-700">
-                Features
-              </span>
-            </div>
-          </button>
-          <button className="relative inline-block py-3 w-full group cursor-pointer">
-            <div className="flex w-full font-mono justify-between px-3 py-1 gap-1 items-center uppercase text-xs">
-              <span className="hover:text-brand-600 text-stone-700">
-                Pricing
-              </span>
-            </div>
-          </button>
-          <button className="relative inline-block py-3 w-full group cursor-pointer">
-            <div className="flex w-full font-mono justify-between px-3 py-1 gap-1 items-center uppercase text-xs">
-              <span className="hover:text-brand-600 text-stone-700">Blog</span>
-            </div>
-          </button>
-          <Link
-            href="#"
-            className="flex w-full font-mono justify-between px-3 py-1 gap-1 items-center uppercase text-xs text-stone-700 hover:text-brand-600"
-          >
-            Changelog
-          </Link>
+          {navLinks.map((link) => {
+            const active = isActive(link.href);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`flex w-full font-mono justify-between px-3 py-1 gap-1 items-center uppercase text-xs select-none cursor-pointer rounded-lg transition-colors duration-200 ${
+                  active
+                    ? "bg-brand-100 text-brand-600 font-medium"
+                    : "text-stone-700 hover:text-brand-600 hover:bg-brand-50"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </div>
       </div>
 

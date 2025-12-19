@@ -16,7 +16,7 @@ export function HeroSection() {
     <div className="py-12 px-4 lg:px-20 lg:py-24 flex flex-col gap-8 items-center pb-20">
       <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-xs font-mono text-stone-600 mb-2">
         <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-        Analytics for CodeFast
+        Analytics for UXmagic.ai
       </div>
 
       <div className="flex flex-col gap-4 items-center max-w-3xl">
