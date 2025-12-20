@@ -248,6 +248,9 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
         existingActiveSession.pageViews += 1;
         existingActiveSession.bounce = false;
         existingActiveSession.lastSeenAt = now;
+        existingActiveSession.duration = Math.floor(
+          (now.getTime() - existingActiveSession.firstVisitAt.getTime()) / 1000
+        );
         await existingActiveSession.save();
         session = existingActiveSession;
       } else {
@@ -274,6 +277,10 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
       session.pageViews += 1;
       session.bounce = false; // Multiple page views = not a bounce
       session.lastSeenAt = now;
+      // Calculate session duration in seconds
+      session.duration = Math.floor(
+        (now.getTime() - session.firstVisitAt.getTime()) / 1000
+      );
       await session.save();
     }
 

@@ -3452,13 +3452,20 @@ export async function getMetrics(
       ? (sessions.filter((s) => s.bounce).length / totalSessions) * 100
       : 0;
 
-  // Average session duration
   const avgDuration =
     totalSessions > 0
-      ? sessions.reduce((sum, s) => sum + s.duration, 0) / totalSessions
+      ? sessions.reduce((sum, s) => {
+          let duration = s.duration;
+
+          if (duration === 0 && s.firstVisitAt && s.lastSeenAt) {
+            duration = Math.floor(
+              (s.lastSeenAt.getTime() - s.firstVisitAt.getTime()) / 1000
+            );
+          }
+          return sum + duration;
+        }, 0) / totalSessions
       : 0;
 
-  // Conversion rate (sessions with payments / total sessions)
   const sessionsWithPayments = await Payment.distinct("sessionId", {
     websiteId: websiteObjectId,
     timestamp: { $gte: startDate, $lte: endDate },
