@@ -52,6 +52,7 @@ interface ChartDataPoint {
   visitors: number;
   revenue: number;
   revenueNew?: number;
+  revenueRenewal?: number;
   revenueRefund?: number;
   revenuePerVisitor?: number;
   conversionRate?: number;

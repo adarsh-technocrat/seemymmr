@@ -3,13 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useAnalytics } from "@/hooks/use-analytics";
-import {
-  LineChart,
-  Line,
-  ResponsiveContainer,
-  Area,
-  AreaChart,
-} from "recharts";
+import { ResponsiveContainer, Area, ComposedChart, Bar, YAxis } from "recharts";
 import NumberFlow from "@number-flow/react";
 
 interface WebsiteCardProps {
@@ -23,18 +17,28 @@ interface WebsiteCardProps {
 
 export function WebsiteCard({ website }: WebsiteCardProps) {
   const analytics = useAnalytics(website._id, {
-    period: "Last 7 days",
-    granularity: "daily",
+    period: "Today",
+    granularity: "hourly",
     disableAutoFetch: false,
   });
 
-  const chartData = analytics.chartData.slice(-7).map((point) => ({
+  const chartData = analytics.chartData.map((point) => ({
     visitors: point.visitors,
+    revenueNew: point.revenueNew || 0,
+    revenueRenewal: point.revenueRenewal || 0,
+    revenueRefund: point.revenueRefund || 0,
   }));
 
   const totalVisitors = analytics.chartData.reduce(
     (sum, point) => sum + point.visitors,
     0
+  );
+
+  const hasRevenue = chartData.some(
+    (point) =>
+      (point.revenueNew && point.revenueNew > 0) ||
+      (point.revenueRenewal && point.revenueRenewal > 0) ||
+      (point.revenueRefund && point.revenueRefund > 0)
   );
 
   return (
@@ -62,7 +66,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
               <div className="relative h-20">
                 {chartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={chartData}>
+                    <ComposedChart data={chartData}>
                       <defs>
                         <linearGradient
                           id={`visitorGradient-${website._id}`}
@@ -88,6 +92,17 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                           />
                         </linearGradient>
                       </defs>
+                      {hasRevenue && (
+                        <YAxis
+                          yAxisId="right"
+                          orientation="right"
+                          hide
+                          domain={[
+                            0,
+                            (dataMax: number) => Math.max(dataMax * 1.2, 10),
+                          ]}
+                        />
+                      )}
                       <Area
                         type="monotone"
                         dataKey="visitors"
@@ -96,7 +111,35 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                         fill={`url(#visitorGradient-${website._id})`}
                         fillOpacity={0.6}
                       />
-                    </AreaChart>
+                      {hasRevenue && (
+                        <>
+                          <Bar
+                            yAxisId="right"
+                            dataKey="revenueNew"
+                            fill="#E16540"
+                            stackId="revenue"
+                            maxBarSize={8}
+                            style={{ opacity: 0.8 }}
+                          />
+                          <Bar
+                            yAxisId="right"
+                            dataKey="revenueRenewal"
+                            fill="#E16540"
+                            stackId="revenue"
+                            maxBarSize={8}
+                            style={{ opacity: 0.6 }}
+                          />
+                          <Bar
+                            yAxisId="right"
+                            dataKey="revenueRefund"
+                            fill="#E16540"
+                            stackId="revenue"
+                            maxBarSize={8}
+                            style={{ opacity: 0.4 }}
+                          />
+                        </>
+                      )}
+                    </ComposedChart>
                   </ResponsiveContainer>
                 ) : (
                   <div className="recharts-responsive-container select-none w-full h-full">
