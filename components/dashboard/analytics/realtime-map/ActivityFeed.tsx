@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect, useRef } from "react";
 import { Eye, CreditCard } from "lucide-react";
 import {
   formatTimeAgo,
@@ -29,6 +29,40 @@ export function ActivityFeed({
   pageViewEvents,
   onVisitorClick,
 }: ActivityFeedProps) {
+  const playedPaymentIds = useRef<Set<string>>(new Set());
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio("/sound-effects/cash-register.mp3");
+    audioRef.current.volume = 0.5;
+
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!audioRef.current || paymentEvents.length === 0) return;
+    const newPayments = paymentEvents.filter(
+      (payment) => !playedPaymentIds.current.has(payment.id)
+    );
+
+    if (newPayments.length > 0) {
+      newPayments.forEach((payment) => {
+        playedPaymentIds.current.add(payment.id);
+      });
+      if (audioRef.current) {
+        audioRef.current.currentTime = 0;
+        audioRef.current.play().catch((error) => {
+          console.log("Could not play sound effect:", error);
+        });
+      }
+    }
+  }, [paymentEvents]);
+
   // Memoize visitor names to ensure consistency across re-renders
   const visitorNames = useMemo(() => {
     const nameMap = new Map<string, string>();
