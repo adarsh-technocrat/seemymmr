@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
 
     // Determine sync frequency from query params or default
     const searchParams = request.nextUrl.searchParams;
-    const frequency = searchParams.get("frequency") || "hourly"; // hourly, every-6-hours, daily
+    const frequency = searchParams.get("frequency") || "realtime"; // realtime, hourly, every-6-hours, daily
 
     // Calculate date range based on frequency
     const endDate = new Date();
@@ -62,6 +62,12 @@ export async function POST(request: NextRequest) {
     let syncRange: "today" | "last24h" | "last7d" | "custom";
 
     switch (frequency) {
+      case "realtime":
+        // For 5-minute cron: Sync last 10 minutes with 5 minute buffer
+        // This ensures we catch all payments while being efficient
+        startDate = new Date(endDate.getTime() - 15 * 60 * 1000); // 15 minutes
+        syncRange = "custom";
+        break;
       case "hourly":
         // Sync last 24 hours with 2 hour buffer to catch any missed payments
         // This ensures we don't miss payments due to timezone differences or delays
@@ -79,9 +85,9 @@ export async function POST(request: NextRequest) {
         syncRange = "last7d";
         break;
       default:
-        // Default to 24 hours with buffer
-        startDate = new Date(endDate.getTime() - 26 * 60 * 60 * 1000);
-        syncRange = "last24h";
+        // Default to realtime (15 minutes) for frequent cron jobs
+        startDate = new Date(endDate.getTime() - 15 * 60 * 1000);
+        syncRange = "custom";
     }
 
     // Create sync jobs for each website/provider combination

@@ -1,7 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/sync-payments?frequency=hourly",
+      "path": "/api/cron/sync-payments?frequency=realtime",
       "schedule": "*/5 * * * *"
     }
   ]
