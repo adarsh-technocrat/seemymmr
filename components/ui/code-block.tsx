@@ -64,17 +64,28 @@ export function CodeBlock({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-lg bg-neutral ${className}`}
+      className={`relative overflow-hidden rounded-lg bg-neutral min-w-0 max-w-full ${className}`}
     >
       <pre
         ref={preRef}
-        className="text-xs p-4 overflow-x-auto"
+        className="text-xs p-4 min-w-0 max-w-full"
         style={{
           margin: 0,
           background: "transparent",
+          whiteSpace: "pre-wrap",
+          wordBreak: "break-all",
+          overflowWrap: "break-word",
         }}
       >
-        <code ref={codeRef} className={`language-${language}`}>
+        <code
+          ref={codeRef}
+          className={`language-${language}`}
+          style={{
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-all",
+            overflowWrap: "break-word",
+          }}
+        >
           {code}
         </code>
       </pre>

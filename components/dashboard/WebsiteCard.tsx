@@ -22,14 +22,16 @@ interface WebsiteCardProps {
 }
 
 export function WebsiteCard({ website }: WebsiteCardProps) {
-  const analytics = useAnalytics(website._id);
+  const analytics = useAnalytics(website._id, {
+    period: "Last 7 days",
+    granularity: "daily",
+    disableAutoFetch: false,
+  });
 
-  // Get last 7 days of visitor data for the mini chart
   const chartData = analytics.chartData.slice(-7).map((point) => ({
     visitors: point.visitors,
   }));
 
-  // Calculate total visitors
   const totalVisitors = analytics.chartData.reduce(
     (sum, point) => sum + point.visitors,
     0

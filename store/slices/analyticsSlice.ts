@@ -75,7 +75,7 @@ interface BreakdownData {
   hostname?: string; // For path breakdowns
 }
 
-interface AnalyticsState {
+interface WebsiteAnalytics {
   chartData: ChartDataPoint[];
   metrics: {
     visitors: string;
@@ -117,13 +117,21 @@ interface AnalyticsState {
   loading: boolean;
   error: string | null;
   lastFetched: string | null;
-  currentWebsiteId: string | null;
   currentStartDate: string | null;
   currentEndDate: string | null;
   currentGranularity: "hourly" | "daily" | "weekly" | "monthly";
 }
 
-const initialState: AnalyticsState = {
+interface AnalyticsState {
+  // Store analytics data per websiteId
+  byWebsiteId: Record<string, WebsiteAnalytics>;
+  // Global loading state (true if any website is loading)
+  loading: boolean;
+  // Current website being viewed (for backward compatibility)
+  currentWebsiteId: string | null;
+}
+
+const createEmptyWebsiteAnalytics = (): WebsiteAnalytics => ({
   chartData: [],
   metrics: null,
   revenueBreakdown: null,
@@ -131,44 +139,71 @@ const initialState: AnalyticsState = {
   loading: false,
   error: null,
   lastFetched: null,
-  currentWebsiteId: null,
   currentStartDate: null,
   currentEndDate: null,
   currentGranularity: "daily",
+});
+
+const initialState: AnalyticsState = {
+  byWebsiteId: {},
+  loading: false,
+  currentWebsiteId: null,
 };
 
 const analyticsSlice = createSlice({
   name: "analytics",
   initialState,
   reducers: {
-    clearAnalytics: (state) => {
-      state.chartData = [];
-      state.metrics = null;
-      state.revenueBreakdown = null;
-      state.breakdowns = null;
-      state.error = null;
-      state.lastFetched = null;
+    clearAnalytics: (state, action?: PayloadAction<string | undefined>) => {
+      if (action?.payload) {
+        // Clear specific website
+        delete state.byWebsiteId[action.payload];
+      } else {
+        // Clear all
+        state.byWebsiteId = {};
+      }
+      state.currentWebsiteId = null;
     },
     setGranularity: (
       state,
-      action: PayloadAction<"hourly" | "daily" | "weekly" | "monthly">
+      action: PayloadAction<{
+        websiteId: string;
+        granularity: "hourly" | "daily" | "weekly" | "monthly";
+      }>
     ) => {
-      state.currentGranularity = action.payload;
+      const websiteData = state.byWebsiteId[action.payload.websiteId];
+      if (websiteData) {
+        websiteData.currentGranularity = action.payload.granularity;
+      }
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchAnalytics.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      .addCase(fetchAnalytics.pending, (state, action) => {
+        const websiteId = action.meta.arg.websiteId;
+        if (!state.byWebsiteId[websiteId]) {
+          state.byWebsiteId[websiteId] = createEmptyWebsiteAnalytics();
+        }
+        state.byWebsiteId[websiteId].loading = true;
+        state.byWebsiteId[websiteId].error = null;
+        // Set global loading to true if any website is loading
+        state.loading = Object.values(state.byWebsiteId).some(
+          (data) => data.loading
+        );
       })
       .addCase(fetchAnalytics.fulfilled, (state, action) => {
-        state.loading = false;
-        state.error = null;
-        state.lastFetched = new Date().toISOString();
+        const websiteId = action.meta.arg.websiteId;
+        if (!state.byWebsiteId[websiteId]) {
+          state.byWebsiteId[websiteId] = createEmptyWebsiteAnalytics();
+        }
+
+        const websiteData = state.byWebsiteId[websiteId];
+        websiteData.loading = false;
+        websiteData.error = null;
+        websiteData.lastFetched = new Date().toISOString();
         const processedData = action.payload.processedData || [];
 
-        state.chartData = processedData.map((item: any) => {
+        websiteData.chartData = processedData.map((item: any) => {
           return {
             date: item.name,
             fullDate: formatFullDate(item.timestamp),
@@ -188,7 +223,7 @@ const analyticsSlice = createSlice({
         });
 
         // Store metrics from totals
-        state.metrics = {
+        websiteData.metrics = {
           visitors: formatNumber(action.payload.totalVisitors || 0),
           revenue: formatCurrency((action.payload.totalRevenue || 0) * 100), // Convert to cents
           conversionRate: action.payload.conversionRate
@@ -207,14 +242,14 @@ const analyticsSlice = createSlice({
         };
 
         // Store revenue breakdown
-        state.revenueBreakdown = {
+        websiteData.revenueBreakdown = {
           newRevenue: action.payload.totalNewRevenue || 0,
           renewalRevenue: action.payload.totalRenewalRevenue || 0,
           refundedRevenue: action.payload.totalRefundedRevenue || 0,
         };
 
         if (action.payload.breakdowns) {
-          state.breakdowns = {
+          websiteData.breakdowns = {
             source: {
               channel: action.payload.breakdowns.source?.channel || [],
               referrer: action.payload.breakdowns.source?.referrer || [],
@@ -238,17 +273,30 @@ const analyticsSlice = createSlice({
             },
           };
         } else {
-          state.breakdowns = null;
+          websiteData.breakdowns = null;
         }
 
-        state.currentWebsiteId = action.meta.arg.websiteId;
-        state.currentStartDate = null;
-        state.currentEndDate = null;
-        state.currentGranularity = action.meta.arg.granularity || "daily";
+        websiteData.currentStartDate = null;
+        websiteData.currentEndDate = null;
+        websiteData.currentGranularity = action.meta.arg.granularity || "daily";
+
+        // Update global state
+        state.currentWebsiteId = websiteId;
+        state.loading = Object.values(state.byWebsiteId).some(
+          (data) => data.loading
+        );
       })
       .addCase(fetchAnalytics.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
+        const websiteId = action.meta.arg.websiteId;
+        if (!state.byWebsiteId[websiteId]) {
+          state.byWebsiteId[websiteId] = createEmptyWebsiteAnalytics();
+        }
+        state.byWebsiteId[websiteId].loading = false;
+        state.byWebsiteId[websiteId].error = action.payload as string;
+        // Update global loading state
+        state.loading = Object.values(state.byWebsiteId).some(
+          (data) => data.loading
+        );
       });
   },
 });
