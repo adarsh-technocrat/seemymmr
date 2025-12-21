@@ -69,7 +69,7 @@ export function HorizontalStackedBarChart({
       return 0.6;
     }
 
-    return 0.75;
+    return 0.2;
   };
 
   const truncateText = (
