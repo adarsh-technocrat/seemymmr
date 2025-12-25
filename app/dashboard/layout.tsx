@@ -4,8 +4,8 @@ import { getSession } from "@/lib/get-session";
 import connectDB from "@/db";
 import User from "@/db/models/User";
 import { calculateTrialDaysRemaining } from "@/utils/trial";
+import { TrialExpiredBanner } from "@/components/dashboard/TrialExpiredBanner";
 
-// Force dynamic rendering since we use cookies for session
 export const dynamic = "force-dynamic";
 
 export default async function DashboardLayout({
@@ -14,6 +14,9 @@ export default async function DashboardLayout({
   children: React.ReactNode;
 }) {
   let daysRemaining: number | null = null;
+  let subscriptionStatus: string | undefined = undefined;
+  let subscriptionPlan: string | undefined = undefined;
+  let hasActiveSubscription = false;
 
   try {
     const session = await getSession();
@@ -23,6 +26,12 @@ export default async function DashboardLayout({
       daysRemaining = calculateTrialDaysRemaining(
         user?.subscription?.trialEndsAt
       );
+      subscriptionStatus = user?.subscription?.status;
+      subscriptionPlan = user?.subscription?.plan;
+      hasActiveSubscription =
+        subscriptionStatus === "active" &&
+        subscriptionPlan !== "free" &&
+        subscriptionPlan !== undefined;
     }
   } catch (error) {
     console.error("Error calculating trial days:", error);
@@ -32,6 +41,13 @@ export default async function DashboardLayout({
     daysRemaining !== null
       ? daysRemaining
       : parseInt(process.env.TRIAL_PERIOD_DAYS || "14", 10);
+
+  const isTrialExpired =
+    daysRemaining !== null && daysRemaining === 0 && !hasActiveSubscription;
+
+  if (isTrialExpired) {
+    return <TrialExpiredBanner />;
+  }
 
   return (
     <div className="antialiased font-sans min-h-screen bg-stone-50">

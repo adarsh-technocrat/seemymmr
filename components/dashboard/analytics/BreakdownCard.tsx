@@ -16,7 +16,6 @@ import { Button } from "@/components/ui/button";
 import { HorizontalStackedBarChart, MapChart } from "@/components/chart";
 import type { HorizontalStackedBarChartData } from "@/components/chart";
 import type { ChartConfig } from "@/components/ui/chart";
-import { BreakdownCardShimmer } from "@/components/shimmer";
 
 interface BreakdownData {
   name: string;
@@ -39,16 +38,9 @@ interface BreakdownCardProps {
   onTabChange: (tab: string) => void;
   chartType?: "bar" | "pie" | "horizontalBar";
   colors?: string[];
-  loading?: boolean;
 }
 
-const DEFAULT_COLORS = [
-  "rgb(87, 83, 78)",
-  "rgb(120, 113, 108)",
-  "#E16540",
-  "rgb(168, 162, 158)",
-  "rgb(214, 211, 209)",
-];
+const DEFAULT_COLORS = ["#8dcdff", "#7888b2", "#E16540", "#94a3b8", "#cbd5e1"];
 
 const generateStackedData = (
   baseData: BreakdownData[]
@@ -79,7 +71,7 @@ const generateStackedData = (
 const chartConfig: ChartConfig = {
   visitors: {
     label: "Visitors",
-    color: "rgb(87, 83, 78)",
+    color: "#8dcdff",
   },
   revenue: {
     label: "Revenue",
@@ -95,13 +87,7 @@ export function BreakdownCard({
   onTabChange,
   chartType = "bar",
   colors = DEFAULT_COLORS,
-  loading = false,
 }: BreakdownCardProps) {
-  // Show shimmer when loading
-  if (loading) {
-    return <BreakdownCardShimmer />;
-  }
-
   const sanitizedData = data
     .map((item) => ({
       ...item,
@@ -112,11 +98,6 @@ export function BreakdownCard({
           : 0,
     }))
     .filter((item) => item.uv >= 0);
-
-  // Show nothing when there's no data
-  if (sanitizedData.length === 0) {
-    return null;
-  }
 
   const renderChart = () => {
     // Show map chart for Location breakdown when Map tab is selected
@@ -157,7 +138,15 @@ export function BreakdownCard({
     }
 
     if (chartType === "horizontalBar") {
-      const stackedData = generateStackedData(sanitizedData);
+      const dataToUse =
+        sanitizedData.length > 0
+          ? sanitizedData
+          : [
+              { name: "Sample 1", uv: 100, revenue: 0 },
+              { name: "Sample 2", uv: 80, revenue: 0 },
+              { name: "Sample 3", uv: 60, revenue: 0 },
+            ];
+      const stackedData = generateStackedData(dataToUse);
       return (
         <HorizontalStackedBarChart
           data={stackedData}
@@ -186,7 +175,7 @@ export function BreakdownCard({
         />
         <YAxis stroke="#666" />
         <Tooltip />
-        <Bar dataKey="value" fill="rgb(87, 83, 78)" />
+        <Bar dataKey="value" fill="#8dcdff" />
       </BarChart>
     );
   };

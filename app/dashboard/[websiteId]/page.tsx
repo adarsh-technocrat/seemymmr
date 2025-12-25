@@ -186,7 +186,6 @@ export default function WebsiteAnalyticsPage({
               chartType={
                 ui.selectedSourceTab === "Channel" ? "pie" : "horizontalBar"
               }
-              loading={analytics.loading}
             />
           </div>
 
@@ -198,7 +197,6 @@ export default function WebsiteAnalyticsPage({
               data={pathData}
               onTabChange={setSelectedPathTab}
               chartType="horizontalBar"
-              loading={analytics.loading}
             />
           </div>
 
@@ -212,7 +210,6 @@ export default function WebsiteAnalyticsPage({
               chartType={
                 ui.selectedLocationTab === "Map" ? "bar" : "horizontalBar"
               }
-              loading={analytics.loading}
             />
           </div>
 
@@ -224,7 +221,6 @@ export default function WebsiteAnalyticsPage({
               data={systemData}
               onTabChange={setSelectedSystemTab}
               chartType="horizontalBar"
-              loading={analytics.loading}
             />
           </div>
 

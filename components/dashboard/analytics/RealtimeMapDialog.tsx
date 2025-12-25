@@ -126,7 +126,7 @@ export function RealtimeMapDialog({
                     size="icon"
                     className={`h-6 w-6 ${
                       isMusicPlaying
-                        ? "!border-stone-800/10 !bg-stone-800/10 !text-stone-800"
+                        ? "!border-primary/10 !bg-primary/10 !text-primary"
                         : ""
                     }`}
                     title={
@@ -154,7 +154,7 @@ export function RealtimeMapDialog({
                     size="icon"
                     className={`h-6 w-6 ${
                       isRotating
-                        ? "!border-stone-800/10 !bg-stone-800/10 !text-stone-800"
+                        ? "!border-primary/10 !bg-primary/10 !text-primary"
                         : ""
                     }`}
                     title={
@@ -219,7 +219,7 @@ export function RealtimeMapDialog({
                   <div className="w-full space-y-3">
                     <div className="relative w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
                       <div
-                        className="absolute inset-y-0 left-0 bg-stone-800 rounded-full transition-all duration-300 ease-out progress-glow"
+                        className="absolute inset-y-0 left-0 bg-primary rounded-full transition-all duration-300 ease-out progress-glow"
                         style={{ width: `${progress}%` }}
                       />
                     </div>

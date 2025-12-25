@@ -153,10 +153,10 @@ export function formatTimeAgo(dateString: string): string {
 }
 
 export function getConversionScoreColor(score?: number): string {
-  if (!score) return "rgb(214, 211, 209)"; // stone-300
-  if (score >= 80) return "rgb(28, 25, 23)"; // stone-900
-  if (score >= 60) return "rgb(87, 83, 78)"; // stone-600
-  return "rgb(214, 211, 209)"; // stone-300
+  if (!score) return "rgb(209, 213, 219)";
+  if (score >= 80) return "rgb(239, 68, 68)";
+  if (score >= 60) return "rgb(253, 186, 116)";
+  return "rgb(209, 213, 219)";
 }
 
 export function generateVisitorName(
@@ -194,26 +194,26 @@ export function getConversionLikelihood(score?: number): {
   position: number;
 } {
   if (!score) {
-    return { percentage: "0%", color: "rgb(214, 211, 209)", position: 50 }; // stone-300
+    return { percentage: "0%", color: "rgb(209, 213, 219)", position: 50 };
   }
   const percentage = score >= 0 ? `+${score}%` : `${score}%`;
-  let color = "rgb(214, 211, 209)"; // stone-300
+  let color = "rgb(209, 213, 219)";
   let position = 50;
 
   if (score >= 80) {
-    color = "rgb(28, 25, 23)"; // stone-900
+    color = "rgb(239, 68, 68)";
     position = 100;
   } else if (score >= 60) {
-    color = "rgb(87, 83, 78)"; // stone-600
+    color = "rgb(253, 186, 116)";
     position = 65;
   } else if (score >= 40) {
-    color = "rgb(120, 113, 108)"; // stone-500
+    color = "rgb(139, 183, 253)";
     position = 35;
   } else if (score >= 20) {
-    color = "rgb(168, 162, 158)"; // stone-400
+    color = "rgb(59, 130, 246)";
     position = 20;
   } else if (score < 0) {
-    color = "rgb(214, 211, 209)"; // stone-300
+    color = "rgb(209, 213, 219)";
     position = Math.max(0, 50 + score);
   }
 

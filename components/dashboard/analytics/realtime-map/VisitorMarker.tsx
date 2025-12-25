@@ -48,11 +48,11 @@ export function VisitorMarker({
           }`}
         >
           {isFocused && (
-            <div className="absolute inset-0 -m-2 rounded-full bg-stone-800/20 animate-ping" />
+            <div className="absolute inset-0 -m-2 rounded-full bg-primary/20 animate-ping" />
           )}
           <div
             className={`absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white shadow-sm transition-all duration-300 ${
-              isFocused ? "scale-150 ring-2 ring-stone-800" : ""
+              isFocused ? "scale-150 ring-2 ring-primary" : ""
             }`}
             style={{ backgroundColor: scoreColor }}
           />
@@ -61,8 +61,8 @@ export function VisitorMarker({
             alt={visitorName}
             className={`rounded-full ring-2 transition-all duration-300 bg-white/80 shadow-lg object-cover ${
               isFocused
-                ? "ring-stone-800 ring-4 scale-125 shadow-2xl"
-                : "ring-stone-200 size-14"
+                ? "ring-primary ring-4 scale-125 shadow-2xl"
+                : "ring-gray-200 size-14"
             }`}
             style={{
               width: isFocused ? "3.5rem" : "3.5rem",

@@ -207,7 +207,7 @@ export function ActivityFeed({
                       {formatTimeAgo(payment.timestamp)}
                     </div>
                   </div>
-                  <span className="ml-auto mt-0.5 inline-flex size-1.5 rounded-full bg-stone-800"></span>
+                  <span className="ml-auto mt-0.5 inline-flex size-1.5 rounded-full bg-primary"></span>
                 </div>
               );
             }

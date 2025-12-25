@@ -61,7 +61,7 @@ export function HorizontalStackedBarChart({
     if (key === "revenue") {
       return "#E16540";
     }
-    return "rgb(87, 83, 78)";
+    return "#8dcdff";
   };
 
   const getBarOpacity = (key: string): number => {
@@ -69,7 +69,7 @@ export function HorizontalStackedBarChart({
       return 0.6;
     }
 
-    return 0.2;
+    return 1.0;
   };
 
   const truncateText = (
