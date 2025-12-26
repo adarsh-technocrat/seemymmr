@@ -35,7 +35,7 @@ function LoginForm() {
       if (response.ok) {
         const isSecure = window.location.protocol === "https:";
         document.cookie = `firebaseToken=${idToken}; path=/; max-age=${
-          30 * 24 * 60 * 60
+          365 * 24 * 60 * 60
         }; SameSite=Lax${isSecure ? "; Secure" : ""}`;
         router.push("/dashboard");
       } else {
