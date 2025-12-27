@@ -72,23 +72,6 @@ export function HorizontalStackedBarChart({
     return 1.0;
   };
 
-  const truncateText = (
-    text: string,
-    maxWidth: number,
-    fontSize: number = 14
-  ): string => {
-    if (!text) return "";
-    // Approximate character width (roughly 0.6 * fontSize for most characters)
-    const avgCharWidth = fontSize * 0.6;
-    const maxChars = Math.floor((maxWidth - 12) / avgCharWidth); // -12 for ellipsis padding
-
-    if (text.length <= maxChars) {
-      return text;
-    }
-
-    return text.substring(0, maxChars - 3) + "...";
-  };
-
   const chartContent = (
     <div className={`relative w-full max-w-full ${height}`}>
       <div className="absolute right-4 top-0 flex h-full flex-col justify-around py-4 z-10">
@@ -148,10 +131,6 @@ export function HorizontalStackedBarChart({
                       const item = displayData[index];
                       const iconUrl = getIconUrl(item);
                       const isCampaignLabel = item.name?.startsWith("?");
-                      const availableWidth = width - 8; // Leave some padding
-                      const truncatedCampaignName = isCampaignLabel
-                        ? truncateText(item.name || "", availableWidth)
-                        : item.name;
 
                       if (isCampaignLabel) {
                         return (
@@ -164,7 +143,7 @@ export function HorizontalStackedBarChart({
                               dominantBaseline="middle"
                               className="fill-foreground"
                             >
-                              {truncatedCampaignName}
+                              {item.name}
                             </text>
                           </g>
                         );

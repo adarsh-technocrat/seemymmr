@@ -790,85 +790,104 @@ export async function getCampaignBreakdown(
   });
 
   // Step 6: Combine all data into final campaign list
-  const result = Array.from(campaignMap.values()).map((entry) => {
-    const uv = entry.uniqueVisitors.size;
-    const revenueInfo = revenueMap.get(entry.key);
-    const goalsInfo = goalsMap.get(entry.key);
+  const result = Array.from(campaignMap.values())
+    .map((entry) => {
+      const uv = entry.uniqueVisitors.size;
+      const revenueInfo = revenueMap.get(entry.key);
+      const goalsInfo = goalsMap.get(entry.key);
 
-    const revenue = revenueInfo?.revenue || 0;
-    const paymentCount = revenueInfo?.paymentCount || 0;
-    const goalCount = goalsInfo?.goalCount || 0;
+      const revenue = revenueInfo?.revenue || 0;
+      const paymentCount = revenueInfo?.paymentCount || 0;
+      const goalCount = goalsInfo?.goalCount || 0;
 
-    // Determine if it's an alternative source (has any param or utm values)
-    const isAlternativeSource =
-      !!entry.param_ref ||
-      !!entry.param_source ||
-      !!entry.param_via ||
-      !!entry.utm_source ||
-      !!entry.utm_medium ||
-      !!entry.utm_campaign ||
-      !!entry.utm_term ||
-      !!entry.utm_content;
+      // Determine if it's an alternative source (has any param or utm values)
+      const isAlternativeSource =
+        !!entry.param_ref ||
+        !!entry.param_source ||
+        !!entry.param_via ||
+        !!entry.utm_source ||
+        !!entry.utm_medium ||
+        !!entry.utm_campaign ||
+        !!entry.utm_term ||
+        !!entry.utm_content;
 
-    // Generate a name from the campaign parameters as a query string
-    // Format: ?ref=value, ?via=value, or ?utm_source=value&utm_medium=value&...
-    let name = "Direct";
-    const params: string[] = [];
+      // Check if campaign meets strict criteria:
+      // 1. Has ALL UTM parameters (utm_source, utm_medium, utm_campaign, utm_term, utm_content)
+      // 2. OR has ref parameter
+      // 3. OR has via parameter
+      const hasAllUtmParams =
+        !!entry.utm_source &&
+        !!entry.utm_medium &&
+        !!entry.utm_campaign &&
+        !!entry.utm_term &&
+        !!entry.utm_content;
+      const hasRef = !!entry.param_ref;
+      const hasVia = !!entry.param_via;
 
-    // Priority order for building query string:
-    // 1. param_ref (highest priority for simple ref tracking)
-    if (entry.param_ref) {
-      params.push(`ref=${encodeURIComponent(entry.param_ref)}`);
-    }
-    // 2. param_via
-    if (entry.param_via) {
-      params.push(`via=${encodeURIComponent(entry.param_via)}`);
-    }
-    // 3. param_source
-    if (entry.param_source) {
-      params.push(`source=${encodeURIComponent(entry.param_source)}`);
-    }
-    // 4. UTM parameters (if no param_ref/via, or if UTM params exist)
-    if (entry.utm_source) {
-      params.push(`utm_source=${encodeURIComponent(entry.utm_source)}`);
-    }
-    if (entry.utm_medium) {
-      params.push(`utm_medium=${encodeURIComponent(entry.utm_medium)}`);
-    }
-    if (entry.utm_campaign) {
-      params.push(`utm_campaign=${encodeURIComponent(entry.utm_campaign)}`);
-    }
-    if (entry.utm_term) {
-      params.push(`utm_term=${encodeURIComponent(entry.utm_term)}`);
-    }
-    if (entry.utm_content) {
-      params.push(`utm_content=${encodeURIComponent(entry.utm_content)}`);
-    }
+      // Only include if meets strict criteria
+      const isValidCampaign = hasAllUtmParams || hasRef || hasVia;
 
-    // Build the query string
-    if (params.length > 0) {
-      name = `?${params.join("&")}`;
-    }
+      if (!isValidCampaign) {
+        return null; // Filter out invalid campaigns
+      }
 
-    return {
-      name,
-      uv,
-      utm_source: entry.utm_source,
-      utm_medium: entry.utm_medium,
-      utm_campaign: entry.utm_campaign,
-      utm_term: entry.utm_term,
-      utm_content: entry.utm_content,
-      param_ref: entry.param_ref,
-      param_source: entry.param_source,
-      param_via: entry.param_via,
-      isAlternativeSource,
-      image: null,
-      revenue,
-      paymentCount,
-      goalCount,
-      source: "tinybird",
-    };
-  });
+      // Generate a name from the campaign parameters as a query string
+      // Format: ?ref=value, ?via=value, or ?utm_source=value&utm_medium=value&...
+      const params: string[] = [];
+
+      // Build query string with all available parameters
+      // Include ref if present
+      if (entry.param_ref) {
+        params.push(`ref=${encodeURIComponent(entry.param_ref)}`);
+      }
+      // Include via if present
+      if (entry.param_via) {
+        params.push(`via=${encodeURIComponent(entry.param_via)}`);
+      }
+      // Include all UTM parameters if present
+      if (entry.utm_source) {
+        params.push(`utm_source=${encodeURIComponent(entry.utm_source)}`);
+      }
+      if (entry.utm_medium) {
+        params.push(`utm_medium=${encodeURIComponent(entry.utm_medium)}`);
+      }
+      if (entry.utm_campaign) {
+        params.push(`utm_campaign=${encodeURIComponent(entry.utm_campaign)}`);
+      }
+      if (entry.utm_term) {
+        params.push(`utm_term=${encodeURIComponent(entry.utm_term)}`);
+      }
+      if (entry.utm_content) {
+        params.push(`utm_content=${encodeURIComponent(entry.utm_content)}`);
+      }
+
+      // Build the query string name
+      const name = `?${params.join("&")}`;
+
+      // Determine dynamic source: prioritize param_source, then utm_source, fallback to empty string
+      const dynamicSource = entry.param_source || entry.utm_source || "";
+
+      return {
+        name,
+        uv,
+        utm_source: entry.utm_source,
+        utm_medium: entry.utm_medium,
+        utm_campaign: entry.utm_campaign,
+        utm_term: entry.utm_term,
+        utm_content: entry.utm_content,
+        param_ref: entry.param_ref,
+        param_source: entry.param_source,
+        param_via: entry.param_via,
+        isAlternativeSource,
+        image: null,
+        revenue,
+        paymentCount,
+        goalCount,
+        source: dynamicSource,
+      };
+    })
+    .filter((entry) => entry !== null) // Remove null entries (invalid campaigns)
+    .map((entry) => entry!); // Type assertion since we filtered out nulls
 
   // Sort by UV descending
   result.sort((a, b) => b.uv - a.uv);
