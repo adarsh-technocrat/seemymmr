@@ -110,6 +110,7 @@ export async function trackGoalEvent(data: {
   visitorId?: string;
   path?: string;
   value?: number;
+  customData?: Record<string, any>;
 }) {
   await connectDB();
 
@@ -133,6 +134,7 @@ export async function trackGoalEvent(data: {
       visitorId: data.visitorId || "unknown",
       path: data.path || "/",
       value: data.value,
+      customData: data.customData || {},
       timestamp: new Date(),
     });
 

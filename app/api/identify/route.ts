@@ -86,15 +86,46 @@ export async function POST(request: NextRequest) {
       // For now, we'll just return success
     }
 
-    return NextResponse.json({
-      success: true,
-      message: "User identified successfully",
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        message: "User identified successfully",
+      },
+      {
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "X-Content-Type-Options": "nosniff",
+        },
+      }
+    );
   } catch (error: any) {
     console.error("Error identifying user:", error);
     return NextResponse.json(
       { error: error.message || "Failed to identify user" },
-      { status: 500 }
+      {
+        status: 500,
+        headers: {
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS",
+          "Access-Control-Allow-Headers": "Content-Type",
+          "X-Content-Type-Options": "nosniff",
+        },
+      }
     );
   }
+}
+
+export async function OPTIONS(request: NextRequest) {
+  // Handle CORS preflight
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Max-Age": "86400",
+    },
+  });
 }

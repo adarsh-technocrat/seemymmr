@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/db";
-import Website from "@/db/models/Website";
 import Session from "@/db/models/Session";
 import PageView from "@/db/models/PageView";
 import {
@@ -16,7 +15,7 @@ import {
   getLocationFromIP,
   getIPFromHeaders,
 } from "@/utils/tracking/geolocation";
-import { parseUTMParams, extractReferrerDomain } from "@/utils/tracking/utm";
+import { parseUTMParams, resolveAttribution } from "@/utils/tracking/utm";
 import { shouldExcludeVisit } from "@/utils/tracking/validation";
 import { getWebsiteByTrackingCode } from "@/utils/database/website";
 import {
@@ -55,22 +54,6 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
   try {
     await connectDB();
 
-    // Get tracking code from query params or body
-    const trackingCode =
-      request.nextUrl.searchParams.get("site") ||
-      (method === "POST" ? (await request.json()).site : null);
-
-    if (!trackingCode) {
-      return new NextResponse(PIXEL, {
-        status: 200,
-        headers: {
-          "Content-Type": "image/gif",
-          "Cache-Control": "no-cache, no-store, must-revalidate",
-        },
-      });
-    }
-
-    // Find website by tracking code (with additional domain support)
     // Parse request body once for POST requests (can only read body once in Next.js)
     let requestBody: any = null;
     if (method === "POST") {
@@ -80,6 +63,22 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
         // Ignore JSON parse errors
         requestBody = null;
       }
+    }
+
+    const trackingCode =
+      request.nextUrl.searchParams.get("site") ||
+      requestBody?.site ||
+      requestBody?.websiteId ||
+      null;
+
+    if (!trackingCode) {
+      return new NextResponse(PIXEL, {
+        status: 200,
+        headers: {
+          "Content-Type": "image/gif",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+        },
+      });
     }
 
     // Get hostname early for domain validation
@@ -106,7 +105,6 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
     const headers = request.headers;
     const cookieHeader = headers.get("cookie");
     const userAgent = headers.get("user-agent");
-    const referrer = headers.get("referer") || headers.get("referrer");
     const ip = getIPFromHeaders(headers);
 
     // Extract path, title, and other data from query params or body
@@ -121,6 +119,11 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
     let bodySessionId: string | null = requestBody?.sessionId || null;
     const eventType = requestBody?.type || "pageview";
     const extraData = requestBody?.extraData || {};
+
+    const clientReferrer = requestBody?.referrer || null;
+    const utmParams = requestBody?.utmParams || {};
+    const adClickIds = requestBody?.adClickIds || {};
+    const currentUrl = requestBody?.href || request.nextUrl.href;
 
     // Log path extraction for debugging
     console.log(`[Tracking] Path extracted:`, {
@@ -169,10 +172,63 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
       title = title.replace(/\0/g, "").replace(/[\x00-\x1F\x7F]/g, "");
     }
 
-    // Parse UTM parameters from referrer or URL
-    const referrerUrl = referrer || request.nextUrl.href;
-    const utmParams = parseUTMParams(referrerUrl);
-    const referrerDomain = extractReferrerDomain(referrer);
+    const attribution = resolveAttribution({
+      utmParams: utmParams,
+      adClickIds: adClickIds,
+      referrer: clientReferrer,
+      currentUrl: currentUrl,
+    });
+
+    console.log(`[Tracking] Attribution resolved:`, {
+      type: attribution.type,
+      source: attribution.source,
+      medium: attribution.medium,
+      referrer: attribution.referrer,
+      referrerDomain: attribution.referrerDomain,
+    });
+
+    // Extract UTM parameters from resolved attribution or fallback to URL parsing
+    // If we have UTM params from client, use those; otherwise parse from URL
+    let finalUtmParams: any = {};
+    if (attribution.type === "utm" && utmParams?.utm_source) {
+      // Use client-provided UTM params
+      finalUtmParams = {
+        utmSource: utmParams.utm_source,
+        utmMedium: utmParams.utm_medium || "unknown",
+        utmCampaign: utmParams.utm_campaign || null,
+        utmTerm: utmParams.utm_term || null,
+        utmContent: utmParams.utm_content || null,
+      };
+    } else if (
+      attribution.type === "google_ads" ||
+      attribution.type === "facebook_ads"
+    ) {
+      // Store ad click attribution in UTM fields
+      finalUtmParams = {
+        utmSource: attribution.source,
+        utmMedium: attribution.medium,
+        utmCampaign: attribution.campaign || null,
+        utmTerm: null,
+        utmContent: null,
+      };
+    } else if (attribution.type === "custom") {
+      // Store custom ref attribution in UTM fields
+      finalUtmParams = {
+        utmSource: attribution.source,
+        utmMedium: attribution.medium,
+        utmCampaign: null,
+        utmTerm: null,
+        utmContent: null,
+      };
+    } else {
+      // Fallback: parse from URL if no client-provided UTM params
+      const referrerUrl = clientReferrer || currentUrl;
+      finalUtmParams = parseUTMParams(referrerUrl);
+    }
+
+    // Use resolved referrer and domain
+    const referrer = attribution.referrer;
+    const referrerDomain = attribution.referrerDomain;
 
     // Get device info
     const deviceInfo = parseUserAgent(userAgent);
@@ -262,9 +318,9 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
           sessionId,
           visitorId,
           firstVisitAt: now,
-          referrer,
-          referrerDomain,
-          ...utmParams,
+          referrer: referrer,
+          referrerDomain: referrerDomain,
+          ...finalUtmParams,
           ...deviceInfo,
           ...location,
           pageViews: 1,
@@ -294,9 +350,17 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
       path,
       hostname,
       title,
-      referrer,
-      referrerPath: referrer ? new URL(referrer).pathname : undefined,
-      ...utmParams,
+      referrer: referrer,
+      referrerPath: referrer
+        ? (() => {
+            try {
+              return new URL(referrer).pathname;
+            } catch {
+              return undefined;
+            }
+          })()
+        : undefined,
+      ...finalUtmParams,
       ...deviceInfo,
       ...location,
       exitUrl: eventType === "exit_link" ? extraData.exitUrl : undefined,

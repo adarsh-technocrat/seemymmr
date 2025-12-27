@@ -7,6 +7,7 @@ export interface IGoalEvent extends Document {
   visitorId: string;
   path: string;
   value?: number; // Optional monetary value
+  customData?: Record<string, any>; // Custom data attributes from tracking script
   timestamp: Date;
   createdAt: Date;
 }
@@ -41,6 +42,10 @@ const GoalEventSchema = new Schema<IGoalEvent>(
     },
     value: {
       type: Number,
+    },
+    customData: {
+      type: Schema.Types.Mixed,
+      default: {},
     },
     timestamp: {
       type: Date,
