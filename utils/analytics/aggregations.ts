@@ -11,9 +11,9 @@ import {
 } from "@/utils/tracking/channel";
 import { extractUrlParams } from "@/utils/tracking/utm";
 import {
-  getCountryName,
+  getCountryNameFromCode,
   getFlagEmoji,
-  getLocationImageUrl,
+  getLocationImageUrlFromCode,
 } from "@/utils/tracking/geolocation";
 import { getSystemImageUrl } from "@/utils/tracking/device";
 
@@ -2981,7 +2981,7 @@ export async function getLocationBreakdown(
     let flagCountryCode = countryCode;
 
     if (type === "country") {
-      displayName = getCountryName(locationCode);
+      displayName = getCountryNameFromCode(locationCode);
       flagCountryCode = locationCode;
       flag = getFlagEmoji(locationCode);
     } else if (countryCode) {
@@ -2995,9 +2995,9 @@ export async function getLocationBreakdown(
       flag: flag || undefined,
       image:
         type === "country"
-          ? getLocationImageUrl(locationCode, type)
+          ? getLocationImageUrlFromCode(locationCode, type)
           : flagCountryCode
-          ? getLocationImageUrl(flagCountryCode, "country")
+          ? getLocationImageUrlFromCode(flagCountryCode, "country")
           : "",
       revenue,
       conversionRate,

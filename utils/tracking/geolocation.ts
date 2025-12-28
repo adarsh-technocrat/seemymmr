@@ -175,17 +175,11 @@ export function getIPFromHeaders(headers: Headers): string {
   return "0.0.0.0";
 }
 
-/**
- * Get country name from country code
- */
-export function getCountryName(code: string): string {
+export function getCountryNameFromCode(code: string): string {
   const countryName = countries.getName(code.toUpperCase(), "en");
   return countryName || code;
 }
 
-/**
- * Get flag emoji from country code
- */
 export function getFlagEmoji(countryCode: string): string {
   const codePoints = countryCode
     .toUpperCase()
@@ -194,10 +188,7 @@ export function getFlagEmoji(countryCode: string): string {
   return String.fromCodePoint(...codePoints);
 }
 
-/**
- * Get location image URL (flag) for country/region/city
- */
-export function getLocationImageUrl(
+export function getLocationImageUrlFromCode(
   name: string,
   type: "country" | "region" | "city"
 ): string {
