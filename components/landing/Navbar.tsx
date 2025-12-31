@@ -14,7 +14,7 @@ export function Navbar() {
     { href: "/#features", label: "Features" },
     { href: "/pricing", label: "Pricing" },
     { href: "/blog", label: "Blog" },
-    { href: "/#changelog", label: "Changelog" },
+    { href: "/changelog", label: "Changelog" },
   ];
 
   const isActive = (href: string) => {
@@ -23,6 +23,9 @@ export function Navbar() {
     }
     if (href === "/blog") {
       return pathname === "/blog";
+    }
+    if (href === "/changelog") {
+      return pathname === "/changelog";
     }
     // For hash links, check if we're on the home page
     if (href.startsWith("/#")) {
