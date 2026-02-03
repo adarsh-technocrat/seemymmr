@@ -29,7 +29,7 @@ export interface SyncJobResult {
  * Enqueue a new sync job
  */
 export async function enqueueSyncJob(
-  params: CreateSyncJobParams
+  params: CreateSyncJobParams,
 ): Promise<ISyncJob> {
   await connectDB();
 
@@ -68,7 +68,7 @@ export async function dequeueSyncJob(): Promise<ISyncJob | null> {
     {
       sort: { priority: -1, createdAt: 1 }, // Higher priority first, then oldest first
       new: true,
-    }
+    },
   );
 
   return job;
@@ -81,7 +81,7 @@ export async function updateSyncJobStatus(
   jobId: string,
   status: SyncJobStatus,
   result?: SyncJobResult,
-  error?: string
+  error?: string,
 ): Promise<ISyncJob | null> {
   await connectDB();
 
@@ -105,7 +105,7 @@ export async function updateSyncJobStatus(
   const job = await SyncJob.findByIdAndUpdate(
     jobId,
     { $set: update },
-    { new: true }
+    { new: true },
   );
   return job;
 }
@@ -114,7 +114,7 @@ export async function updateSyncJobStatus(
  * Increment retry count for a failed job
  */
 export async function incrementJobRetry(
-  jobId: string
+  jobId: string,
 ): Promise<ISyncJob | null> {
   await connectDB();
 
@@ -124,7 +124,7 @@ export async function incrementJobRetry(
       $inc: { retryCount: 1 },
       $set: { status: "pending", error: undefined },
     },
-    { new: true }
+    { new: true },
   );
 
   return job;
@@ -134,7 +134,7 @@ export async function incrementJobRetry(
  * Get pending jobs for a specific website
  */
 export async function getPendingJobsForWebsite(
-  websiteId: string
+  websiteId: string,
 ): Promise<ISyncJob[]> {
   await connectDB();
 
@@ -150,7 +150,7 @@ export async function getPendingJobsForWebsite(
  * Get all pending jobs (for processing)
  */
 export async function getAllPendingJobs(
-  limit: number = 10
+  limit: number = 10,
 ): Promise<ISyncJob[]> {
   await connectDB();
 
@@ -172,7 +172,7 @@ export async function getSyncJobById(jobId: string): Promise<ISyncJob | null> {
 
   const job = await SyncJob.findById(jobId).populate(
     "websiteId",
-    "name domain"
+    "name domain",
   );
   return job;
 }
@@ -182,7 +182,7 @@ export async function getSyncJobById(jobId: string): Promise<ISyncJob | null> {
  */
 export async function getRecentJobsForWebsite(
   websiteId: string,
-  limit: number = 10
+  limit: number = 10,
 ): Promise<ISyncJob[]> {
   await connectDB();
 
@@ -201,7 +201,7 @@ export async function getRecentJobsForWebsite(
  */
 export async function cancelPendingJobs(
   websiteId: string,
-  provider?: SyncJobProvider
+  provider?: SyncJobProvider,
 ): Promise<number> {
   await connectDB();
 
@@ -222,7 +222,7 @@ export async function cancelPendingJobs(
     },
   });
 
-  return result.modifiedCount;
+  return result.modifiedCount ?? 0;
 }
 
 /**
@@ -267,7 +267,7 @@ function getDefaultPriority(type: SyncJobType): number {
 export async function hasRecentSync(
   websiteId: string,
   provider: SyncJobProvider,
-  timeWindowMinutes: number = 15
+  timeWindowMinutes: number = 15,
 ): Promise<boolean> {
   await connectDB();
 
@@ -288,7 +288,7 @@ export async function hasRecentSync(
  * Calculate next sync date based on frequency
  */
 export function calculateNextSyncDate(
-  frequency: "realtime" | "hourly" | "every-6-hours" | "daily"
+  frequency: "realtime" | "hourly" | "every-6-hours" | "daily",
 ): Date {
   const now = new Date();
   switch (frequency) {

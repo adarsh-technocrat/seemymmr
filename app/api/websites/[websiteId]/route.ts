@@ -15,14 +15,14 @@ import {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
     if (!isValidObjectId(websiteId)) {
       return NextResponse.json(
         { error: "Invalid website ID" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -44,14 +44,14 @@ export async function GET(
     console.error("Error fetching website:", error);
     return NextResponse.json(
       { error: "Failed to fetch website" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
@@ -59,7 +59,7 @@ export async function PUT(
     if (!isValidObjectId(websiteId)) {
       return NextResponse.json(
         { error: "Invalid website ID" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -83,13 +83,13 @@ export async function PUT(
     const stripeConfigResult = await processStripeConfigChanges(
       websiteId,
       website,
-      paymentProviders
+      paymentProviders,
     );
 
     if (stripeConfigResult.error) {
       return NextResponse.json(
         { error: stripeConfigResult.error },
-        { status: stripeConfigResult.statusCode || 400 }
+        { status: stripeConfigResult.statusCode || 400 },
       );
     }
 
@@ -103,17 +103,7 @@ export async function PUT(
 
     const changes = detectStripeChanges(website, paymentProviders);
 
-    if (changes.isStripeRemoved) {
-      const syncer = new StripePaymentSyncer(
-        website.paymentProviders?.stripe?.apiKey || ""
-      );
-      syncer.deletePayments(websiteId).catch((error) => {
-        console.error(
-          `Failed to delete Stripe payments for website ${websiteId}:`,
-          error
-        );
-      });
-    }
+    // Stripe removal (delete payments + cancel jobs) is already done in processStripeConfigChanges → handleStripeRemoval
 
     if (changes.isNewStripeKey && paymentProviders?.stripe?.apiKey) {
       const syncer = new StripePaymentSyncer(paymentProviders.stripe.apiKey);
@@ -121,12 +111,12 @@ export async function PUT(
         .syncPayments(
           new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000),
           new Date(),
-          websiteId
+          websiteId,
         )
         .catch((error) => {
           console.error(
             `Failed to sync Stripe payments for website ${websiteId}:`,
-            error
+            error,
           );
         });
     }
@@ -138,21 +128,21 @@ export async function PUT(
     console.error("Error updating website:", error);
     return NextResponse.json(
       { error: "Failed to update website" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
     if (!isValidObjectId(websiteId)) {
       return NextResponse.json(
         { error: "Invalid website ID" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -178,7 +168,7 @@ export async function DELETE(
     console.error("Error deleting website:", error);
     return NextResponse.json(
       { error: "Failed to delete website" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

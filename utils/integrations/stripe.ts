@@ -32,7 +32,7 @@ export abstract class PaymentProviderSyncer {
   abstract syncPayments(
     startDate: Date,
     endDate: Date,
-    websiteId: string
+    websiteId: string,
   ): Promise<SyncResult>;
 
   abstract deletePayments(websiteId: string): Promise<void>;
@@ -55,7 +55,7 @@ export class StripeHelper {
 
   async fetchAllPaymentIntents(
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<Stripe.PaymentIntent[]> {
     const paymentIntents: Stripe.PaymentIntent[] = [];
     let hasMore = true;
@@ -65,7 +65,7 @@ export class StripeHelper {
     while (hasMore) {
       if (requestCount > 0) {
         await new Promise((resolve) =>
-          setTimeout(resolve, this.RATE_LIMIT_DELAY_MS)
+          setTimeout(resolve, this.RATE_LIMIT_DELAY_MS),
         );
       }
 
@@ -79,18 +79,18 @@ export class StripeHelper {
 
       params.append(
         "created[gte]",
-        Math.floor(startDate.getTime() / 1000).toString()
+        Math.floor(startDate.getTime() / 1000).toString(),
       );
       params.append(
         "created[lte]",
-        Math.floor(endDate.getTime() / 1000).toString()
+        Math.floor(endDate.getTime() / 1000).toString(),
       );
 
       const response = await fetch(`${this.baseUrl}?${params.toString()}`, {
         method: "GET",
         headers: {
           Authorization: `Basic ${Buffer.from(`${this.apiKey}:`).toString(
-            "base64"
+            "base64",
           )}`,
           "Content-Type": "application/x-www-form-urlencoded",
         },
@@ -107,7 +107,7 @@ export class StripeHelper {
 
       if (!response.ok) {
         throw new Error(
-          `Stripe API error: ${response.status} ${response.statusText}`
+          `Stripe API error: ${response.status} ${response.statusText}`,
         );
       }
 
@@ -139,7 +139,7 @@ export class StripeHelper {
   }
 
   async retrievePaymentIntent(
-    paymentIntentId: string
+    paymentIntentId: string,
   ): Promise<Stripe.PaymentIntent> {
     await new Promise((resolve) => setTimeout(resolve, 100));
     return await this.stripe.paymentIntents.retrieve(paymentIntentId);
@@ -147,7 +147,7 @@ export class StripeHelper {
 
   async fetchAllRefunds(
     startDate: Date,
-    endDate: Date
+    endDate: Date,
   ): Promise<Stripe.Refund[]> {
     const refunds: Stripe.Refund[] = [];
     let hasMore = true;
@@ -157,7 +157,7 @@ export class StripeHelper {
     while (hasMore) {
       if (requestCount > 0) {
         await new Promise((resolve) =>
-          setTimeout(resolve, this.RATE_LIMIT_DELAY_MS)
+          setTimeout(resolve, this.RATE_LIMIT_DELAY_MS),
         );
       }
 
@@ -210,7 +210,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
   async syncPayments(
     startDate: Date,
     endDate: Date,
-    websiteId: string
+    websiteId: string,
   ): Promise<SyncResult> {
     await connectDB();
 
@@ -222,7 +222,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
       const paymentResult = await this.syncPaymentIntents(
         startDate,
         endDate,
-        websiteId
+        websiteId,
       );
       synced += paymentResult.synced;
       skipped += paymentResult.skipped;
@@ -231,7 +231,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
       const refundResult = await this.syncRefunds(
         startDate,
         endDate,
-        websiteId
+        websiteId,
       );
       synced += refundResult.synced;
       skipped += refundResult.skipped;
@@ -241,7 +241,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
     } catch (error) {
       console.error(
         `Error syncing Stripe payments for website ${websiteId}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -253,7 +253,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
   }
 
   async validatePaymentProviderKey(
-    apiKey: string
+    apiKey: string,
   ): Promise<StripeConfigResult> {
     return await validateStripeApiKey(apiKey);
   }
@@ -261,7 +261,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
   private async syncPaymentIntents(
     startDate: Date,
     endDate: Date,
-    websiteId: string
+    websiteId: string,
   ): Promise<SyncResult> {
     let paymentSynced = 0;
     let paymentSkipped = 0;
@@ -270,11 +270,11 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
     try {
       const paymentIntents = await this.helper.fetchAllPaymentIntents(
         startDate,
-        endDate
+        endDate,
       );
 
       console.log(
-        `Found ${paymentIntents.length} payment intents to sync for website ${websiteId}`
+        `Found ${paymentIntents.length} payment intents to sync for website ${websiteId}`,
       );
 
       for (const paymentIntent of paymentIntents) {
@@ -286,7 +286,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
 
           const result = await this.savePaymentIntentToDatabase(
             paymentIntent,
-            websiteId
+            websiteId,
           );
           if (result === "synced") {
             paymentSynced++;
@@ -298,7 +298,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         } catch (error) {
           console.error(
             `Error processing payment intent ${paymentIntent.id}:`,
-            error
+            error,
           );
           paymentErrors++;
         }
@@ -312,7 +312,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
     } catch (error) {
       console.error(
         `Error syncing Stripe payment intents for website ${websiteId}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -321,7 +321,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
   private async syncRefunds(
     startDate: Date,
     endDate: Date,
-    websiteId: string
+    websiteId: string,
   ): Promise<SyncResult> {
     let refundSynced = 0;
     let refundSkipped = 0;
@@ -331,7 +331,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
       const refunds = await this.helper.fetchAllRefunds(startDate, endDate);
 
       console.log(
-        `Found ${refunds.length} refunds to sync for website ${websiteId}`
+        `Found ${refunds.length} refunds to sync for website ${websiteId}`,
       );
 
       for (const refund of refunds) {
@@ -363,7 +363,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
     } catch (error) {
       console.error(
         `Error syncing Stripe refunds for website ${websiteId}:`,
-        error
+        error,
       );
       throw error;
     }
@@ -371,7 +371,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
 
   private async savePaymentIntentToDatabase(
     paymentIntent: Stripe.PaymentIntent,
-    websiteId: string
+    websiteId: string,
   ): Promise<"synced" | "skipped" | "error"> {
     const websiteObjectId = new Types.ObjectId(websiteId);
 
@@ -400,12 +400,12 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         } catch (error: any) {
           if (error.type === "StripeRateLimitError") {
             console.warn(
-              `Rate limit hit while retrieving invoice ${invoice}, will retry later`
+              `Rate limit hit while retrieving invoice ${invoice}, will retry later`,
             );
           } else {
             console.warn(
               `Could not retrieve invoice ${invoice} for payment intent ${paymentIntent.id}:`,
-              error
+              error,
             );
           }
         }
@@ -472,13 +472,13 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
       });
 
       console.log(
-        `Synced payment intent ${paymentIntent.id} as payment record (type: ${paymentType})`
+        `Synced payment intent ${paymentIntent.id} as payment record (type: ${paymentType})`,
       );
       return "synced";
     } catch (error) {
       console.error(
         `Error creating payment for payment intent ${paymentIntent.id}:`,
-        error
+        error,
       );
       return "error";
     }
@@ -486,7 +486,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
 
   private async saveRefundToDatabase(
     refund: Stripe.Refund,
-    websiteId: string
+    websiteId: string,
   ): Promise<"synced" | "skipped" | "error"> {
     const websiteObjectId = new Types.ObjectId(websiteId);
 
@@ -511,7 +511,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
     if (refund.charge) {
       try {
         const charge = await this.helper.retrieveCharge(
-          refund.charge as string
+          refund.charge as string,
         );
         if (charge.billing_details?.email) {
           customerEmail = charge.billing_details.email;
@@ -528,7 +528,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
       } catch (chargeError) {
         console.warn(
           `Could not retrieve charge ${refund.charge} for refund ${refund.id}:`,
-          chargeError
+          chargeError,
         );
       }
     }
@@ -536,7 +536,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
     if (!customerEmail && refund.payment_intent) {
       try {
         const paymentIntent = await this.helper.retrievePaymentIntent(
-          refund.payment_intent as string
+          refund.payment_intent as string,
         );
         if (paymentIntent.receipt_email) {
           customerEmail = paymentIntent.receipt_email;
@@ -553,7 +553,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
       } catch (piError) {
         console.warn(
           `Could not retrieve payment intent ${refund.payment_intent} for refund ${refund.id}:`,
-          piError
+          piError,
         );
       }
     }
@@ -586,7 +586,7 @@ export async function syncStripePayments(
   websiteId: string,
   apiKey: string,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ): Promise<{ synced: number; skipped: number; errors: number }> {
   const syncer = new StripePaymentSyncer(apiKey);
   const start =
@@ -597,7 +597,7 @@ export async function syncStripePayments(
 
 export function detectStripeChanges(
   currentWebsite: IWebsite,
-  newPaymentProviders?: IWebsite["paymentProviders"]
+  newPaymentProviders?: IWebsite["paymentProviders"],
 ): StripeChangeDetection {
   const currentApiKey = currentWebsite.paymentProviders?.stripe?.apiKey;
   const newApiKey = newPaymentProviders?.stripe?.apiKey;
@@ -612,7 +612,7 @@ export function detectStripeChanges(
 }
 
 export async function validateStripeApiKey(
-  apiKey: string
+  apiKey: string,
 ): Promise<StripeConfigResult> {
   const trimmedKey = apiKey.trim();
 
@@ -680,7 +680,7 @@ export async function validateStripeApiKey(
 }
 
 export function initializeStripeSyncConfig(
-  paymentProviders?: IWebsite["paymentProviders"]
+  paymentProviders?: IWebsite["paymentProviders"],
 ): void {
   if (paymentProviders?.stripe?.apiKey && !paymentProviders.stripe.syncConfig) {
     paymentProviders.stripe.syncConfig = {
@@ -699,7 +699,7 @@ export async function handleStripeRemoval(websiteId: string): Promise<void> {
 export async function handleStripeAddition(
   websiteId: string,
   apiKey: string,
-  stripeConfig?: NonNullable<IWebsite["paymentProviders"]>["stripe"]
+  stripeConfig?: NonNullable<IWebsite["paymentProviders"]>["stripe"],
 ): Promise<void> {
   const configToUse: NonNullable<IWebsite["paymentProviders"]>["stripe"] =
     stripeConfig || {
@@ -738,13 +738,13 @@ function getBaseUrl(): string {
 export async function processStripeConfigChanges(
   websiteId: string,
   currentWebsite: IWebsite,
-  newPaymentProviders?: IWebsite["paymentProviders"]
+  newPaymentProviders?: IWebsite["paymentProviders"],
 ): Promise<StripeConfigResult> {
   const changes = detectStripeChanges(currentWebsite, newPaymentProviders);
 
   if (newPaymentProviders?.stripe?.apiKey) {
     const validation = await validateStripeApiKey(
-      newPaymentProviders.stripe.apiKey
+      newPaymentProviders.stripe.apiKey,
     );
     if (validation.error) {
       return validation;
@@ -764,13 +764,13 @@ export async function processStripeConfigChanges(
       await handleStripeAddition(
         websiteId,
         newPaymentProviders.stripe.apiKey,
-        newPaymentProviders.stripe
+        newPaymentProviders.stripe,
       );
     }
   } catch (error) {
     console.error(
       `Error registering/unregistering sync jobs for website ${websiteId}:`,
-      error
+      error,
     );
   }
 

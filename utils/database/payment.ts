@@ -41,7 +41,7 @@ export async function createPayment(data: {
         customerEmail: data.customerEmail,
         timestamp: data.timestamp || new Date(),
       },
-      data.websiteId
+      data.websiteId,
     );
 
     const payment = new Payment({
@@ -96,7 +96,7 @@ export async function createPayment(data: {
 export async function updatePaymentRefunded(
   provider: string,
   providerPaymentId: string,
-  refunded: boolean
+  refunded: boolean,
 ) {
   await connectDB();
 
@@ -104,7 +104,7 @@ export async function updatePaymentRefunded(
     const payment = await Payment.findOneAndUpdate(
       { provider, providerPaymentId },
       { $set: { refunded } },
-      { new: true }
+      { new: true },
     );
 
     return payment;
@@ -120,7 +120,7 @@ export async function updatePaymentRefunded(
 export async function getPaymentsByWebsiteId(
   websiteId: string,
   startDate?: Date,
-  endDate?: Date
+  endDate?: Date,
 ) {
   await connectDB();
 
@@ -146,7 +146,7 @@ export async function getPaymentsByWebsiteId(
  */
 export async function deletePaymentsByProvider(
   websiteId: string,
-  provider: "stripe" | "lemonsqueezy" | "polar" | "paddle" | "other"
+  provider: "stripe" | "lemonsqueezy" | "polar" | "paddle" | "other",
 ) {
   await connectDB();
 
@@ -156,10 +156,11 @@ export async function deletePaymentsByProvider(
       provider,
     });
 
+    const deletedCount = result.deletedCount || 0;
     console.log(
-      `Deleted ${result.deletedCount} payment records for website ${websiteId}, provider ${provider}`
+      `Deleted ${deletedCount} payment records for website ${websiteId}, provider ${provider}`,
     );
-    return result.deletedCount || 0;
+    return deletedCount;
   } catch (error) {
     console.error("Error deleting payments:", error);
     throw error;
