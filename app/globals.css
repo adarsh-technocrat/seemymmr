@@ -35,6 +35,7 @@
   --color-sidebar-accent-foreground: hsl(240 5.9% 10%);
   --color-sidebar-border: hsl(220 13% 91%);
   --color-sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --color-stone: hsl(25 5% 45%);
 }
 
 @layer base {
@@ -72,6 +73,7 @@
     --sidebar-accent-foreground: 240 5.9% 10%;
     --sidebar-border: 220 13% 91%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --stone: 25 5% 45%;
   }
 
   .dark {
@@ -107,6 +109,7 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+    --stone: 25 5% 45%;
   }
 }
 

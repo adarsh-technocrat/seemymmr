@@ -37,7 +37,7 @@ export default function AddSitePage() {
 
   return (
     <main className="mx-auto min-h-screen max-w-6xl px-4 pb-32 md:px-8 bg-background">
-      <div className="mx-auto max-w-lg pt-8">
+      <div className="mx-auto max-w-2xl pt-8">
         <Link
           href="/dashboard"
           className={buttonVariants({
@@ -50,7 +50,7 @@ export default function AddSitePage() {
           Dashboard
         </Link>
 
-        <div className="mx-auto mb-4 mt-12 flex max-w-2xl flex-col gap-6 max-md:gap-8">
+        <div className="mx-auto mb-4 mt-12 flex flex-col gap-6 max-md:gap-8">
           {/* Progress Steps */}
           <ul className="flex items-center gap-8 max-md:order-last max-md:flex-col max-md:items-start max-md:gap-4">
             <li className="group flex select-none items-center gap-1.5 text-sm font-medium duration-100 text-primary">
@@ -62,7 +62,7 @@ export default function AddSitePage() {
                 Add site
               </span>
             </li>
-            <li className="group flex select-none items-center gap-1.5 text-sm font-medium duration-100 cursor-not-allowed! text-textSecondary">
+            <li className="group flex select-none items-center gap-1.5 text-sm font-medium duration-100 cursor-not-allowed text-textSecondary">
               <span className="flex size-4 items-center justify-center">
                 <span className="size-2.5 rounded-full bg-textSecondary/20 duration-200"></span>
               </span>
@@ -70,7 +70,7 @@ export default function AddSitePage() {
                 Install script
               </span>
             </li>
-            <li className="group flex select-none items-center gap-1.5 text-sm font-medium duration-100 cursor-not-allowed! text-textSecondary">
+            <li className="group flex select-none items-center gap-1.5 text-sm font-medium duration-100 cursor-not-allowed text-textSecondary">
               <span className="flex size-4 items-center justify-center">
                 <span className="size-2.5 rounded-full bg-textSecondary/20 duration-200"></span>
               </span>
@@ -97,7 +97,7 @@ export default function AddSitePage() {
                       domain: domainValue,
                       name: domainValue.replace(/^www\./, "").split(".")[0],
                       iconUrl: iconUrl || undefined,
-                    })
+                    }),
                   ).unwrap();
                   window.location.href = `/dashboard/${website._id}`;
                 } catch (error: any) {
@@ -106,23 +106,23 @@ export default function AddSitePage() {
                 }
               }}
             >
-              <Card className="overflow-visible bg-white border-gray-100 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-textPrimary font-bold">
+              <Card className="overflow-visible bg-white border-gray-200 shadow-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-xl font-semibold text-textPrimary">
                     Add a new website
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-4">
                   {/* Domain Input */}
                   <div className="w-full space-y-2">
                     <Label
                       htmlFor="domain"
-                      className="text-xs text-textPrimary"
+                      className="text-sm font-medium text-textPrimary"
                     >
                       Domain
                     </Label>
-                    <div className="flex w-full items-center rounded-md border border-borderColor overflow-hidden bg-white">
-                      <div className="inline-flex select-none items-center justify-center gap-2 border-r border-borderColor bg-gray-50 px-3 py-2 text-sm text-textSecondary">
+                    <div className="flex w-full items-center rounded-md border border-borderColor overflow-hidden bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors">
+                      <div className="inline-flex select-none items-center justify-center gap-2 border-r border-borderColor bg-gray-50 px-3 py-2.5 text-sm text-textSecondary">
                         {iconUrl ? (
                           <img
                             src={iconUrl}
@@ -155,12 +155,12 @@ export default function AddSitePage() {
                       <Input
                         id="domain"
                         type="text"
-                        placeholder="google.com"
+                        placeholder="example.com"
                         required
                         autoComplete="off"
                         value={domain}
                         onChange={(e) => setDomain(e.target.value)}
-                        className="flex-1 border-0 rounded-none focus-visible:ring-0 placeholder:opacity-60 h-9 text-sm bg-white text-textPrimary"
+                        className="flex-1 border-0 rounded-none focus-visible:ring-0 placeholder:opacity-50 h-10 text-sm bg-white text-textPrimary"
                       />
                     </div>
                   </div>
@@ -169,21 +169,22 @@ export default function AddSitePage() {
                   <div className="w-full space-y-2">
                     <Label
                       htmlFor="timezone"
-                      className="text-xs text-textPrimary"
+                      className="text-sm font-medium text-textPrimary"
                     >
                       Timezone
                     </Label>
                     <div className="relative w-full">
-                      <div className="flex h-9 w-full cursor-pointer items-center justify-between rounded-md border border-borderColor bg-white px-3 py-2 text-sm duration-100">
+                      <div className="flex h-10 w-full items-center justify-between rounded-md border border-borderColor bg-gray-50 px-3 py-2 text-sm">
                         <div className="flex flex-1 select-none items-center justify-between truncate text-textPrimary">
-                          <span>Asia - Calcutta</span>
-                          <span className="ml-2 text-textSecondary">
-                            <span>where time is</span> {currentTime}
+                          <span className="font-medium">Asia - Calcutta</span>
+                          <span className="ml-2 text-textSecondary text-xs">
+                            <span className="opacity-70">Current time:</span>{" "}
+                            <span className="font-mono">{currentTime}</span>
                           </span>
                         </div>
                       </div>
                     </div>
-                    <div className="text-xs text-textSecondary opacity-80">
+                    <div className="text-xs text-textSecondary opacity-70">
                       This defines what "today" means in your reports
                     </div>
                   </div>
@@ -191,9 +192,9 @@ export default function AddSitePage() {
                   <button
                     type="submit"
                     className={buttonVariants({
-                      size: "sm",
+                      size: "default",
                       className:
-                        "w-full bg-primary hover:bg-[#d15a38] text-white",
+                        "w-full mt-6 bg-primary hover:bg-primary/90 text-white font-medium shadow-sm",
                     })}
                   >
                     Add website
@@ -204,12 +205,12 @@ export default function AddSitePage() {
           </div>
         </div>
 
-        <div className="text-center text-xs text-textSecondary max-md:hidden">
-          <span className="opacity-60">Need help? Email</span>{" "}
+        <div className="mt-8 text-center text-xs text-textSecondary max-md:hidden">
+          <span className="opacity-70">Need help? Email</span>{" "}
           <a
             href="mailto:support@postmetric.com?subject=Need help with PostMetric installation"
             target="_blank"
-            className="text-primary opacity-60 duration-100 hover:opacity-100"
+            className="text-primary opacity-70 duration-100 hover:opacity-100 hover:underline"
             rel="noopener noreferrer"
           >
             support@postmetric.com
