@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     console.error("Error processing jobs:", error);
     return NextResponse.json(
       { error: "Failed to process jobs", message: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -107,7 +107,7 @@ async function processJob(job: any): Promise<{
           job.websiteId.toString(),
           stripeApiKey,
           startDate,
-          endDate
+          endDate,
         );
         break;
 
@@ -137,7 +137,7 @@ async function processJob(job: any): Promise<{
     ) {
       const syncConfig = website.paymentProviders.stripe.syncConfig;
       const nextSync = calculateNextSyncDate(
-        syncConfig.frequency || "realtime"
+        syncConfig.frequency || "realtime",
       );
       website.paymentProviders.stripe.syncConfig = {
         ...syncConfig,
@@ -162,7 +162,7 @@ async function processJob(job: any): Promise<{
         job._id.toString(),
         "failed",
         undefined,
-        error.message
+        error.message,
       );
       throw error;
     }

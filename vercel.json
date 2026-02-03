@@ -1,7 +1,11 @@
 {
   "crons": [
     {
-      "path": "/api/cron/sync-payments?frequency=realtime",
+      "path": "/api/cron/sync-payments",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/process-jobs",
       "schedule": "*/5 * * * *"
     }
   ]

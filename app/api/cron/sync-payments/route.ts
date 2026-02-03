@@ -61,15 +61,23 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const processedJobs = await triggerJobProcessing();
+    // Trigger job processing in background so cron returns before serverless timeout.
+    // Pending jobs are also processed by the separate /api/cron/process-jobs cron.
+    void triggerJobProcessing().catch((err) =>
+      console.error("Background job processing error:", err),
+    );
 
     return NextResponse.json({
       success: true,
       websitesProcessed: websites.length,
       jobsCreated: jobsCreated.length,
       jobs: jobsCreated,
-      processed: processedJobs.processed,
-      processedJobs: processedJobs.jobs,
+      processed: 0,
+      processedJobs: [],
+      message:
+        jobsCreated.length > 0
+          ? "Jobs enqueued; processing runs in background and via process-jobs cron."
+          : undefined,
     });
   } catch (error: any) {
     console.error("Error in cron sync-payments:", error);
@@ -78,7 +86,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to create sync jobs",
         message: error.message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
