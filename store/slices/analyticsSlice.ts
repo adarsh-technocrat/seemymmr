@@ -14,11 +14,12 @@ export const fetchAnalytics = createAsyncThunk(
       granularity?: "hourly" | "daily" | "weekly" | "monthly";
       customDateRange?: { from: Date; to: Date };
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       let apiPeriod = period;
-      if (period === "Custom" && customDateRange?.from && customDateRange?.to) {
+      // Send custom date range whenever we have one (Custom period OR Previous/Next offset)
+      if (customDateRange?.from && customDateRange?.to) {
         const fromStr = customDateRange.from.toISOString().split("T")[0];
         const toStr = customDateRange.to.toISOString().split("T")[0];
         apiPeriod = `custom:${fromStr}:${toStr}`;
@@ -30,7 +31,7 @@ export const fetchAnalytics = createAsyncThunk(
       });
 
       const response = await fetch(
-        `/api/websites/${websiteId}/analytics?${params.toString()}`
+        `/api/websites/${websiteId}/analytics?${params.toString()}`,
       );
 
       if (!response.ok) {
@@ -42,7 +43,7 @@ export const fetchAnalytics = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 interface ChartDataPoint {
@@ -172,7 +173,7 @@ const analyticsSlice = createSlice({
       action: PayloadAction<{
         websiteId: string;
         granularity: "hourly" | "daily" | "weekly" | "monthly";
-      }>
+      }>,
     ) => {
       const websiteData = state.byWebsiteId[action.payload.websiteId];
       if (websiteData) {
@@ -191,7 +192,7 @@ const analyticsSlice = createSlice({
         state.byWebsiteId[websiteId].error = null;
         // Set global loading to true if any website is loading
         state.loading = Object.values(state.byWebsiteId).some(
-          (data) => data.loading
+          (data) => data.loading,
         );
       })
       .addCase(fetchAnalytics.fulfilled, (state, action) => {
@@ -287,7 +288,7 @@ const analyticsSlice = createSlice({
         // Update global state
         state.currentWebsiteId = websiteId;
         state.loading = Object.values(state.byWebsiteId).some(
-          (data) => data.loading
+          (data) => data.loading,
         );
       })
       .addCase(fetchAnalytics.rejected, (state, action) => {
@@ -299,7 +300,7 @@ const analyticsSlice = createSlice({
         state.byWebsiteId[websiteId].error = action.payload as string;
         // Update global loading state
         state.loading = Object.values(state.byWebsiteId).some(
-          (data) => data.loading
+          (data) => data.loading,
         );
       });
   },

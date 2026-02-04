@@ -22,24 +22,32 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
     disableAutoFetch: false,
   });
 
-  const chartData = analytics.chartData.map((point) => ({
-    visitors: point.visitors,
-    revenueNew: point.revenueNew || 0,
-    revenueRenewal: point.revenueRenewal || 0,
-    revenueRefund: point.revenueRefund || 0,
-  }));
+  const chartData = analytics.chartData.map((point) => {
+    const newRev = point.revenueNew ?? 0;
+    const renewalRev = point.revenueRenewal ?? 0;
+    const refundRev = point.revenueRefund ?? 0;
+    const netRevenue = newRev + renewalRev - refundRev;
+    return {
+      visitors: point.visitors,
+      revenue: Math.max(0, netRevenue),
+      revenueNew: newRev,
+      revenueRenewal: renewalRev,
+      revenueRefund: refundRev,
+    };
+  });
 
   const totalVisitors = analytics.chartData.reduce(
     (sum, point) => sum + point.visitors,
-    0
+    0,
   );
 
-  const hasRevenue = chartData.some(
-    (point) =>
-      (point.revenueNew && point.revenueNew > 0) ||
-      (point.revenueRenewal && point.revenueRenewal > 0) ||
-      (point.revenueRefund && point.revenueRefund > 0)
-  );
+  const totalRevenue = chartData.reduce((sum, point) => sum + point.revenue, 0);
+  const formattedRevenue = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(totalRevenue);
 
   return (
     <li>
@@ -93,17 +101,15 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                         </linearGradient>
                       </defs>
                       <YAxis hide />
-                      {hasRevenue && (
-                        <YAxis
-                          yAxisId="right"
-                          orientation="right"
-                          hide
-                          domain={[
-                            0,
-                            (dataMax: number) => Math.max(dataMax * 1.2, 10),
-                          ]}
-                        />
-                      )}
+                      <YAxis
+                        yAxisId="right"
+                        orientation="right"
+                        hide
+                        domain={[
+                          0,
+                          (dataMax: number) => Math.max(dataMax * 1.2, 1),
+                        ]}
+                      />
                       <Area
                         type="monotone"
                         dataKey="visitors"
@@ -112,34 +118,14 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                         fill={`url(#visitorGradient-${website._id})`}
                         fillOpacity={0.6}
                       />
-                      {hasRevenue && (
-                        <>
-                          <Bar
-                            yAxisId="right"
-                            dataKey="revenueNew"
-                            fill="#E16540"
-                            stackId="revenue"
-                            maxBarSize={8}
-                            style={{ opacity: 0.8 }}
-                          />
-                          <Bar
-                            yAxisId="right"
-                            dataKey="revenueRenewal"
-                            fill="#E16540"
-                            stackId="revenue"
-                            maxBarSize={8}
-                            style={{ opacity: 0.6 }}
-                          />
-                          <Bar
-                            yAxisId="right"
-                            dataKey="revenueRefund"
-                            fill="#E16540"
-                            stackId="revenue"
-                            maxBarSize={8}
-                            style={{ opacity: 0.4 }}
-                          />
-                        </>
-                      )}
+                      <Bar
+                        yAxisId="right"
+                        dataKey="revenue"
+                        fill="#E16540"
+                        maxBarSize={10}
+                        radius={[2, 2, 0, 0]}
+                        name="Revenue"
+                      />
                     </ComposedChart>
                   </ResponsiveContainer>
                 ) : (
@@ -196,7 +182,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                   </div>
                 )}
               </div>
-              <div className="flex items-center justify-start gap-2">
+              <div className="flex items-center justify-start gap-3 flex-wrap">
                 <p className="text-stone-600 text-sm">
                   <span className="font-semibold text-stone-800">
                     <NumberFlow
@@ -205,6 +191,12 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                     />
                   </span>{" "}
                   <span>visitors</span>
+                </p>
+                <p className="text-stone-600 text-sm">
+                  <span className="font-semibold text-stone-800">
+                    {formattedRevenue}
+                  </span>{" "}
+                  <span>revenue</span>
                 </p>
               </div>
             </div>

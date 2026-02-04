@@ -9,7 +9,7 @@ export function useAnalytics(
     disableAutoFetch?: boolean;
     period?: string; // Optional period override
     granularity?: "hourly" | "daily" | "weekly" | "monthly"; // Optional granularity override
-  }
+  },
 ) {
   const dispatch = useAppDispatch();
   const analytics = useAppSelector((state) => {
@@ -32,7 +32,7 @@ export function useAnalytics(
   });
   const selectedPeriod = useAppSelector((state) => state.ui.selectedPeriod);
   const selectedGranularity = useAppSelector(
-    (state) => state.ui.selectedGranularity
+    (state) => state.ui.selectedGranularity,
   );
 
   const period = options?.period ?? selectedPeriod;
@@ -114,7 +114,7 @@ export function useAnalytics(
   };
 
   const getGranularity = (
-    granularity: string
+    granularity: string,
   ): "hourly" | "daily" | "weekly" | "monthly" => {
     switch (granularity.toLowerCase()) {
       case "hourly":
@@ -150,7 +150,7 @@ export function useAnalytics(
         period: periodToUse,
         granularity: granularityValue,
         customDateRange,
-      })
+      }),
     );
   }, [
     websiteId,
@@ -180,7 +180,7 @@ export function useAnalytics(
           period: periodToUse,
           granularity: granularityValue,
           customDateRange,
-        })
+        }),
       );
     },
   };

@@ -13,7 +13,7 @@ interface GranularitySelectorProps {
   selectedGranularity: "Hourly" | "Daily" | "Weekly" | "Monthly";
   availableGranularities: Array<"Hourly" | "Daily" | "Weekly" | "Monthly">;
   onGranularityChange: (
-    granularity: "Hourly" | "Daily" | "Weekly" | "Monthly"
+    granularity: "Hourly" | "Daily" | "Weekly" | "Monthly",
   ) => void;
 }
 

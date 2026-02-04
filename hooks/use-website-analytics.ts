@@ -53,7 +53,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     {
       from: undefined,
       to: undefined,
-    }
+    },
   );
   const [mentionDialogOpen, setMentionDialogOpen] = useState(false);
   const [selectedMentionData, setSelectedMentionData] =
@@ -243,7 +243,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       ? Math.ceil(
           (currentDateRange.endDate.getTime() -
             currentDateRange.startDate.getTime()) /
-            (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24),
         )
       : 0;
 
@@ -292,12 +292,17 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
 
   const availableGranularities = useMemo(
     () => getAvailableGranularities(),
-    [ui.selectedPeriod, currentDateRange]
+    [ui.selectedPeriod, currentDateRange],
   );
 
   // Use analytics hook
+  // Only pass customDateRange when the API must receive explicit dates (Custom period or
+  // Previous/Next offset). For named periods with offset 0 we pass undefined so Refresh
+  // sends period=Today (etc.) and the API computes the range in website timezone, matching
+  // initial load and avoiding UTC vs timezone mismatch.
+  const passCustomRange = periodOffset !== 0 || ui.selectedPeriod === "Custom";
   const analytics = useAnalytics(websiteId, {
-    customDateRange: currentDateRange,
+    customDateRange: passCustomRange ? currentDateRange : undefined,
     disableAutoFetch: true,
   });
 
@@ -323,6 +328,11 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     if (!websiteId) return;
 
     const periodChanged = lastPeriodRef.current !== ui.selectedPeriod;
+    const dateRangeChanged =
+      periodOffset !== 0 ||
+      (ui.selectedPeriod === "Custom" &&
+        customDateRange?.from &&
+        customDateRange?.to);
 
     // If period changed, set default granularity and fetch
     if (periodChanged) {
@@ -335,7 +345,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         ? Math.ceil(
             (currentDateRange.endDate.getTime() -
               currentDateRange.startDate.getTime()) /
-              (1000 * 60 * 60 * 24)
+              (1000 * 60 * 60 * 24),
           )
         : 0;
 
@@ -379,28 +389,28 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         period === "Last 24 hours"
           ? ui.selectedGranularity === "Hourly"
           : daysDiff <= 2
-          ? ui.selectedGranularity === "Hourly" ||
-            ui.selectedGranularity === "Daily"
-          : period === "Last 7 days" ||
-            period === "Week to date" ||
-            (daysDiff > 2 && daysDiff <= 7)
-          ? ui.selectedGranularity === "Daily" ||
-            ui.selectedGranularity === "Weekly"
-          : period === "Last 30 days" ||
-            period === "Month to date" ||
-            (daysDiff > 7 && daysDiff <= 90)
-          ? ui.selectedGranularity === "Daily" ||
-            ui.selectedGranularity === "Weekly" ||
-            ui.selectedGranularity === "Monthly"
-          : period === "All time"
-          ? ui.selectedGranularity === "Weekly" ||
-            ui.selectedGranularity === "Monthly"
-          : period === "Last 12 months" ||
-            period === "Year to date" ||
-            daysDiff > 90
-          ? ui.selectedGranularity === "Weekly" ||
-            ui.selectedGranularity === "Monthly"
-          : true; // Default: allow any granularity
+            ? ui.selectedGranularity === "Hourly" ||
+              ui.selectedGranularity === "Daily"
+            : period === "Last 7 days" ||
+                period === "Week to date" ||
+                (daysDiff > 2 && daysDiff <= 7)
+              ? ui.selectedGranularity === "Daily" ||
+                ui.selectedGranularity === "Weekly"
+              : period === "Last 30 days" ||
+                  period === "Month to date" ||
+                  (daysDiff > 7 && daysDiff <= 90)
+                ? ui.selectedGranularity === "Daily" ||
+                  ui.selectedGranularity === "Weekly" ||
+                  ui.selectedGranularity === "Monthly"
+                : period === "All time"
+                  ? ui.selectedGranularity === "Weekly" ||
+                    ui.selectedGranularity === "Monthly"
+                  : period === "Last 12 months" ||
+                      period === "Year to date" ||
+                      daysDiff > 90
+                    ? ui.selectedGranularity === "Weekly" ||
+                      ui.selectedGranularity === "Monthly"
+                    : true; // Default: allow any granularity
 
       // If current granularity is not available, set the default
       if (!currentGranularityAvailable) {
@@ -446,7 +456,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           period: periodForApi,
           granularity,
           customDateRange: apiCustomDateRange,
-        })
+        }),
       );
 
       // Update refs
@@ -455,13 +465,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       isPeriodChangingRef.current = false;
       return;
     }
-
-    // If only date range changed (offset or custom), fetch with current granularity
-    const dateRangeChanged =
-      periodOffset !== 0 ||
-      (ui.selectedPeriod === "Custom" &&
-        customDateRange?.from &&
-        customDateRange?.to);
 
     if (dateRangeChanged && !periodChanged) {
       const granularity = ui.selectedGranularity.toLowerCase() as
@@ -493,7 +496,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           period: periodForApi,
           granularity,
           customDateRange: apiCustomDateRange,
-        })
+        }),
       );
     }
   }, [
@@ -513,11 +516,10 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     // Skip if period is changing (handled in the effect above)
     if (isPeriodChangingRef.current) return;
 
-    if (
+    const needsAdjust =
       availableGranularities.length > 0 &&
-      !availableGranularities.includes(ui.selectedGranularity)
-    ) {
-      // Use the first available granularity
+      !availableGranularities.includes(ui.selectedGranularity);
+    if (needsAdjust) {
       dispatch(setSelectedGranularity(availableGranularities[0]));
     }
   }, [
@@ -579,7 +581,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           period,
           granularity,
           customDateRange: apiCustomDateRange,
-        })
+        }),
       );
 
       lastGranularityRef.current = ui.selectedGranularity;
@@ -645,7 +647,11 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     switch (ui.selectedSourceTab) {
       case "Channel":
         // Use channelsWithReferrers for Channel tab to show nested referrers
-        return analytics.breakdowns.source.channels || analytics.breakdowns.source.channel || [];
+        return (
+          analytics.breakdowns.source.channels ||
+          analytics.breakdowns.source.channel ||
+          []
+        );
       case "Referrer":
         return analytics.breakdowns.source.referrer || [];
       case "Campaign":
@@ -653,7 +659,11 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       case "Keyword":
         return analytics.breakdowns.source.keyword || [];
       default:
-        return analytics.breakdowns.source.channels || analytics.breakdowns.source.channel || [];
+        return (
+          analytics.breakdowns.source.channels ||
+          analytics.breakdowns.source.channel ||
+          []
+        );
     }
   };
 
