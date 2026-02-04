@@ -701,28 +701,58 @@ export async function handleStripeAddition(
   apiKey: string,
   stripeConfig?: NonNullable<IWebsite["paymentProviders"]>["stripe"],
 ): Promise<void> {
+  // #region agent log
+  fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "utils/integrations/stripe.ts:handleStripeAddition",
+      message: "handleStripeAddition entry",
+      data: { websiteId, forceInitialSync: true },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      hypothesisId: "H6",
+    }),
+  }).catch(() => {});
+  // #endregion
   const configToUse: NonNullable<IWebsite["paymentProviders"]>["stripe"] =
     stripeConfig || {
       apiKey,
     };
-  await registerPaymentProviderSync(websiteId, "stripe", {
-    stripe: configToUse,
-  });
+  await registerPaymentProviderSync(
+    websiteId,
+    "stripe",
+    { stripe: configToUse },
+    { forceInitialSync: true },
+  );
 
   const baseUrl = getBaseUrl();
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15_000);
   fetch(`${baseUrl}/api/jobs/process`, {
     method: "POST",
+    signal: controller.signal,
     headers: {
       "Content-Type": "application/json",
       ...(process.env.CRON_SECRET && {
         Authorization: `Bearer ${process.env.CRON_SECRET}`,
       }),
     },
-    body: JSON.stringify({ batchSize: 5, maxConcurrent: 2 }),
-  }).catch((err) => {
-    console.error("Failed to trigger immediate job processing:", err);
-  });
+    body: JSON.stringify({ batchSize: 10, maxConcurrent: 3 }),
+  })
+    .then((res) => {
+      clearTimeout(timeoutId);
+      if (!res.ok) {
+        console.error("Job process trigger returned", res.status);
+      }
+    })
+    .catch((err) => {
+      clearTimeout(timeoutId);
+      if (err?.name !== "AbortError") {
+        console.error("Failed to trigger immediate job processing:", err);
+      }
+    });
 }
 
 function getBaseUrl(): string {
@@ -741,6 +771,25 @@ export async function processStripeConfigChanges(
   newPaymentProviders?: IWebsite["paymentProviders"],
 ): Promise<StripeConfigResult> {
   const changes = detectStripeChanges(currentWebsite, newPaymentProviders);
+
+  // #region agent log
+  fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      location: "utils/integrations/stripe.ts:processStripeConfigChanges",
+      message: "Stripe config changes",
+      data: {
+        websiteId,
+        isNewStripeKey: changes.isNewStripeKey,
+        isStripeRemoved: changes.isStripeRemoved,
+      },
+      timestamp: Date.now(),
+      sessionId: "debug-session",
+      hypothesisId: "H4",
+    }),
+  }).catch(() => {});
+  // #endregion
 
   if (newPaymentProviders?.stripe?.apiKey) {
     const validation = await validateStripeApiKey(
@@ -761,6 +810,23 @@ export async function processStripeConfigChanges(
     }
 
     if (changes.isNewStripeKey && newPaymentProviders?.stripe?.apiKey) {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: "utils/integrations/stripe.ts:processStripeConfigChanges",
+            message: "Calling handleStripeAddition (forceInitialSync=true)",
+            data: { websiteId },
+            timestamp: Date.now(),
+            sessionId: "debug-session",
+            hypothesisId: "H5",
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
       await handleStripeAddition(
         websiteId,
         newPaymentProviders.stripe.apiKey,

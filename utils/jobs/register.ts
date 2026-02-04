@@ -19,7 +19,8 @@ export async function registerPaymentProviderSync(
         nextSyncAt?: Date;
       };
     };
-  }
+  },
+  options?: { forceInitialSync?: boolean },
 ): Promise<void> {
   const website = await getWebsiteById(websiteId);
   if (!website) {
@@ -55,11 +56,14 @@ export async function registerPaymentProviderSync(
     }
 
     await connectDB();
-    const existingSync = await SyncJob.findOne({
-      websiteId: new Types.ObjectId(websiteId),
-      provider: "stripe",
-      status: "completed",
-    });
+    const forceInitialSync = options?.forceInitialSync === true;
+    const existingSync = forceInitialSync
+      ? null
+      : await SyncJob.findOne({
+          websiteId: new Types.ObjectId(websiteId),
+          provider: "stripe",
+          status: "completed",
+        });
 
     let startDate: Date;
     let endDate: Date;
@@ -67,20 +71,56 @@ export async function registerPaymentProviderSync(
     let priority: number;
 
     if (!existingSync) {
-      endDate = new Date();
-      startDate = new Date(endDate.getTime() - 2 * 365 * 24 * 60 * 60 * 1000);
-      syncRange = "custom";
-      priority = 90;
+      // Chunk 2-year initial sync into monthly jobs so each completes in seconds
+      // instead of one 5+ minute job that blocks the trigger request and times out.
+      const end = new Date();
+      const start = new Date(end.getTime() - 2 * 365 * 24 * 60 * 60 * 1000);
+      const chunks = getMonthlyChunks(start, end);
       console.log(
-        `First sync detected for website ${websiteId}, syncing 2 years of historical data`
+        `First sync detected for website ${websiteId}, enqueueing ${chunks.length} monthly jobs (2 years of data)`,
       );
-    } else {
-      const dateRange = getSyncDateRange(frequency);
-      startDate = dateRange.startDate;
-      endDate = dateRange.endDate;
-      syncRange = dateRange.syncRange;
-      priority = 60;
+      for (const [chunkStart, chunkEnd] of chunks) {
+        await enqueueSyncJob({
+          websiteId,
+          provider,
+          type: "periodic",
+          priority: 90,
+          startDate: chunkStart,
+          endDate: chunkEnd,
+          syncRange: "custom",
+        });
+      }
+      return;
     }
+
+    const dateRange = getSyncDateRange(frequency);
+    startDate = dateRange.startDate;
+    endDate = dateRange.endDate;
+    syncRange = dateRange.syncRange;
+    priority = 60;
+
+    // #region agent log
+    fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: "utils/jobs/register.ts:registerPaymentProviderSync",
+        message: "Enqueueing Stripe sync job",
+        data: {
+          websiteId,
+          forceInitialSync,
+          rangeYears: !existingSync ? 2 : null,
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+          priority,
+          syncRange,
+        },
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        hypothesisId: "H7",
+      }),
+    }).catch(() => {});
+    // #endregion
 
     await enqueueSyncJob({
       websiteId,
@@ -93,7 +133,7 @@ export async function registerPaymentProviderSync(
     });
 
     console.log(
-      `Registered ${frequency} sync job for website ${websiteId}, provider ${provider}`
+      `Registered ${frequency} sync job for website ${websiteId}, provider ${provider}`,
     );
     return;
   }
@@ -101,8 +141,25 @@ export async function registerPaymentProviderSync(
   throw new Error(`Sync for provider ${provider} is not yet implemented`);
 }
 
+function getMonthlyChunks(start: Date, end: Date): Array<[Date, Date]> {
+  const chunks: Array<[Date, Date]> = [];
+  let chunkStart = new Date(start);
+
+  while (chunkStart < end) {
+    const chunkEnd = new Date(chunkStart);
+    chunkEnd.setMonth(chunkEnd.getMonth() + 1);
+    chunks.push([
+      new Date(chunkStart),
+      chunkEnd > end ? new Date(end) : chunkEnd,
+    ]);
+    chunkStart = new Date(chunkEnd);
+  }
+
+  return chunks;
+}
+
 function getSyncDateRange(
-  frequency: "realtime" | "hourly" | "every-6-hours" | "daily"
+  frequency: "realtime" | "hourly" | "every-6-hours" | "daily",
 ): {
   startDate: Date;
   endDate: Date;
@@ -139,10 +196,10 @@ function getSyncDateRange(
 
 export async function unregisterPaymentProviderSync(
   websiteId: string,
-  provider: SyncJobProvider
+  provider: SyncJobProvider,
 ): Promise<void> {
   await cancelPendingJobs(websiteId, provider);
   console.log(
-    `Unregistered sync jobs for website ${websiteId}, provider ${provider}`
+    `Unregistered sync jobs for website ${websiteId}, provider ${provider}`,
   );
 }

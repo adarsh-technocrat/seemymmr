@@ -80,6 +80,26 @@ export async function PUT(
     const body = await request.json();
     const { name, domain, iconUrl, settings, paymentProviders } = body;
 
+    // #region agent log
+    if (paymentProviders?.stripe?.apiKey) {
+      fetch(
+        "http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: "app/api/websites/[websiteId]/route.ts:PUT",
+            message: "Stripe key in request body",
+            data: { websiteId, hasStripeKey: true },
+            timestamp: Date.now(),
+            sessionId: "debug-session",
+            hypothesisId: "H1",
+          }),
+        },
+      ).catch(() => {});
+    }
+    // #endregion
+
     const stripeConfigResult = await processStripeConfigChanges(
       websiteId,
       website,
@@ -103,9 +123,45 @@ export async function PUT(
 
     const changes = detectStripeChanges(website, paymentProviders);
 
+    // #region agent log
+    fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        location: "app/api/websites/[websiteId]/route.ts:PUT",
+        message: "Stripe changes detected",
+        data: {
+          websiteId,
+          isNewStripeKey: changes.isNewStripeKey,
+          isStripeRemoved: changes.isStripeRemoved,
+        },
+        timestamp: Date.now(),
+        sessionId: "debug-session",
+        hypothesisId: "H2",
+      }),
+    }).catch(() => {});
+    // #endregion
+
     // Stripe removal (delete payments + cancel jobs) is already done in processStripeConfigChanges → handleStripeRemoval
 
     if (changes.isNewStripeKey && paymentProviders?.stripe?.apiKey) {
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            location: "app/api/websites/[websiteId]/route.ts:PUT",
+            message: "Starting direct 2-year sync (fire-and-forget)",
+            data: { websiteId },
+            timestamp: Date.now(),
+            sessionId: "debug-session",
+            hypothesisId: "H3",
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
       const syncer = new StripePaymentSyncer(paymentProviders.stripe.apiKey);
       syncer
         .syncPayments(
