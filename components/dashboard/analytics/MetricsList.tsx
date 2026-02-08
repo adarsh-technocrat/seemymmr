@@ -156,7 +156,7 @@ export function MetricsList({
                               currencyDisplay: "symbol",
                             }).format(
                               revenueBreakdown.newRevenue +
-                                revenueBreakdown.renewalRevenue
+                                revenueBreakdown.renewalRevenue,
                             )}
                           </span>
                         </div>

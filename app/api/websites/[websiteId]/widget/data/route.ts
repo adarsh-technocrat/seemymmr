@@ -3,13 +3,9 @@ import connectDB from "@/db";
 import Website from "@/db/models/Website";
 import { getVisitorsNow } from "@/utils/analytics/aggregations/getVisitorsNow.aggregation";
 
-/**
- * GET /api/websites/[websiteId]/widget/data
- * Get widget data (visitor count) for real-time updates
- */
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
@@ -30,7 +26,7 @@ export async function GET(
     ) {
       return NextResponse.json(
         { error: "Widget not available" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -41,7 +37,7 @@ export async function GET(
     console.error("Error fetching widget data:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch widget data" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

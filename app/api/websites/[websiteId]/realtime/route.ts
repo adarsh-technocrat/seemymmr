@@ -6,7 +6,7 @@ import connectDB from "@/db";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   const { websiteId } = await params;
   const session = await getSession();
@@ -32,7 +32,7 @@ export async function GET(
     async start(controller) {
       // Send initial connection message
       controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ type: "connected" })}\n\n`)
+        encoder.encode(`data: ${JSON.stringify({ type: "connected" })}\n\n`),
       );
 
       // Poll for updates every 5 seconds
@@ -47,7 +47,7 @@ export async function GET(
           };
 
           controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
           );
         } catch (error) {
           console.error("Error in realtime stream:", error);
@@ -56,8 +56,8 @@ export async function GET(
               `data: ${JSON.stringify({
                 type: "error",
                 message: "Failed to fetch data",
-              })}\n\n`
-            )
+              })}\n\n`,
+            ),
           );
         }
       }, 5000); // Update every 5 seconds

@@ -18,7 +18,6 @@ export const fetchAnalytics = createAsyncThunk(
   ) => {
     try {
       let apiPeriod = period;
-      // Send custom date range whenever we have one (Custom period OR Previous/Next offset)
       if (customDateRange?.from && customDateRange?.to) {
         const fromStr = customDateRange.from.toISOString().split("T")[0];
         const toStr = customDateRange.to.toISOString().split("T")[0];
