@@ -1,81 +1,102 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/get-session";
 import { getVisitorsNow } from "@/utils/analytics/aggregations/getVisitorsNow.aggregation";
-import Website from "@/db/models/Website";
+import { validateRealtimeAccess } from "@/utils/api/realtime-auth";
 import connectDB from "@/db";
+import Website from "@/db/models/Website";
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ websiteId: string }> },
 ) {
-  const { websiteId } = await params;
-  const session = await getSession();
+  try {
+    const { websiteId } = await params;
+    const searchParams = request.nextUrl.searchParams;
+    const shareId = searchParams.get("shareId");
+    const session = await getSession();
 
-  if (!session?.user?.id) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+    // Unified authentication: supports both shareId (public) and session (authenticated)
+    const accessResult = await validateRealtimeAccess(
+      websiteId,
+      shareId,
+      session,
+    );
 
-  // Verify user owns this website
-  await connectDB();
-  const website = await Website.findOne({
-    _id: websiteId,
-    userId: session.user.id,
-  });
-
-  if (!website) {
-    return new Response("Website not found", { status: 404 });
-  }
-
-  // Set up Server-Sent Events
-  const encoder = new TextEncoder();
-  const stream = new ReadableStream({
-    async start(controller) {
-      // Send initial connection message
-      controller.enqueue(
-        encoder.encode(`data: ${JSON.stringify({ type: "connected" })}\n\n`),
-      );
-
-      // Poll for updates every 5 seconds
-      const interval = setInterval(async () => {
-        try {
-          const visitorsNow = await getVisitorsNow(websiteId);
-
-          const data = {
-            type: "update",
-            visitorsNow,
-            timestamp: new Date().toISOString(),
-          };
-
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
-          );
-        } catch (error) {
-          console.error("Error in realtime stream:", error);
-          controller.enqueue(
-            encoder.encode(
-              `data: ${JSON.stringify({
-                type: "error",
-                message: "Failed to fetch data",
-              })}\n\n`,
-            ),
-          );
-        }
-      }, 5000); // Update every 5 seconds
-
-      // Clean up on client disconnect
-      request.signal.addEventListener("abort", () => {
-        clearInterval(interval);
-        controller.close();
+    if (!accessResult.valid) {
+      const statusCode =
+        accessResult.error === "Unauthorized"
+          ? 401
+          : accessResult.error === "Website not found"
+            ? 404
+            : 403;
+      return new Response(accessResult.error || "Access denied", {
+        status: statusCode,
       });
-    },
-  });
+    }
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache, no-transform",
-      Connection: "keep-alive",
-      "X-Accel-Buffering": "no", // Disable buffering in nginx
-    },
-  });
+    // If not requesting SSE stream, return website info (for validation)
+    const acceptHeader = request.headers.get("accept");
+    if (!acceptHeader?.includes("text/event-stream")) {
+      return NextResponse.json({
+        websiteName: accessResult.website.name,
+        websiteDomain: accessResult.website.domain,
+      });
+    }
+
+    // Set up Server-Sent Events
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        // Send initial connection message
+        controller.enqueue(
+          encoder.encode(`data: ${JSON.stringify({ type: "connected" })}\n\n`),
+        );
+
+        // Poll for updates every 5 seconds
+        const interval = setInterval(async () => {
+          try {
+            const visitorsNow = await getVisitorsNow(websiteId);
+
+            const data = {
+              type: "update",
+              visitorsNow,
+              timestamp: new Date().toISOString(),
+            };
+
+            controller.enqueue(
+              encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
+            );
+          } catch (error) {
+            console.error("Error in realtime stream:", error);
+            controller.enqueue(
+              encoder.encode(
+                `data: ${JSON.stringify({
+                  type: "error",
+                  message: "Failed to fetch data",
+                })}\n\n`,
+              ),
+            );
+          }
+        }, 5000); // Update every 5 seconds
+
+        // Clean up on client disconnect
+        request.signal.addEventListener("abort", () => {
+          clearInterval(interval);
+          controller.close();
+        });
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        Connection: "keep-alive",
+        "X-Accel-Buffering": "no", // Disable buffering in nginx
+      },
+    });
+  } catch (error: any) {
+    console.error("Error in realtime stream:", error);
+    return new Response("Internal server error", { status: 500 });
+  }
 }

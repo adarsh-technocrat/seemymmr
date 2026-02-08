@@ -20,6 +20,7 @@ import {
   MusicPlayer,
   SoundwaveIcon,
 } from "./realtime-map";
+import { ShareDialog } from "./realtime-map/ShareDialog";
 
 interface RealtimeMapDialogProps {
   open: boolean;
@@ -60,6 +61,7 @@ export function RealtimeMapDialog({
   const [isMusicPlaying, setIsMusicPlaying] = useState(false);
   const [isMusicPlayerActive, setIsMusicPlayerActive] = useState(false);
   const [musicVolume, setMusicVolume] = useState(0.7);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
 
   const handleClose = useCallback(() => {
     onOpenChange(false);
@@ -118,6 +120,7 @@ export function RealtimeMapDialog({
                     size="icon"
                     className="h-6 w-6"
                     title="Share realtime map"
+                    onClick={() => setShareDialogOpen(true)}
                   >
                     <Share2 className="h-3.5 w-3.5" />
                   </Button>
@@ -133,8 +136,8 @@ export function RealtimeMapDialog({
                       !isMusicPlayerActive
                         ? "Start radio"
                         : isMusicPlaying
-                        ? "Pause radio"
-                        : "Play radio"
+                          ? "Pause radio"
+                          : "Play radio"
                     }
                     onClick={toggleMusic}
                   >
@@ -242,6 +245,11 @@ export function RealtimeMapDialog({
           </div>
         </div>
       </DialogContent>
+      <ShareDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        websiteId={websiteId}
+      />
     </Dialog>
   );
 }

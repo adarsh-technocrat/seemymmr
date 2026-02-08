@@ -24,9 +24,14 @@ const POLL_INTERVAL = 5000; // 5 seconds
 interface UseRealtimeMapProps {
   open: boolean;
   websiteId: string;
+  shareId?: string; // Optional shareId for public access
 }
 
-export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
+export function useRealtimeMap({
+  open,
+  websiteId,
+  shareId,
+}: UseRealtimeMapProps) {
   const [visitors, setVisitors] = useState<Visitor[]>([]);
   const [paymentEvents, setPaymentEvents] = useState<PaymentEvent[]>([]);
   const [pageViewEvents, setPageViewEvents] = useState<PageViewEvent[]>([]);
@@ -48,7 +53,7 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
   const [isRotating, setIsRotating] = useState(false);
   const [focusedVisitorId, setFocusedVisitorId] = useState<string | null>(null);
   const [selectedVisitorId, setSelectedVisitorId] = useState<string | null>(
-    null
+    null,
   );
   const animationFrameRef = useRef<number | null>(null);
 
@@ -109,7 +114,7 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
   const focusOnVisitor = useCallback(
     (visitorId: string, userId?: string) => {
       const visitor = visitors.find(
-        (v) => v.visitorId === visitorId || (userId && v.userId === userId)
+        (v) => v.visitorId === visitorId || (userId && v.userId === userId),
       );
 
       if (visitor) {
@@ -206,7 +211,7 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
         });
       }
     },
-    [visitors]
+    [visitors],
   );
 
   // Cleanup animation on unmount or when dialog closes
@@ -275,9 +280,11 @@ export function useRealtimeMap({ open, websiteId }: UseRealtimeMapProps) {
 
     const fetchVisitors = async () => {
       try {
-        const response = await fetch(
-          `/api/websites/${websiteId}/realtime/visitors`
-        );
+        // Use unified endpoint - supports both authenticated and public (via shareId)
+        const endpoint = shareId
+          ? `/api/websites/${websiteId}/realtime/visitors?shareId=${shareId}`
+          : `/api/websites/${websiteId}/realtime/visitors`;
+        const response = await fetch(endpoint);
         if (!isMounted) return;
 
         if (response.ok) {

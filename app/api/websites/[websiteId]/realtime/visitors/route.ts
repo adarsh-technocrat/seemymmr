@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSession } from "@/lib/get-session";
 import connectDB from "@/db";
-import Website from "@/db/models/Website";
 import Session from "@/db/models/Session";
 import PageView from "@/db/models/PageView";
 import Payment from "@/db/models/Payment";
 import { Types } from "mongoose";
+import { validateRealtimeAccess } from "@/utils/api/realtime-auth";
 
 interface VisitorLocation {
   visitorId: string;
@@ -30,26 +30,32 @@ interface VisitorLocation {
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
+    const searchParams = request.nextUrl.searchParams;
+    const shareId = searchParams.get("shareId");
     const session = await getSession();
 
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    // Unified authentication: supports both shareId (public) and session (authenticated)
+    const accessResult = await validateRealtimeAccess(
+      websiteId,
+      shareId,
+      session,
+    );
 
-    await connectDB();
-
-    // Verify user owns this website
-    const website = await Website.findOne({
-      _id: websiteId,
-      userId: session.user.id,
-    });
-
-    if (!website) {
-      return NextResponse.json({ error: "Website not found" }, { status: 404 });
+    if (!accessResult.valid) {
+      const statusCode =
+        accessResult.error === "Unauthorized"
+          ? 401
+          : accessResult.error === "Website not found"
+            ? 404
+            : 403;
+      return NextResponse.json(
+        { error: accessResult.error || "Access denied" },
+        { status: statusCode },
+      );
     }
 
     // Get active sessions (last 5 minutes)
@@ -110,8 +116,8 @@ export async function GET(
           100,
           Math.round(
             (session.pageViews * 10 + Math.min(session.duration / 60, 30) * 2) /
-              2
-          )
+              2,
+          ),
         );
 
         let currentPath = pathMap.get(session.sessionId) || "/";
@@ -149,7 +155,7 @@ export async function GET(
           duration: session.duration,
           conversionScore,
         };
-      }
+      },
     );
 
     // Get recent page views (last 5 minutes) for activity feed
@@ -217,7 +223,7 @@ export async function GET(
     console.error("Error fetching real-time visitors:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch visitors" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

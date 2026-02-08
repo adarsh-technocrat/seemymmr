@@ -12,11 +12,17 @@ export default async function proxy(request: NextRequest) {
     pathname.startsWith("/api/goals");
 
   // Skip authentication for public API routes
+  // Note: Unified endpoints (/realtime, /realtime/visitors) handle auth internally
+  // They accept shareId query param for public access or require session for authenticated access
   const isPublicApiRoute =
     pathname.startsWith("/api/track") ||
     pathname.startsWith("/api/identify") ||
     (pathname.startsWith("/api/websites") && pathname.includes("/public")) ||
-    pathname.startsWith("/api/auth/firebase/verify");
+    (pathname.startsWith("/api/websites") &&
+      pathname.includes("/realtime") &&
+      !pathname.includes("/realtime/public")) || // Unified endpoints handle auth internally
+    pathname.startsWith("/api/auth/firebase/verify") ||
+    pathname.startsWith("/globe");
 
   if (isPublicApiRoute) {
     return NextResponse.next();
@@ -63,5 +69,6 @@ export const config = {
     "/api/websites/:path*",
     "/api/goals/:path*",
     "/api/websites/:path*/analytics",
+    "/globe/:path*",
   ],
 };

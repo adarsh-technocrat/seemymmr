@@ -23,6 +23,10 @@ export interface IWebsite extends Document {
       enabled: boolean;
       shareId?: string; // Unique ID for public sharing
     };
+    publicRealtimeGlobe?: {
+      enabled: boolean;
+      shareId?: string; // Unique ID for public realtime globe sharing
+    };
     attackMode?: {
       enabled: boolean;
       autoActivate: boolean; // Auto-activate on traffic spike
@@ -127,6 +131,18 @@ const WebsiteSchema = new Schema<IWebsite>(
       },
       additionalDomains: [String],
       publicDashboard: {
+        enabled: {
+          type: Boolean,
+          default: false,
+        },
+        shareId: {
+          type: String,
+          unique: true,
+          sparse: true,
+          index: true,
+        },
+      },
+      publicRealtimeGlobe: {
         enabled: {
           type: Boolean,
           default: false,

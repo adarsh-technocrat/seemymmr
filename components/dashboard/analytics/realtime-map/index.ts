@@ -5,3 +5,4 @@ export { VisitorPopupContent } from "./VisitorPopupContent";
 export { MusicPlayer } from "./MusicPlayer";
 export { SoundwaveIcon } from "./SoundwaveIcon";
 export { MUSIC_TRACKS } from "./music-tracks";
+export { ShareDialog } from "./ShareDialog";
