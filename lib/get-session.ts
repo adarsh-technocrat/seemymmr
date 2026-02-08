@@ -4,7 +4,7 @@ import connectDB from "@/db";
 import User from "@/db/models/User";
 import { cookies } from "next/headers";
 
-interface Session {
+export interface Session {
   user: {
     id: string;
     email: string;
@@ -14,7 +14,7 @@ interface Session {
 }
 
 export async function getSession(
-  request?: NextRequest
+  request?: NextRequest,
 ): Promise<Session | null> {
   try {
     let idToken: string | null = null;
