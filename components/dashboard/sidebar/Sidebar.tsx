@@ -134,7 +134,7 @@ export function Sidebar() {
                     href={`/dashboard/${currentWebsiteId}?insights=true`}
                     icon={<Sparkles className="w-[18px] h-[18px]" />}
                     onClick={() => {
-                      console.log("AI Insights feature coming soon");
+                      // AI Insights feature coming soon
                     }}
                   >
                     AI Insights
@@ -222,7 +222,7 @@ export function Sidebar() {
             type="button"
             className="h-8 flex items-center gap-3.5 px-2 w-full text-stone-500 group hover:text-stone-800 hover:bg-stone-0 border border-transparent hover:border-stone-100 rounded-lg transition-colors cursor-pointer"
             onClick={() => {
-              console.log("Command palette coming soon");
+              // Command palette coming soon
             }}
           >
             <div className="flex items-center gap-3.5 grow">
@@ -282,7 +282,7 @@ export function Sidebar() {
                       const fallbackAvatar = generateUserAvatar(
                         userData.email,
                         userData.name,
-                        { size: 18 }
+                        { size: 18 },
                       );
                       target.src = fallbackAvatar;
                     }}
@@ -295,7 +295,7 @@ export function Sidebar() {
                         ? `url(${generateUserAvatar(
                             userData.email,
                             userData.name,
-                            { size: 18 }
+                            { size: 18 },
                           )})`
                         : undefined,
                     }}

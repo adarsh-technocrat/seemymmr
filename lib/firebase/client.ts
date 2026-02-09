@@ -27,7 +27,6 @@ export const auth: Auth = getAuth(app);
 
 if (typeof window !== "undefined") {
   setPersistence(auth, browserLocalPersistence).catch((error) => {
-    console.error("Error setting auth persistence:", error);
   });
 }
 

@@ -37,7 +37,6 @@ export async function checkTrafficSpike(websiteId: string): Promise<boolean> {
 
     return false;
   } catch (error) {
-    console.error("Error checking traffic spike:", error);
     return false;
   }
 }
@@ -79,7 +78,6 @@ export async function applyAttackModeProtections(
 
     return { allowed: true };
   } catch (error) {
-    console.error("Error applying attack mode protections:", error);
     // Fail open - allow request if check fails
     return { allowed: true };
   }

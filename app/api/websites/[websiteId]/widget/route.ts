@@ -110,7 +110,6 @@ export async function GET(
       },
     });
   } catch (error: any) {
-    console.error("Error generating widget:", error);
     return NextResponse.json(
       { error: error.message || "Failed to generate widget" },
       { status: 500 }

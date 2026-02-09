@@ -85,11 +85,11 @@ export function TeamSettings({
   const { user: firebaseUser } = useAuth();
   const dispatch = useAppDispatch();
   const { teamMembers, teamOwner, teamLoading, teamError } = useAppSelector(
-    (state) => state.websites
+    (state) => state.websites,
   );
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState<"viewer" | "editor" | "admin">(
-    "viewer"
+    "viewer",
   );
   const [inviting, setInviting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -135,7 +135,7 @@ export function TeamSettings({
           websiteId,
           email: inviteEmail.trim(),
           role: inviteRole,
-        })
+        }),
       ).unwrap();
       setInviteEmail("");
       setInviteRole("viewer");
@@ -159,19 +159,19 @@ export function TeamSettings({
         removeTeamMemberFromWebsite({
           websiteId,
           memberId,
-        })
+        }),
       ).unwrap();
       // Refresh team members
       await dispatch(fetchAllTeamMembersForWebsite(websiteId));
       onUpdate();
     } catch (error) {
-      console.error("Error removing team member:", error);
+      // Error removing team member
     }
   };
 
   const handleUpdateRole = async (
     memberId: string,
-    newRole: "viewer" | "editor" | "admin"
+    newRole: "viewer" | "editor" | "admin",
   ) => {
     try {
       await dispatch(
@@ -179,13 +179,13 @@ export function TeamSettings({
           websiteId,
           memberId,
           role: newRole,
-        })
+        }),
       ).unwrap();
       // Refresh team members
       await dispatch(fetchAllTeamMembersForWebsite(websiteId));
       onUpdate();
     } catch (error) {
-      console.error("Error updating role:", error);
+      // Error updating role
     }
   };
 
@@ -355,8 +355,8 @@ export function TeamSettings({
                               member.role === "admin"
                                 ? "default"
                                 : member.role === "editor"
-                                ? "secondary"
-                                : "outline"
+                                  ? "secondary"
+                                  : "outline"
                             }
                           >
                             {member.role.charAt(0).toUpperCase() +
@@ -370,8 +370,8 @@ export function TeamSettings({
                             member.status === "accepted"
                               ? "default"
                               : member.status === "pending"
-                              ? "secondary"
-                              : "destructive"
+                                ? "secondary"
+                                : "destructive"
                           }
                         >
                           {member.status.charAt(0).toUpperCase() +

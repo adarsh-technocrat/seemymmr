@@ -34,7 +34,6 @@ export default async function DashboardLayout({
         subscriptionPlan !== undefined;
     }
   } catch (error) {
-    console.error("Error calculating trial days:", error);
   }
 
   const displayDays =

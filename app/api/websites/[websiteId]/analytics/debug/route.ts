@@ -267,7 +267,6 @@ export async function GET(
       { status: 200 }
     );
   } catch (error) {
-    console.error("Error in debug endpoint:", error);
     return NextResponse.json(
       { error: "Failed to fetch debug info", details: String(error) },
       { status: 500 }

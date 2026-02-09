@@ -54,7 +54,6 @@ export async function POST(
       message: `Synced ${count} new commits`,
     });
   } catch (error: any) {
-    console.error("Error syncing GitHub commits:", error);
     return NextResponse.json(
       { error: error.message || "Failed to sync GitHub commits" },
       { status: 500 }

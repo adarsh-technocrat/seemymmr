@@ -235,12 +235,12 @@ export function RevenueSettings({
               },
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
       setStripeApiKey("");
     } catch (error) {
-      console.error("Error connecting Stripe:", error);
+      // Error connecting Stripe
     } finally {
       setLoading(false);
     }
@@ -261,12 +261,12 @@ export function RevenueSettings({
           updates: {
             paymentProviders: updatedPaymentProviders,
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
       setShowDisconnectDialog(false);
     } catch (error) {
-      console.error("Error disconnecting Stripe:", error);
+      // Error disconnecting Stripe
     } finally {
       setLoading(false);
     }
@@ -288,11 +288,11 @@ export function RevenueSettings({
               currency,
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating currency:", error);
+      // Error updating currency
     } finally {
       setLoading(false);
     }

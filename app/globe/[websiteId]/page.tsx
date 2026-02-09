@@ -47,7 +47,6 @@ export default function PublicGlobePage({
           setIsValid(false);
         }
       } catch (error) {
-        console.error("Error validating shareId:", error);
         setIsValid(false);
       }
     };

@@ -94,7 +94,6 @@ export async function POST(
       message: `Imported ${imported} records from Plausible`,
     });
   } catch (error: any) {
-    console.error("Error importing Plausible data:", error);
     return NextResponse.json(
       {
         error: error.message || "Failed to import Plausible data",

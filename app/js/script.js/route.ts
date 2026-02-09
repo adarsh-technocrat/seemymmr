@@ -80,7 +80,6 @@ export async function GET(request: NextRequest) {
 
           script = minified.code || rawScript;
         } catch (minifyError) {
-          console.error("Error minifying script:", minifyError);
           // Fallback to raw script if minification fails
           script = rawScript;
         }
@@ -111,7 +110,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error reading tracking script:", error);
     return new NextResponse("// Error loading tracking script", {
       status: 500,
       headers: {

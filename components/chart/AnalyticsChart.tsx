@@ -357,7 +357,7 @@ function AnalyticsChartComponent({
       // Today: only show up to current time index
       solidLineValue =
         currentTimeIndex !== null && index <= currentTimeIndex
-          ? item.visitors ?? null
+          ? (item.visitors ?? null)
           : null;
     } else {
       // Previous dates: always show the visitor line (preserve null if no data)
@@ -366,7 +366,7 @@ function AnalyticsChartComponent({
 
     // Sanitize revenue values to prevent NaN
     const sanitizeRevenue = (
-      value: number | undefined | null
+      value: number | undefined | null,
     ): number | undefined => {
       if (value === null || value === undefined) return undefined;
       const num = typeof value === "number" ? value : Number(value);
@@ -380,7 +380,7 @@ function AnalyticsChartComponent({
       // Dashed line value: only for currentTimeIndex (today only)
       dashedLineValue:
         currentTimeIndex !== null && index === currentTimeIndex && itemIsToday
-          ? item.visitors ?? null
+          ? (item.visitors ?? null)
           : null,
       // Sanitize revenue values
       revenueNew: sanitizeRevenue(item.revenueNew),
@@ -390,31 +390,6 @@ function AnalyticsChartComponent({
       revenuePerVisitor: sanitizeRevenue(item.revenuePerVisitor),
       conversionRate: sanitizeRevenue(item.conversionRate),
     };
-  });
-
-  // Debug logs
-  console.log("[AnalyticsChart] showRevenue:", showRevenue);
-  console.log("[AnalyticsChart] Data sample:", forecastData.slice(0, 3));
-  console.log("[AnalyticsChart] Revenue data check:", {
-    hasRevenueNew: forecastData.some((d) => d.revenueNew && d.revenueNew > 0),
-    hasRevenueRenewal: forecastData.some(
-      (d) => d.revenueRenewal && d.revenueRenewal > 0
-    ),
-    hasRevenueRefund: forecastData.some(
-      (d) => d.revenueRefund && d.revenueRefund > 0
-    ),
-    revenueNewValues: forecastData
-      .map((d) => d.revenueNew)
-      .filter((v) => v && v > 0)
-      .slice(0, 5),
-    revenueRenewalValues: forecastData
-      .map((d) => d.revenueRenewal)
-      .filter((v) => v && v > 0)
-      .slice(0, 5),
-    revenueRefundValues: forecastData
-      .map((d) => d.revenueRefund)
-      .filter((v) => v && v > 0)
-      .slice(0, 5),
   });
 
   return (

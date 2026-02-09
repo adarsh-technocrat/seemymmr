@@ -28,7 +28,7 @@ export function ReportsSettings({
   const { user: firebaseUser } = useAuth();
   const dispatch = useAppDispatch();
   const { notifications, notificationsLoading } = useAppSelector(
-    (state) => state.websites
+    (state) => state.websites,
   );
   const [weeklySummary, setWeeklySummary] = useState(false);
   const [trafficSpike, setTrafficSpike] = useState(false);
@@ -49,7 +49,7 @@ export function ReportsSettings({
 
   const handleToggle = async (
     type: "weeklySummary" | "trafficSpike",
-    value: boolean
+    value: boolean,
   ) => {
     setUpdating(true);
     try {
@@ -61,7 +61,7 @@ export function ReportsSettings({
           websiteId,
           weeklySummary: newWeeklySummary,
           trafficSpike: newTrafficSpike,
-        })
+        }),
       ).unwrap();
 
       if (type === "weeklySummary") {
@@ -71,7 +71,6 @@ export function ReportsSettings({
       }
       onUpdate();
     } catch (error: any) {
-      console.error("Error updating notifications:", error);
       alert(error || "Failed to update notification settings");
     } finally {
       setUpdating(false);

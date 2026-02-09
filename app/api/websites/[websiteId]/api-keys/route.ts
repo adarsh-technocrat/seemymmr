@@ -39,7 +39,6 @@ export async function GET(
 
     return NextResponse.json({ apiKeys });
   } catch (error: any) {
-    console.error("Error fetching API keys:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch API keys" },
       { status: 500 }
@@ -117,7 +116,6 @@ export async function POST(
       message: "API key generated. Save it now - it won't be shown again!",
     });
   } catch (error: any) {
-    console.error("Error generating API key:", error);
     return NextResponse.json(
       { error: error.message || "Failed to generate API key" },
       { status: 500 }

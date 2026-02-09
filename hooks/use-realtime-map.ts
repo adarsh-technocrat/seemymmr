@@ -314,13 +314,10 @@ export function useRealtimeMap({
           setVisitors(uniqueVisitors);
           setPaymentEvents(paymentEventsList);
           setPageViewEvents(pageViewEventsList);
-        } else {
-          console.error("Failed to fetch visitors:", response.status);
         }
         setIsLoading(false);
         setProgress(100); // Complete when visitors are loaded
       } catch (error) {
-        console.error("Error fetching visitors:", error);
         if (isMounted) {
           setIsLoading(false);
         }

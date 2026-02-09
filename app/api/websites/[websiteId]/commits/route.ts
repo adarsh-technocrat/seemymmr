@@ -58,7 +58,6 @@ export async function GET(
       count: commits.length,
     });
   } catch (error: any) {
-    console.error("Error fetching commits:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch commits" },
       { status: 500 }

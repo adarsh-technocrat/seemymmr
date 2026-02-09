@@ -65,7 +65,6 @@ export async function getSession(
       },
     };
   } catch (error) {
-    console.error("Error getting session:", error);
     return null;
   }
 }

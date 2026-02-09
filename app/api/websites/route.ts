@@ -18,7 +18,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ websites: sanitizedWebsites }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching websites:", error);
     return NextResponse.json(
       { error: "Failed to fetch websites" },
       { status: 500 }
@@ -64,7 +63,6 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ website: sanitizedWebsite }, { status: 201 });
   } catch (error) {
-    console.error("Error creating website:", error);
     return NextResponse.json(
       { error: "Failed to create website" },
       { status: 500 }

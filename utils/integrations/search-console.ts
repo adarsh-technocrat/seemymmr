@@ -85,7 +85,6 @@ export async function fetchSearchConsoleData(
     const data: SearchConsoleResponse = await response.json();
     return data.rows || [];
   } catch (error) {
-    console.error("Error fetching Search Console data:", error);
     throw error;
   }
 }
@@ -177,10 +176,6 @@ export async function syncSearchConsoleData(
           await storeSearchConsoleData(websiteId, dayRows, currentDate);
         }
       } catch (error) {
-        console.error(
-          `Error fetching data for ${currentDate.toISOString()}:`,
-          error
-        );
       }
 
       currentDate.setDate(currentDate.getDate() + 1);
@@ -188,10 +183,6 @@ export async function syncSearchConsoleData(
 
     return rows.length;
   } catch (error) {
-    console.error(
-      `Error syncing Search Console data for website ${websiteId}:`,
-      error
-    );
     throw error;
   }
 }

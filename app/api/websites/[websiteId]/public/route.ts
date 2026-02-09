@@ -47,7 +47,6 @@ export async function GET(
       message: "Public dashboard data",
     });
   } catch (error: any) {
-    console.error("Error fetching public dashboard:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch public dashboard" },
       { status: 500 }
@@ -112,7 +111,6 @@ export async function POST(
       },
     });
   } catch (error: any) {
-    console.error("Error updating public dashboard:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update public dashboard" },
       { status: 500 }

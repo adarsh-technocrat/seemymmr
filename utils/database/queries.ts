@@ -13,7 +13,6 @@ export async function getProfiles() {
     const profiles = await Profile.find({}).sort({ createdAt: -1 });
     return profiles;
   } catch (error) {
-    console.error("Error fetching profiles:", error);
     throw error;
   }
 }
@@ -25,7 +24,6 @@ export async function getProfileByUserId(userId: string) {
     const profile = await Profile.findOne({ userId });
     return profile;
   } catch (error) {
-    console.error("Error fetching profile:", error);
     throw error;
   }
 }
@@ -50,7 +48,6 @@ export async function createProfile(data: {
     await profile.save();
     return profile;
   } catch (error) {
-    console.error("Error creating profile:", error);
     throw error;
   }
 }
@@ -76,7 +73,6 @@ export async function updateProfile(
 
     return profile;
   } catch (error) {
-    console.error("Error updating profile:", error);
     throw error;
   }
 }
@@ -90,7 +86,6 @@ export async function deleteProfile(userId: string) {
   try {
     await Profile.findOneAndDelete({ userId });
   } catch (error) {
-    console.error("Error deleting profile:", error);
     throw error;
   }
 }

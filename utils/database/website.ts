@@ -14,7 +14,6 @@ export async function getWebsitesByUserId(userId: string) {
     const websites = await Website.find({ userId }).sort({ createdAt: -1 });
     return websites;
   } catch (error) {
-    console.error("Error fetching websites:", error);
     throw error;
   }
 }
@@ -29,7 +28,6 @@ export async function getWebsiteById(websiteId: string) {
     const website = await Website.findById(websiteId);
     return website;
   } catch (error) {
-    console.error("Error fetching website:", error);
     throw error;
   }
 }
@@ -71,7 +69,6 @@ export async function getWebsiteByTrackingCode(
 
     return website;
   } catch (error) {
-    console.error("Error fetching website:", error);
     throw error;
   }
 }
@@ -110,7 +107,6 @@ export async function createWebsite(data: {
     await website.save();
     return website;
   } catch (error) {
-    console.error("Error creating website:", error);
     throw error;
   }
 }
@@ -139,7 +135,6 @@ export async function updateWebsite(
 
     return website;
   } catch (error) {
-    console.error("Error updating website:", error);
     throw error;
   }
 }
@@ -153,7 +148,6 @@ export async function deleteWebsite(websiteId: string) {
   try {
     await Website.findByIdAndDelete(websiteId);
   } catch (error) {
-    console.error("Error deleting website:", error);
     throw error;
   }
 }

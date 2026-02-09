@@ -41,12 +41,10 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.meta.event_name}`);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
-    console.error("LemonSqueezy webhook error:", error);
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 }
@@ -64,14 +62,12 @@ async function handleOrderCreated(order: any) {
     order.attributes.meta?.websiteId;
 
   if (!websiteId) {
-    console.warn("No websiteId in LemonSqueezy order");
     return;
   }
 
   // Verify website exists
   const website = await getWebsiteById(websiteId);
   if (!website) {
-    console.warn(`Website not found: ${websiteId}`);
     return;
   }
 

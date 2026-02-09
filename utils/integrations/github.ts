@@ -72,10 +72,6 @@ export async function fetchGitHubCommits(
             return await detailResponse.json();
           }
         } catch (error) {
-          console.error(
-            `Error fetching commit details for ${commit.sha}:`,
-            error
-          );
         }
         return commit;
       })
@@ -83,7 +79,6 @@ export async function fetchGitHubCommits(
 
     return detailedCommits;
   } catch (error) {
-    console.error("Error fetching GitHub commits:", error);
     throw error;
   }
 }
@@ -170,20 +165,12 @@ export async function syncGitHubCommits(
           totalCommits += commits.length;
         }
       } catch (error) {
-        console.error(
-          `Error syncing commits for ${repo.owner}/${repo.name}:`,
-          error
-        );
         // Continue with other repositories
       }
     }
 
     return totalCommits;
   } catch (error) {
-    console.error(
-      `Error syncing GitHub commits for website ${websiteId}:`,
-      error
-    );
     throw error;
   }
 }

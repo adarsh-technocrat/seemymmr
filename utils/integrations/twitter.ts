@@ -88,7 +88,6 @@ export async function fetchTwitterMentions(
     const mentionsData = await mentionsResponse.json();
     return mentionsData.data || [];
   } catch (error) {
-    console.error("Error fetching Twitter mentions:", error);
     throw error;
   }
 }
@@ -178,10 +177,6 @@ export async function syncTwitterMentions(
 
     return mentions.length;
   } catch (error) {
-    console.error(
-      `Error syncing Twitter mentions for website ${websiteId}:`,
-      error
-    );
     throw error;
   }
 }

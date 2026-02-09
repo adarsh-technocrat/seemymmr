@@ -27,7 +27,6 @@ export async function GET(
 
     return NextResponse.json({ goal }, { status: 200 });
   } catch (error) {
-    console.error("Error fetching goal:", error);
     return NextResponse.json(
       { error: "Failed to fetch goal" },
       { status: 500 }
@@ -68,7 +67,6 @@ export async function PUT(
 
     return NextResponse.json({ goal: updatedGoal }, { status: 200 });
   } catch (error) {
-    console.error("Error updating goal:", error);
     return NextResponse.json(
       { error: "Failed to update goal" },
       { status: 500 }
@@ -102,7 +100,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
-    console.error("Error deleting goal:", error);
     return NextResponse.json(
       { error: "Failed to delete goal" },
       { status: 500 }

@@ -33,7 +33,6 @@ export function DomainsSettings() {
 
   const handleAddDomain = () => {
     // TODO: Implement add domain functionality
-    console.log("Add domain");
   };
 
   return (

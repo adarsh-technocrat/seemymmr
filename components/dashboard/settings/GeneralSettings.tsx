@@ -97,11 +97,11 @@ export function GeneralSettings({
         updateWebsiteSettingsAndConfiguration({
           websiteId,
           updates: { domain },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating domain:", error);
+      // Error updating domain
     } finally {
       setLoading(false);
     }
@@ -120,11 +120,11 @@ export function GeneralSettings({
               nickname,
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating nickname:", error);
+      // Error updating nickname
     } finally {
       setLoading(false);
     }
@@ -143,11 +143,11 @@ export function GeneralSettings({
               timezone,
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating timezone:", error);
+      // Error updating timezone
     } finally {
       setLoading(false);
     }
@@ -166,11 +166,11 @@ export function GeneralSettings({
               colorScheme: color,
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating color scheme:", error);
+      // Error updating color scheme
     } finally {
       setLoading(false);
     }
@@ -194,11 +194,11 @@ export function GeneralSettings({
               },
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating public dashboard:", error);
+      // Error updating public dashboard
     }
   };
 
@@ -276,8 +276,8 @@ export function GeneralSettings({
   defer
   data-website-id="${trackingCode}"
   data-domain="${domain}"${
-              allowLocalhost ? '\n  data-allow-localhost="true"' : ""
-            }
+    allowLocalhost ? '\n  data-allow-localhost="true"' : ""
+  }
   src="${
     typeof window !== "undefined" ? window.location.origin : ""
   }/js/script.js"
@@ -549,14 +549,14 @@ export function GeneralSettings({
           onClick={async () => {
             if (
               confirm(
-                "Are you sure you want to delete this website? This action cannot be undone."
+                "Are you sure you want to delete this website? This action cannot be undone.",
               )
             ) {
               try {
                 await dispatch(deleteWebsiteById(websiteId)).unwrap();
                 router.push("/dashboard");
               } catch (error) {
-                console.error("Error deleting website:", error);
+                // Error deleting website
               }
             }
           }}

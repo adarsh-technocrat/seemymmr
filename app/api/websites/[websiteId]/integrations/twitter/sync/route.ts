@@ -55,7 +55,6 @@ export async function POST(
       message: `Synced ${count} new mentions`,
     });
   } catch (error: any) {
-    console.error("Error syncing Twitter mentions:", error);
     return NextResponse.json(
       { error: error.message || "Failed to sync Twitter mentions" },
       { status: 500 }

@@ -215,7 +215,6 @@ export async function getPagesBreakdown(
   return result;
 }
 
-
 export async function getHostnamesBreakdown(
   websiteId: string,
   startDate: Date,
@@ -349,7 +348,6 @@ export async function getHostnamesBreakdown(
 
   return result;
 }
-
 
 export async function getEntryPagesBreakdown(
   websiteId: string,
@@ -577,7 +575,6 @@ export async function getEntryPagesBreakdown(
   return result;
 }
 
-
 export async function getExitLinksBreakdown(
   websiteId: string,
   startDate: Date,
@@ -673,5 +670,4 @@ export async function getExitLinksBreakdown(
 
   return result;
 }
-
 

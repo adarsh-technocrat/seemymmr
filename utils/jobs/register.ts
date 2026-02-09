@@ -76,9 +76,6 @@ export async function registerPaymentProviderSync(
       const end = new Date();
       const start = new Date(end.getTime() - 2 * 365 * 24 * 60 * 60 * 1000);
       const chunks = getMonthlyChunks(start, end);
-      console.log(
-        `First sync detected for website ${websiteId}, enqueueing ${chunks.length} monthly jobs (2 years of data)`,
-      );
       for (const [chunkStart, chunkEnd] of chunks) {
         await enqueueSyncJob({
           websiteId,
@@ -99,29 +96,6 @@ export async function registerPaymentProviderSync(
     syncRange = dateRange.syncRange;
     priority = 60;
 
-    // #region agent log
-    fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        location: "utils/jobs/register.ts:registerPaymentProviderSync",
-        message: "Enqueueing Stripe sync job",
-        data: {
-          websiteId,
-          forceInitialSync,
-          rangeYears: !existingSync ? 2 : null,
-          startDate: startDate.toISOString(),
-          endDate: endDate.toISOString(),
-          priority,
-          syncRange,
-        },
-        timestamp: Date.now(),
-        sessionId: "debug-session",
-        hypothesisId: "H7",
-      }),
-    }).catch(() => {});
-    // #endregion
-
     await enqueueSyncJob({
       websiteId,
       provider,
@@ -131,10 +105,6 @@ export async function registerPaymentProviderSync(
       endDate,
       syncRange,
     });
-
-    console.log(
-      `Registered ${frequency} sync job for website ${websiteId}, provider ${provider}`,
-    );
     return;
   }
 
@@ -199,7 +169,4 @@ export async function unregisterPaymentProviderSync(
   provider: SyncJobProvider,
 ): Promise<void> {
   await cancelPendingJobs(websiteId, provider);
-  console.log(
-    `Unregistered sync jobs for website ${websiteId}, provider ${provider}`,
-  );
 }

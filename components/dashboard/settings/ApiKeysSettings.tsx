@@ -35,7 +35,7 @@ export function ApiKeysSettings() {
   const [keyName, setKeyName] = useState("");
   const [creating, setCreating] = useState(false);
   const [newKey, setNewKey] = useState<{ key: string; name: string } | null>(
-    null
+    null,
   );
   const [showKeyDialog, setShowKeyDialog] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -64,7 +64,6 @@ export function ApiKeysSettings() {
       setShowKeyDialog(true);
       setKeyName("");
     } catch (error: any) {
-      console.error("Error creating API key:", error);
       alert(error || "Failed to create API key");
     } finally {
       setCreating(false);

@@ -34,7 +34,6 @@ export async function GET(
 
     return NextResponse.json({ visitorsNow });
   } catch (error: any) {
-    console.error("Error fetching widget data:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch widget data" },
       { status: 500 },

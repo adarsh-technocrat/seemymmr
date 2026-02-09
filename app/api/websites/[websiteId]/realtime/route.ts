@@ -67,7 +67,6 @@ export async function GET(
               encoder.encode(`data: ${JSON.stringify(data)}\n\n`),
             );
           } catch (error) {
-            console.error("Error in realtime stream:", error);
             controller.enqueue(
               encoder.encode(
                 `data: ${JSON.stringify({
@@ -96,7 +95,6 @@ export async function GET(
       },
     });
   } catch (error: any) {
-    console.error("Error in realtime stream:", error);
     return new Response("Internal server error", { status: 500 });
   }
 }

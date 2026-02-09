@@ -53,7 +53,6 @@ export async function getLocationFromIP(ip: string): Promise<LocationInfo> {
     if (response.ok) {
       const data = await response.json();
       if (data.error) {
-        console.error("ipapi.co error:", data.reason);
       } else {
         const lat =
           typeof data.latitude === "number" && !isNaN(data.latitude)
@@ -74,7 +73,6 @@ export async function getLocationFromIP(ip: string): Promise<LocationInfo> {
       }
     }
   } catch (error) {
-    console.error("ipapi.co geolocation error:", error);
   }
 
   // Option 2: IPStack (requires API key)
@@ -92,7 +90,6 @@ export async function getLocationFromIP(ip: string): Promise<LocationInfo> {
       if (response.ok) {
         const data = await response.json();
         if (data.error) {
-          console.error("IPStack error:", data.error.info);
         } else {
           const lat =
             typeof data.latitude === "number" && !isNaN(data.latitude)
@@ -113,7 +110,6 @@ export async function getLocationFromIP(ip: string): Promise<LocationInfo> {
         }
       }
     } catch (error) {
-      console.error("IPStack geolocation error:", error);
     }
   }
 
@@ -149,7 +145,6 @@ export async function getLocationFromIP(ip: string): Promise<LocationInfo> {
       }
     }
   } catch (error) {
-    console.error("ip-api.com geolocation error:", error);
   }
 
   return {

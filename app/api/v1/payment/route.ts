@@ -89,7 +89,6 @@ export async function POST(request: NextRequest) {
           if (link.sessionId) payment.sessionId = link.sessionId;
         }
       } catch (error) {
-        console.error("Error linking payment to visitor:", error);
       }
     }
 
@@ -103,7 +102,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Error recording payment:", error);
     return NextResponse.json(
       {
         status: "error",

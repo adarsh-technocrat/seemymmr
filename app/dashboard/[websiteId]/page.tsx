@@ -262,7 +262,6 @@ export default function WebsiteAnalyticsPage({
         }}
         onOpenInsights={() => {
           // Placeholder for insights feature
-          console.log("Insights feature coming soon");
         }}
       />
     </>

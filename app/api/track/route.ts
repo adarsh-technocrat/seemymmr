@@ -28,7 +28,7 @@ import type { IPageView } from "@/db/models/PageView";
 
 const PIXEL = Buffer.from(
   "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
-  "base64"
+  "base64",
 );
 
 type TrackingEventType =
@@ -120,7 +120,7 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
 
     const website: IWebsite | null = await getWebsiteByTrackingCode(
       trackingCode,
-      hostnameForValidation
+      hostnameForValidation,
     );
     if (!website) {
       return new NextResponse(PIXEL, {
@@ -274,7 +274,7 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
         existingActiveSession.bounce = false;
         existingActiveSession.lastSeenAt = now;
         existingActiveSession.duration = Math.floor(
-          (now.getTime() - existingActiveSession.firstVisitAt.getTime()) / 1000
+          (now.getTime() - existingActiveSession.firstVisitAt.getTime()) / 1000,
         );
         await existingActiveSession.save();
         session = existingActiveSession;
@@ -304,7 +304,7 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
       session.lastSeenAt = now;
       // Calculate session duration in seconds
       session.duration = Math.floor(
-        (now.getTime() - session.firstVisitAt.getTime()) / 1000
+        (now.getTime() - session.firstVisitAt.getTime()) / 1000,
       );
       await session.save();
     }
@@ -342,15 +342,6 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
     });
     await pageView.save();
 
-    // Log pageview creation for debugging
-    console.log(`[Tracking] PageView created:`, {
-      path,
-      visitorId,
-      sessionId,
-      hostname,
-      timestamp: now.toISOString(),
-    });
-
     const protocol: string =
       request.headers.get("x-forwarded-proto") ||
       request.nextUrl.protocol.slice(0, -1);
@@ -373,16 +364,15 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
     });
     response.headers.append(
       "Set-Cookie",
-      createVisitorIdCookie(visitorId, isSecure)
+      createVisitorIdCookie(visitorId, isSecure),
     );
     response.headers.append(
       "Set-Cookie",
-      createSessionIdCookie(sessionId, isSecure)
+      createSessionIdCookie(sessionId, isSecure),
     );
 
     return response;
   } catch (error) {
-    console.error("Tracking error:", error);
     return new NextResponse(PIXEL, {
       status: 200,
       headers: {

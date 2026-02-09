@@ -23,9 +23,6 @@ export async function POST(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(
-        `process-jobs: failed to process ${response.status} ${errorText}`,
-      );
       return NextResponse.json(
         { error: "Job processing failed", status: response.status },
         { status: 502 },
@@ -39,7 +36,6 @@ export async function POST(request: NextRequest) {
       jobs: data.jobs ?? [],
     });
   } catch (error: any) {
-    console.error("Error in cron process-jobs:", error);
     return NextResponse.json(
       { error: "Failed to process jobs", message: error?.message },
       { status: 500 },

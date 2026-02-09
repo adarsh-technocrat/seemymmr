@@ -42,7 +42,6 @@ export async function authenticateApiRequest(
       websiteId: apiKey.websiteId.toString(),
     };
   } catch (error) {
-    console.error("Error authenticating API request:", error);
     return null;
   }
 }

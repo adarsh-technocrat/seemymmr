@@ -75,7 +75,7 @@ export function APISettings({
         createNewApiKeyForWebsite({
           websiteId,
           name: keyName.trim() || "Unnamed Key",
-        })
+        }),
       ).unwrap();
       setNewKey({
         key: apiKey.key,
@@ -87,7 +87,6 @@ export function APISettings({
       await dispatch(fetchAllApiKeysForWebsite(websiteId));
       onUpdate();
     } catch (error: any) {
-      console.error("Error creating API key:", error);
       alert(error || "Failed to create API key");
     } finally {
       setCreating(false);
@@ -104,11 +103,10 @@ export function APISettings({
         deleteApiKeyByIdFromWebsite({
           websiteId,
           keyId,
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error: any) {
-      console.error("Error deleting API key:", error);
       alert(error || "Failed to delete API key");
     }
   };

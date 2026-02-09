@@ -99,7 +99,6 @@ export async function POST(
       message: "Sync job created successfully",
     });
   } catch (error: any) {
-    console.error("Error creating sync job:", error);
     return NextResponse.json(
       { error: "Failed to create sync job", message: error.message },
       { status: 500 }
@@ -171,7 +170,6 @@ export async function GET(
       pendingJobs: pendingJobs.length,
     });
   } catch (error: any) {
-    console.error("Error getting sync status:", error);
     return NextResponse.json(
       { error: "Failed to get sync status", message: error.message },
       { status: 500 }

@@ -43,7 +43,6 @@ function LoginForm() {
         setError(data.error || "Authentication failed");
       }
     } catch (error: any) {
-      console.error("Error signing in with Google:", error);
       setError(error.message || "Failed to sign in with Google");
     } finally {
       setIsLoading(false);

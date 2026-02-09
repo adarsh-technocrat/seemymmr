@@ -35,12 +35,8 @@ export async function GET(
     });
 
     const hasEvents = sessionCount > 0;
-
-    console.log(hasEvents);
-
     return NextResponse.json({ hasEvents, sessionCount });
   } catch (error) {
-    console.error("Error checking for events:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }

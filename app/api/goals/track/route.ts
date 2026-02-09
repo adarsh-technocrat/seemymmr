@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error tracking goal:", error);
     return new NextResponse(null, {
       status: 204,
       headers: {

@@ -77,11 +77,10 @@ export function SecuritySettings({
               },
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating attack mode:", error);
       // Revert on error
       setAttackModeEnabled(!checked);
     } finally {
@@ -117,11 +116,10 @@ export function SecuritySettings({
               },
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating auto-activate:", error);
       // Revert on error
       setAutoActivate(!checked);
     } finally {
@@ -198,7 +196,7 @@ export function SecuritySettings({
               <p className="text-xs text-textSecondary">
                 Last activated:{" "}
                 {new Date(
-                  website.settings.attackMode.activatedAt
+                  website.settings.attackMode.activatedAt,
                 ).toLocaleString()}
               </p>
             </div>

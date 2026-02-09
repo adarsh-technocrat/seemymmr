@@ -71,7 +71,6 @@ export async function PUT(
         .populate("invitedBy", "email name"),
     });
   } catch (error: any) {
-    console.error("Error updating team member:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update team member" },
       { status: 500 }
@@ -122,7 +121,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true, message: "Team member removed" });
   } catch (error: any) {
-    console.error("Error removing team member:", error);
     return NextResponse.json(
       { error: error.message || "Failed to remove team member" },
       { status: 500 }

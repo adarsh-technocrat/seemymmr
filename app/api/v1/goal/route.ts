@@ -60,7 +60,6 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Error tracking goal:", error);
     return NextResponse.json(
       {
         status: "error",

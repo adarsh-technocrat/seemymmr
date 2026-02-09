@@ -56,7 +56,6 @@ export async function GET(
       count: mentions.length,
     });
   } catch (error: any) {
-    console.error("Error fetching mentions:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch mentions" },
       { status: 500 }

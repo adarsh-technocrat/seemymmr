@@ -101,7 +101,6 @@ export default function AddSitePage() {
                   ).unwrap();
                   window.location.href = `/dashboard/${website._id}`;
                 } catch (error: any) {
-                  console.error("Error creating website:", error);
                   alert(error || "Failed to create website");
                 }
               }}

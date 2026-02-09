@@ -725,7 +725,6 @@ export async function getSourceBreakdown(
   return result;
 }
 
-
 export async function getCampaignBreakdown(
   websiteId: string,
   startDate: Date,
@@ -1174,7 +1173,6 @@ export async function getCampaignBreakdown(
 
   return result;
 }
-
 
 export async function getChannelBreakdownWithReferrers(
   websiteId: string,
@@ -1698,7 +1696,6 @@ export async function getChannelBreakdownWithReferrers(
   return channels;
 }
 
-
 export async function getReferrersBreakdown(
   websiteId: string,
   startDate: Date,
@@ -1832,10 +1829,6 @@ export async function getReferrersBreakdown(
           null;
       } catch (error) {
         // Invalid URL, skip - but log for debugging
-        console.warn(
-          `[getReferrersBreakdown] Failed to parse path: ${session.firstPageViewPath}`,
-          error
-        );
       }
     }
 
@@ -2463,5 +2456,4 @@ export async function getReferrersBreakdown(
 
   return result;
 }
-
 

@@ -37,7 +37,6 @@ export function UserMenu() {
             image: parsedData.image || firebaseUser.photoURL || undefined,
           });
         } catch (e) {
-          console.error("Error parsing user data:", e);
           setUserData({
             id: firebaseUser.uid,
             email: firebaseUser.email || "",
@@ -90,13 +89,12 @@ export function UserMenu() {
               height={24}
               referrerPolicy="no-referrer"
               onError={(e) => {
-                console.error("Image failed to load:", userData.image);
                 // Replace with DiceBear avatar on error
                 const target = e.currentTarget;
                 const fallbackAvatar = generateUserAvatar(
                   userData.email,
                   userData.name,
-                  { size: 24 }
+                  { size: 24 },
                 );
                 target.src = fallbackAvatar;
               }}

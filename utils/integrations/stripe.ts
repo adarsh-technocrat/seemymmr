@@ -99,8 +99,6 @@ export class StripeHelper {
       if (response.status === 429) {
         const retryAfter = response.headers.get("Retry-After");
         const waitTime = retryAfter ? parseInt(retryAfter) * 1000 : 2000;
-
-        console.warn(`Rate limit hit, waiting ${waitTime}ms before retry`);
         await new Promise((resolve) => setTimeout(resolve, waitTime));
         continue;
       }
@@ -186,8 +184,6 @@ export class StripeHelper {
         if (error.type === "StripeRateLimitError") {
           const retryAfter = error.headers?.["retry-after"] || "2";
           const waitTime = parseInt(retryAfter) * 1000;
-
-          console.warn(`Rate limit hit for refunds, waiting ${waitTime}ms`);
           await new Promise((resolve) => setTimeout(resolve, waitTime));
           continue;
         }
@@ -239,17 +235,12 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
 
       return { synced, skipped, errors };
     } catch (error) {
-      console.error(
-        `Error syncing Stripe payments for website ${websiteId}:`,
-        error,
-      );
       throw error;
     }
   }
 
   async deletePayments(websiteId: string): Promise<void> {
     await deletePaymentsByProvider(websiteId, "stripe");
-    console.log(`Deleted all Stripe payment data for website ${websiteId}`);
   }
 
   async validatePaymentProviderKey(
@@ -272,11 +263,6 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         startDate,
         endDate,
       );
-
-      console.log(
-        `Found ${paymentIntents.length} payment intents to sync for website ${websiteId}`,
-      );
-
       for (const paymentIntent of paymentIntents) {
         try {
           if (paymentIntent.status !== "succeeded") {
@@ -296,10 +282,6 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
             paymentErrors++;
           }
         } catch (error) {
-          console.error(
-            `Error processing payment intent ${paymentIntent.id}:`,
-            error,
-          );
           paymentErrors++;
         }
       }
@@ -310,10 +292,6 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         errors: paymentErrors,
       };
     } catch (error) {
-      console.error(
-        `Error syncing Stripe payment intents for website ${websiteId}:`,
-        error,
-      );
       throw error;
     }
   }
@@ -329,11 +307,6 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
 
     try {
       const refunds = await this.helper.fetchAllRefunds(startDate, endDate);
-
-      console.log(
-        `Found ${refunds.length} refunds to sync for website ${websiteId}`,
-      );
-
       for (const refund of refunds) {
         try {
           if (refund.status !== "succeeded") {
@@ -350,7 +323,6 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
             refundErrors++;
           }
         } catch (error) {
-          console.error(`Error processing refund ${refund.id}:`, error);
           refundErrors++;
         }
       }
@@ -361,10 +333,6 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         errors: refundErrors,
       };
     } catch (error) {
-      console.error(
-        `Error syncing Stripe refunds for website ${websiteId}:`,
-        error,
-      );
       throw error;
     }
   }
@@ -399,14 +367,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
           expandedInvoice = await this.helper.retrieveInvoice(invoice);
         } catch (error: any) {
           if (error.type === "StripeRateLimitError") {
-            console.warn(
-              `Rate limit hit while retrieving invoice ${invoice}, will retry later`,
-            );
           } else {
-            console.warn(
-              `Could not retrieve invoice ${invoice} for payment intent ${paymentIntent.id}:`,
-              error,
-            );
           }
         }
       }
@@ -471,15 +432,8 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         timestamp: new Date(paymentIntent.created * 1000),
       });
 
-      console.log(
-        `Synced payment intent ${paymentIntent.id} as payment record (type: ${paymentType})`,
-      );
       return "synced";
     } catch (error) {
-      console.error(
-        `Error creating payment for payment intent ${paymentIntent.id}:`,
-        error,
-      );
       return "error";
     }
   }
@@ -525,12 +479,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         if (charge.metadata) {
           metadata = { ...metadata, ...charge.metadata };
         }
-      } catch (chargeError) {
-        console.warn(
-          `Could not retrieve charge ${refund.charge} for refund ${refund.id}:`,
-          chargeError,
-        );
-      }
+      } catch (chargeError) {}
     }
 
     if (!customerEmail && refund.payment_intent) {
@@ -550,12 +499,7 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         if (paymentIntent.metadata) {
           metadata = { ...metadata, ...paymentIntent.metadata };
         }
-      } catch (piError) {
-        console.warn(
-          `Could not retrieve payment intent ${refund.payment_intent} for refund ${refund.id}:`,
-          piError,
-        );
-      }
+      } catch (piError) {}
     }
 
     try {
@@ -572,11 +516,8 @@ export class StripePaymentSyncer extends PaymentProviderSyncer {
         metadata,
         timestamp: new Date(refund.created * 1000),
       });
-
-      console.log(`Synced refund ${refund.id} as payment record`);
       return "synced";
     } catch (error) {
-      console.error(`Error creating payment for refund ${refund.id}:`, error);
       return "error";
     }
   }
@@ -661,13 +602,6 @@ export async function validateStripeApiKey(
         statusCode: 400,
       };
     }
-
-    console.error("Stripe validation error:", {
-      type: error.type,
-      code: error.code,
-      message: error.message,
-    });
-
     return {
       error:
         error.message ||
@@ -693,7 +627,6 @@ export function initializeStripeSyncConfig(
 export async function handleStripeRemoval(websiteId: string): Promise<void> {
   await unregisterPaymentProviderSync(websiteId, "stripe");
   await deletePaymentsByProvider(websiteId, "stripe");
-  console.log(`Deleted all Stripe payment data for website ${websiteId}`);
 }
 
 export async function handleStripeAddition(
@@ -701,20 +634,6 @@ export async function handleStripeAddition(
   apiKey: string,
   stripeConfig?: NonNullable<IWebsite["paymentProviders"]>["stripe"],
 ): Promise<void> {
-  // #region agent log
-  fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      location: "utils/integrations/stripe.ts:handleStripeAddition",
-      message: "handleStripeAddition entry",
-      data: { websiteId, forceInitialSync: true },
-      timestamp: Date.now(),
-      sessionId: "debug-session",
-      hypothesisId: "H6",
-    }),
-  }).catch(() => {});
-  // #endregion
   const configToUse: NonNullable<IWebsite["paymentProviders"]>["stripe"] =
     stripeConfig || {
       apiKey,
@@ -744,13 +663,11 @@ export async function handleStripeAddition(
     .then((res) => {
       clearTimeout(timeoutId);
       if (!res.ok) {
-        console.error("Job process trigger returned", res.status);
       }
     })
     .catch((err) => {
       clearTimeout(timeoutId);
       if (err?.name !== "AbortError") {
-        console.error("Failed to trigger immediate job processing:", err);
       }
     });
 }
@@ -772,25 +689,6 @@ export async function processStripeConfigChanges(
 ): Promise<StripeConfigResult> {
   const changes = detectStripeChanges(currentWebsite, newPaymentProviders);
 
-  // #region agent log
-  fetch("http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      location: "utils/integrations/stripe.ts:processStripeConfigChanges",
-      message: "Stripe config changes",
-      data: {
-        websiteId,
-        isNewStripeKey: changes.isNewStripeKey,
-        isStripeRemoved: changes.isStripeRemoved,
-      },
-      timestamp: Date.now(),
-      sessionId: "debug-session",
-      hypothesisId: "H4",
-    }),
-  }).catch(() => {});
-  // #endregion
-
   if (newPaymentProviders?.stripe?.apiKey) {
     const validation = await validateStripeApiKey(
       newPaymentProviders.stripe.apiKey,
@@ -810,35 +708,13 @@ export async function processStripeConfigChanges(
     }
 
     if (changes.isNewStripeKey && newPaymentProviders?.stripe?.apiKey) {
-      // #region agent log
-      fetch(
-        "http://127.0.0.1:7245/ingest/26148bd5-1487-428a-a165-414f1cb8b3fe",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            location: "utils/integrations/stripe.ts:processStripeConfigChanges",
-            message: "Calling handleStripeAddition (forceInitialSync=true)",
-            data: { websiteId },
-            timestamp: Date.now(),
-            sessionId: "debug-session",
-            hypothesisId: "H5",
-          }),
-        },
-      ).catch(() => {});
-      // #endregion
       await handleStripeAddition(
         websiteId,
         newPaymentProviders.stripe.apiKey,
         newPaymentProviders.stripe,
       );
     }
-  } catch (error) {
-    console.error(
-      `Error registering/unregistering sync jobs for website ${websiteId}:`,
-      error,
-    );
-  }
+  } catch (error) {}
 
   return {};
 }

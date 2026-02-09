@@ -41,7 +41,6 @@ export function WaitingForEventsBanner({
           setHasAnyEvents((prev) => prev ?? false);
         }
       } catch (error) {
-        console.error("Error checking for events:", error);
         setHasAnyEvents((prev) => prev ?? false);
       }
     };

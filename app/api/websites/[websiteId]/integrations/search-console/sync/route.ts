@@ -61,7 +61,6 @@ export async function POST(
       message: `Synced ${count} new search data rows`,
     });
   } catch (error: any) {
-    console.error("Error syncing Search Console data:", error);
     return NextResponse.json(
       { error: error.message || "Failed to sync Search Console data" },
       { status: 500 }

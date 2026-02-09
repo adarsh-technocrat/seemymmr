@@ -167,7 +167,6 @@ export async function GET(
                 syncRange,
               });
             } catch (error) {
-              console.error("Failed to enqueue Stripe sync job:", error);
             }
           }
         }
@@ -319,7 +318,6 @@ export async function GET(
 
     return NextResponse.json(response, { status: 200 });
   } catch (error) {
-    console.error("Error fetching analytics:", error);
     return NextResponse.json(
       { error: "Failed to fetch analytics" },
       { status: 500 }

@@ -12,7 +12,6 @@ export async function getGoalsByWebsiteId(websiteId: string) {
     const goals = await Goal.find({ websiteId }).sort({ createdAt: -1 });
     return goals;
   } catch (error) {
-    console.error("Error fetching goals:", error);
     throw error;
   }
 }
@@ -27,7 +26,6 @@ export async function getGoalById(goalId: string) {
     const goal = await Goal.findById(goalId);
     return goal;
   } catch (error) {
-    console.error("Error fetching goal:", error);
     throw error;
   }
 }
@@ -54,7 +52,6 @@ export async function createGoal(data: {
     await goal.save();
     return goal;
   } catch (error) {
-    console.error("Error creating goal:", error);
     throw error;
   }
 }
@@ -81,7 +78,6 @@ export async function updateGoal(
 
     return goal;
   } catch (error) {
-    console.error("Error updating goal:", error);
     throw error;
   }
 }
@@ -95,7 +91,6 @@ export async function deleteGoal(goalId: string) {
   try {
     await Goal.findByIdAndDelete(goalId);
   } catch (error) {
-    console.error("Error deleting goal:", error);
     throw error;
   }
 }
@@ -123,7 +118,6 @@ export async function trackGoalEvent(data: {
 
     if (!goal) {
       // Goal not found, but we can still track it
-      console.warn(`Goal not found for event: ${data.event}`);
       return null;
     }
 
@@ -141,7 +135,6 @@ export async function trackGoalEvent(data: {
     await goalEvent.save();
     return goalEvent;
   } catch (error) {
-    console.error("Error tracking goal event:", error);
     throw error;
   }
 }

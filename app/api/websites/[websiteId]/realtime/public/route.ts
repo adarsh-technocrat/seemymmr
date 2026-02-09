@@ -59,7 +59,6 @@ export async function POST(
       },
     });
   } catch (error: any) {
-    console.error("Error updating public realtime globe:", error);
     return NextResponse.json(
       { error: error.message || "Failed to update public realtime globe" },
       { status: 500 },

@@ -101,7 +101,6 @@ export async function POST(request: NextRequest) {
       }
     );
   } catch (error: any) {
-    console.error("Error identifying user:", error);
     return NextResponse.json(
       { error: error.message || "Failed to identify user" },
       {

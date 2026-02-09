@@ -84,8 +84,6 @@ export async function createPayment(data: {
         return existingPayment;
       }
     }
-
-    console.error("Error creating payment:", error);
     throw error;
   }
 }
@@ -109,7 +107,6 @@ export async function updatePaymentRefunded(
 
     return payment;
   } catch (error) {
-    console.error("Error updating payment refunded status:", error);
     throw error;
   }
 }
@@ -135,7 +132,6 @@ export async function getPaymentsByWebsiteId(
     const payments = await Payment.find(query).sort({ timestamp: -1 });
     return payments;
   } catch (error) {
-    console.error("Error fetching payments:", error);
     throw error;
   }
 }
@@ -157,12 +153,8 @@ export async function deletePaymentsByProvider(
     });
 
     const deletedCount = result.deletedCount || 0;
-    console.log(
-      `Deleted ${deletedCount} payment records for website ${websiteId}, provider ${provider}`,
-    );
     return deletedCount;
   } catch (error) {
-    console.error("Error deleting payments:", error);
     throw error;
   }
 }

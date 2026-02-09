@@ -57,12 +57,10 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`Unhandled event type: ${event.type}`);
     }
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
-    console.error("Stripe webhook error:", error);
     return NextResponse.json(
       { error: "Webhook processing failed" },
       { status: 500 }
@@ -77,14 +75,12 @@ async function handleCheckoutSession(session: any) {
   // Extract website ID from metadata
   const websiteId = session.metadata?.websiteId;
   if (!websiteId) {
-    console.warn("No websiteId in checkout session metadata");
     return;
   }
 
   // Verify website exists
   const website = await getWebsiteById(websiteId);
   if (!website) {
-    console.warn(`Website not found: ${websiteId}`);
     return;
   }
 
@@ -115,13 +111,11 @@ async function handleCheckoutSession(session: any) {
 async function handlePaymentIntent(paymentIntent: any) {
   const websiteId = paymentIntent.metadata?.websiteId;
   if (!websiteId) {
-    console.warn("No websiteId in payment intent metadata");
     return;
   }
 
   const website = await getWebsiteById(websiteId);
   if (!website) {
-    console.warn(`Website not found: ${websiteId}`);
     return;
   }
 
@@ -154,6 +148,5 @@ async function handleRefund(charge: any) {
   );
 
   if (!payment) {
-    console.warn(`Payment not found for refund: ${charge.id}`);
   }
 }

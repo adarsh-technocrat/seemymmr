@@ -63,7 +63,6 @@ export async function GET(
         : null,
     });
   } catch (error: any) {
-    console.error("Error fetching team members:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch team members" },
       { status: 500 }
@@ -150,7 +149,6 @@ export async function POST(
       message: "Team member invited successfully",
     });
   } catch (error: any) {
-    console.error("Error inviting team member:", error);
     return NextResponse.json(
       { error: error.message || "Failed to invite team member" },
       { status: 500 }

@@ -146,10 +146,6 @@ export async function getReferrersBreakdown(
           null;
       } catch (error) {
         // Invalid URL, skip - but log for debugging
-        console.warn(
-          `[getReferrersBreakdown] Failed to parse path: ${session.firstPageViewPath}`,
-          error
-        );
       }
     }
 

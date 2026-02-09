@@ -52,7 +52,7 @@ export function ActivityFeed({
   useEffect(() => {
     if (!audioRef.current || paymentEvents.length === 0) return;
     const newPayments = paymentEvents.filter(
-      (payment) => !playedPaymentIds.current.has(payment.id)
+      (payment) => !playedPaymentIds.current.has(payment.id),
     );
 
     if (newPayments.length > 0) {
@@ -61,8 +61,8 @@ export function ActivityFeed({
       });
       if (audioRef.current) {
         audioRef.current.currentTime = 0;
-        audioRef.current.play().catch((error) => {
-          console.log("Could not play sound effect:", error);
+        audioRef.current.play().catch(() => {
+          // Sound effect failed to play
         });
       }
     }
@@ -75,7 +75,7 @@ export function ActivityFeed({
       if (!nameMap.has(key)) {
         nameMap.set(
           key,
-          generateVisitorName(visitor.visitorId, visitor.userId)
+          generateVisitorName(visitor.visitorId, visitor.userId),
         );
       }
     });
@@ -98,7 +98,7 @@ export function ActivityFeed({
   const selectedVisitor = useMemo(() => {
     if (!selectedVisitorId) return null;
     return visitors.find(
-      (v) => (v.userId || v.visitorId) === selectedVisitorId
+      (v) => (v.userId || v.visitorId) === selectedVisitorId,
     );
   }, [visitors, selectedVisitorId]);
 
@@ -177,9 +177,9 @@ export function ActivityFeed({
               const customerName = payment.customerEmail
                 ? payment.customerEmail.split("@")[0].toUpperCase()
                 : payment.visitorId
-                ? visitorNames.get(payment.visitorId) ||
-                  generateVisitorName(payment.visitorId)
-                : "Customer";
+                  ? visitorNames.get(payment.visitorId) ||
+                    generateVisitorName(payment.visitorId)
+                  : "Customer";
 
               return (
                 <div

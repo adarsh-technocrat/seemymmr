@@ -89,7 +89,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
           }
         } catch (error) {
-          console.error("Error verifying token:", error);
           await firebaseSignOut(auth);
           document.cookie = "firebaseToken=; path=/; max-age=0";
           localStorage.removeItem("firebaseUser");
@@ -113,7 +112,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             365 * 24 * 60 * 60
           }; SameSite=Lax${isSecure ? "; Secure" : ""}`;
         } catch (error) {
-          console.error("Error refreshing token:", error);
         }
       }
     }, 55 * 60 * 1000);

@@ -128,12 +128,6 @@ export async function GET(
         }
 
         // Log for debugging
-        console.log(`[Realtime] Visitor ${session.visitorId}:`, {
-          sessionId: session.sessionId,
-          currentPath,
-          pageViews: session.pageViews,
-          lastSeenAt: session.lastSeenAt.toISOString(),
-        });
 
         return {
           visitorId: session.visitorId,
@@ -220,7 +214,6 @@ export async function GET(
 
     return NextResponse.json({ visitors, paymentEvents, pageViewEvents });
   } catch (error: any) {
-    console.error("Error fetching real-time visitors:", error);
     return NextResponse.json(
       { error: error.message || "Failed to fetch visitors" },
       { status: 500 },

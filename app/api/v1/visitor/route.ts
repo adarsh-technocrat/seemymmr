@@ -90,7 +90,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error: any) {
-    console.error("Error fetching visitor data:", error);
     return NextResponse.json(
       {
         status: "error",

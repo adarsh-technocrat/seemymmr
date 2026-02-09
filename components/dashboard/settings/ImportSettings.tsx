@@ -46,23 +46,22 @@ export function ImportSettings({
         importPlausibleDataForWebsite({
           websiteId,
           file: selectedFile,
-        })
+        }),
       ).unwrap();
       alert(
-        data.message || `Imported ${data.imported || 0} records successfully`
+        data.message || `Imported ${data.imported || 0} records successfully`,
       );
       setSelectedFile(null);
       // Reset file input
       const form = e.currentTarget;
       const fileInput = form.querySelector(
-        'input[type="file"]'
+        'input[type="file"]',
       ) as HTMLInputElement;
       if (fileInput) {
         fileInput.value = "";
       }
       onUpdate();
     } catch (error: any) {
-      console.error("Error importing data:", error);
       alert(error || "Failed to import data");
     } finally {
       setUploading(false);

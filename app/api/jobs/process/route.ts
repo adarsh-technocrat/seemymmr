@@ -67,7 +67,6 @@ export async function POST(request: NextRequest) {
       jobs: processedJobs,
     });
   } catch (error: any) {
-    console.error("Error processing jobs:", error);
     return NextResponse.json(
       { error: "Failed to process jobs", message: error.message },
       { status: 500 },
@@ -149,8 +148,6 @@ async function processJob(job: any): Promise<{
 
     return result;
   } catch (error: any) {
-    console.error(`Error processing job ${job._id}:`, error);
-
     // Check if we should retry
     if (job.retryCount < job.maxRetries) {
       // Increment retry count and reset to pending

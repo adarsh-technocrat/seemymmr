@@ -65,7 +65,6 @@ export async function POST(
       message: `Synced ${result.synced} payments, skipped ${result.skipped} duplicates, ${result.errors} errors`,
     });
   } catch (error: any) {
-    console.error("Error syncing Stripe payments:", error);
     return NextResponse.json(
       {
         error: error.message || "Failed to sync Stripe payments",

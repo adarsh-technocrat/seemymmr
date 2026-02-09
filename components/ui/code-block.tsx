@@ -44,7 +44,7 @@ export function CodeBlock({
         try {
           Prism.highlightElement(codeRef.current!);
         } catch (error) {
-          console.error("Prism highlighting error:", error);
+          // Prism highlighting error
         }
       }, 0);
       return () => clearTimeout(timer);
@@ -57,7 +57,7 @@ export function CodeBlock({
         await navigator.clipboard.writeText(code);
         // You could add a toast notification here if needed
       } catch (err) {
-        console.error("Failed to copy code:", err);
+        // Failed to copy code
       }
     }
   };

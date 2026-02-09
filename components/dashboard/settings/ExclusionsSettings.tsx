@@ -144,11 +144,11 @@ export function ExclusionsSettings({
               ...updates,
             },
           },
-        })
+        }),
       ).unwrap();
       onUpdate();
     } catch (error) {
-      console.error("Error updating exclusions:", error);
+      // Error updating exclusions
     } finally {
       setLoading(false);
     }

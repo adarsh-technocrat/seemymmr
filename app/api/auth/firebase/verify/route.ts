@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
       firebaseUid: uid,
     });
   } catch (error: any) {
-    console.error("Error verifying Firebase token:", error);
     return NextResponse.json({ error: "Invalid token" }, { status: 401 });
   }
 }

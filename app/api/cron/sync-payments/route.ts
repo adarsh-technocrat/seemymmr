@@ -63,9 +63,9 @@ export async function POST(request: NextRequest) {
 
     // Trigger job processing in background so cron returns before serverless timeout.
     // Pending jobs are also processed by the separate /api/cron/process-jobs cron.
-    void triggerJobProcessing().catch((err) =>
-      console.error("Background job processing error:", err),
-    );
+    void triggerJobProcessing().catch(() => {
+      // Background job processing error
+    });
 
     return NextResponse.json({
       success: true,
@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
           : undefined,
     });
   } catch (error: any) {
-    console.error("Error in cron sync-payments:", error);
     return NextResponse.json(
       {
         error: "Failed to create sync jobs",
@@ -112,7 +111,6 @@ async function triggerJobProcessing(): Promise<{
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error(`Failed to process jobs: ${response.status} ${errorText}`);
       return { processed: 0, jobs: [] };
     }
 
@@ -122,7 +120,6 @@ async function triggerJobProcessing(): Promise<{
       jobs: data.jobs || [],
     };
   } catch (error: any) {
-    console.error("Error triggering job processing:", error);
     return { processed: 0, jobs: [] };
   }
 }

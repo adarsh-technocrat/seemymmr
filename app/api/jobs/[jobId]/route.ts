@@ -45,7 +45,6 @@ export async function GET(
       completedAt: job.completedAt,
     });
   } catch (error: any) {
-    console.error("Error getting job:", error);
     return NextResponse.json(
       { error: "Failed to get job", message: error.message },
       { status: 500 }

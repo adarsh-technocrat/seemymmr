@@ -39,13 +39,11 @@ export function useRealtimeVisitors(websiteId: string | null) {
           setError(data.message || "An error occurred");
         }
       } catch (err) {
-        console.error("Error parsing SSE data:", err);
         setError("Failed to parse real-time data");
       }
     };
 
     eventSource.onerror = (err) => {
-      console.error("SSE error:", err);
       setIsConnected(false);
       setError("Connection lost. Reconnecting...");
 
