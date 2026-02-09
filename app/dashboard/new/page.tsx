@@ -6,17 +6,17 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect } from "react";
-import { useDomainIcon } from "@/hooks/use-domain-icon";
+import { useState, useEffect, useMemo } from "react";
 import { ArrowLeftIcon } from "@/components/icons";
 import { useAppDispatch } from "@/store/hooks";
 import { createNewWebsiteWithDomain } from "@/store/slices/websitesSlice";
+import { getLogoDevUrl } from "@/utils/domain-logo";
 
 export default function AddSitePage() {
   const dispatch = useAppDispatch();
   const [currentTime, setCurrentTime] = useState("");
   const [domain, setDomain] = useState("");
-  const { iconUrl, loading } = useDomainIcon(domain);
+  const iconUrl = useMemo(() => getLogoDevUrl(domain), [domain]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -129,11 +129,9 @@ export default function AddSitePage() {
                             alt="Domain icon"
                             width={24}
                             height={24}
-                            className="!h-6 !w-6 !max-w-none shrink-0 animate-opacity rounded drop-shadow-sm"
+                            className="h-6! w-6! max-w-none! shrink-0 animate-opacity rounded drop-shadow-sm"
                             onError={() => {}}
                           />
-                        ) : loading ? (
-                          <div className="!h-6 !w-6 shrink-0 animate-pulse rounded bg-gray-300" />
                         ) : (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"

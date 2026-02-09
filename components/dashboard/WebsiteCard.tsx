@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { ResponsiveContainer, Area, ComposedChart, Bar, YAxis } from "recharts";
 import NumberFlow from "@number-flow/react";
+import { getLogoDevUrl } from "@/utils/domain-logo";
 
 interface WebsiteCardProps {
   website: {
@@ -56,10 +57,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
           <div className="flex flex-row gap-2">
             <div>
               <Image
-                src={
-                  website.iconUrl ||
-                  `https://icons.duckduckgo.com/ip3/${website.domain}.ico`
-                }
+                src={website.iconUrl || getLogoDevUrl(website.domain) || ""}
                 alt={website.name}
                 className="size-5 rounded"
                 width={24}

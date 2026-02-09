@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { getLogoDevUrl } from "@/utils/domain-logo";
 
 interface WebsiteSelectorProps {
   websiteId: string;
@@ -26,8 +27,7 @@ export function WebsiteSelector({ websiteId, website }: WebsiteSelectorProps) {
         >
           <Image
             src={
-              website?.iconUrl ||
-              `https://icons.duckduckgo.com/ip3/${website?.domain}.ico`
+              website?.iconUrl || getLogoDevUrl(website?.domain || null) || ""
             }
             alt={website?.name || "Loading..."}
             className="size-5! rounded"

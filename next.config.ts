@@ -53,6 +53,11 @@ const nextConfig: NextConfig = {
         hostname: "*.gstatic.com",
         pathname: "/**",
       },
+      {
+        protocol: "https",
+        hostname: "img.logo.dev",
+        pathname: "/**",
+      },
     ],
     // Allow unoptimized images for dynamic domain favicons
     unoptimized: false,
