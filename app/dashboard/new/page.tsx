@@ -6,17 +6,16 @@ import { buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { ArrowLeftIcon } from "@/components/icons";
 import { useAppDispatch } from "@/store/hooks";
 import { createNewWebsiteWithDomain } from "@/store/slices/websitesSlice";
-import { getLogoDevUrl } from "@/utils/domain-logo";
+import { DomainLogo } from "@/components/ui/domain-logo";
 
 export default function AddSitePage() {
   const dispatch = useAppDispatch();
   const [currentTime, setCurrentTime] = useState("");
   const [domain, setDomain] = useState("");
-  const iconUrl = useMemo(() => getLogoDevUrl(domain), [domain]);
 
   useEffect(() => {
     const updateTime = () => {
@@ -96,7 +95,6 @@ export default function AddSitePage() {
                     createNewWebsiteWithDomain({
                       domain: domainValue,
                       name: domainValue.replace(/^www\./, "").split(".")[0],
-                      iconUrl: iconUrl || undefined,
                     }),
                   ).unwrap();
                   window.location.href = `/dashboard/${website._id}`;
@@ -122,16 +120,13 @@ export default function AddSitePage() {
                     </Label>
                     <div className="flex w-full items-center rounded-md border border-borderColor overflow-hidden bg-white focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-colors">
                       <div className="inline-flex select-none items-center justify-center gap-2 border-r border-borderColor bg-gray-50 px-3 py-2.5 text-sm text-textSecondary">
-                        {iconUrl ? (
-                          <img
-                            src={iconUrl}
-                            alt="Domain icon"
-                            width={24}
-                            height={24}
+                        {(domain ? (
+                          <DomainLogo
+                            domain={domain}
+                            size={24}
                             className="h-6! w-6! max-w-none! shrink-0 animate-opacity rounded drop-shadow-sm"
-                            onError={() => {}}
                           />
-                        ) : (
+                        ) : null) ?? (
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
                             fill="none"

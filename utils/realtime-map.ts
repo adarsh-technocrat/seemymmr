@@ -161,7 +161,7 @@ export function getConversionScoreColor(score?: number): string {
 
 export function generateVisitorName(
   visitorId: string,
-  userId?: string
+  userId?: string,
 ): string {
   const idToUse = userId || visitorId;
   const hash = idToUse
@@ -240,165 +240,6 @@ export function getAvatarUrl(visitorId: string, country?: string): string {
   return avatarUrl;
 }
 
-export function createMarkerElement(visitor: Visitor): HTMLDivElement {
-  const el = document.createElement("div");
-  el.className = "marker-container";
-  el.style.cursor = "pointer";
-
-  const scoreColor = getConversionScoreColor(visitor.conversionScore);
-  const visitorName = generateVisitorName(visitor.visitorId, visitor.userId);
-  const avatarUrl = getAvatarUrl(visitor.visitorId, visitor.country);
-
-  el.innerHTML = `
-    <div class="relative marker-inner">
-      <img 
-        src="${avatarUrl}"
-        alt="${visitorName}"
-        class="rounded-full ring-1 transition-all duration-100 bg-base-200 shadow-lg ring-base-content/10 dark:ring-base-content/20 size-14 object-cover"
-        loading="lazy"
-      />
-      <div 
-        class="absolute right-px top-px z-10 flex h-[13px] w-[13px] items-center justify-center rounded-full"
-        style="background: ${scoreColor};"
-      >
-        <div 
-          class="absolute -inset-px rounded-full opacity-30"
-          style="background: ${scoreColor};"
-        ></div>
-      </div>
-    </div>
-  `;
-
-  return el;
-}
-
-export function createPopupContent(visitor: Visitor): string {
-  const visitorName = generateVisitorName(visitor.visitorId, visitor.userId);
-  const avatarUrl = getAvatarUrl(visitor.visitorId, visitor.country);
-  const scoreColor = getConversionScoreColor(visitor.conversionScore);
-  const conversion = getConversionLikelihood(visitor.conversionScore);
-  const duration = formatDuration(visitor.duration);
-  const location =
-    visitor.city && visitor.region
-      ? `${visitor.city}, ${visitor.country}`
-      : visitor.region
-      ? `${visitor.region}, ${visitor.country}`
-      : visitor.country;
-
-  const referrerDomain = visitor.referrerDomain || "Direct";
-  const referrerIcon =
-    referrerDomain !== "Direct"
-      ? `https://icons.duckduckgo.com/ip3/${referrerDomain}.ico`
-      : "";
-
-  // Estimated value (simplified calculation)
-  const estimatedValue = visitor.conversionScore
-    ? `$${((Math.abs(visitor.conversionScore) / 100) * 232.94).toFixed(2)}`
-    : "$0.00";
-
-  return `
-    <div class="w-80 animate-opacityFast overflow-hidden rounded-xl border border-base-content/10 bg-base-100 p-3 text-sm shadow-2xl duration-100">
-      <img 
-        src="${avatarUrl}"
-        alt="${visitorName}"
-        class="absolute left-3 top-3 rounded-full bg-base-200 ring-1 ring-base-content/10 transition-all duration-100 size-14 object-cover"
-      />
-      <div class="mb-3 pl-18">
-        <div class="mb-1.5 space-y-0.5">
-          <div class="flex items-center">
-            <h3 class="truncate text-sm font-semibold">${visitorName}</h3>
-          </div>
-        </div>
-        <div class="text-base-secondary grid grid-cols-2 gap-x-1.5 gap-y-1 text-xs leading-tight">
-          <div class="flex items-center gap-1.5">
-            <div class="inline-flex shrink-0 overflow-hidden rounded-sm shadow-sm h-[10px] w-[15px]" title="${
-              visitor.country
-            }">
-              <img src="https://purecatamphetamine.github.io/country-flag-icons/3x2/${
-                visitor.country
-              }.svg" alt="${
-    visitor.country
-  } flag" class="h-full w-full saturate-[0.9]">
-            </div>
-            <span title="${location}" class="truncate capitalize">${location}</span>
-          </div>
-          <div title="${visitor.os}" class="flex items-center gap-1.5">
-            <span class="truncate">${visitor.os}</span>
-          </div>
-          <div title="${visitor.device}" class="flex items-center gap-1.5">
-            <span class="truncate capitalize">${visitor.device}</span>
-          </div>
-          <div title="${visitor.browser}" class="flex items-center gap-1.5">
-            <span class="truncate">${visitor.browser}</span>
-          </div>
-        </div>
-      </div>
-      <div class="space-y-1 border-t-[0.5px] border-base-content/10 pt-3 text-xs">
-        <p class="flex items-center justify-between">
-          <span class="text-base-secondary">Referrer:</span>
-          <span class="flex max-w-[65%] items-center gap-1.5 truncate text-right">
-            ${
-              referrerIcon
-                ? `<img src="${referrerIcon}" alt="${referrerDomain}" class="size-3 shrink-0" onerror="this.style.display='none'">`
-                : ""
-            }
-            <span>${referrerDomain}</span>
-          </span>
-        </p>
-        <p class="flex items-center justify-between">
-          <span class="text-base-secondary">Current URL:</span>
-          <span title="${
-            visitor.currentPath || "/"
-          }" class="max-w-[65%] truncate text-right font-medium">
-            <span class="rounded bg-base-300 px-1.5 py-0.5 font-mono text-[0.68rem] text-xs text-base-content">${
-              visitor.currentPath || "/"
-            }</span>
-          </span>
-        </p>
-        <p class="flex items-center justify-between">
-          <span class="text-base-secondary">Session time:</span>
-          <span>${duration}</span>
-        </p>
-        <div class="flex items-center justify-between">
-          <span class="text-base-secondary">Total visits:</span>
-          <span class="font-medium">${visitor.pageViews}</span>
-        </div>
-      </div>
-      <div class="mt-2 space-y-1 border-t-[0.5px] border-base-content/10 pt-2 text-xs">
-        <div class="cursor-help space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="text-base-secondary">Conversion likelihood:</span>
-            <span class="flex cursor-help items-center gap-1 font-medium">
-              <span class="font-medium text-base-content">${
-                conversion.percentage
-              }</span>
-              <span class="text-[0.65rem] opacity-70">vs. avg</span>
-            </span>
-          </div>
-          <div class="pb-0.5">
-            <div class="relative h-[6px]">
-              <div class="absolute inset-0 overflow-hidden rounded-full" style="background: linear-gradient(90deg, rgb(59, 130, 246) 0%, rgb(139, 183, 253) 35%, rgb(209, 213, 219) 50%, rgb(253, 186, 116) 65%, rgb(239, 68, 68) 100%);"></div>
-              <div class="absolute -top-[3px] z-10 bg-transparent!" style="left: ${
-                conversion.position
-              }%;">
-                <div class="h-[12px] w-[12px] rounded-full border-[3px] border-base-content/60 bg-transparent! ring-1 ring-base-100/80 dark:border-base-content" style="transform: translateX(-50%);">
-                  <div class="absolute inset-0 rounded-full border border-base-100/30 bg-transparent! transition-all duration-300"></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="flex cursor-help items-center justify-between">
-          <span class="text-base-secondary">Estimated value:</span>
-          <span class="flex cursor-help items-center gap-1 font-medium">
-            <span class="font-medium text-success">${estimatedValue}</span>
-          </span>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 // Device and browser icon helpers
 export function getDeviceIcon(device: string): string {
   const deviceLower = device.toLowerCase();
@@ -406,20 +247,20 @@ export function getDeviceIcon(device: string): string {
     return `data:image/svg+xml;utf8,${encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M17 2H7c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 18H7V4h10v16z"/>
-      </svg>`
+      </svg>`,
     )}`;
   } else if (deviceLower === "tablet") {
     return `data:image/svg+xml;utf8,${encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M21 4H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H3V6h18v12z"/>
-      </svg>`
+      </svg>`,
     )}`;
   } else {
     // desktop
     return `data:image/svg+xml;utf8,${encodeURIComponent(
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
         <path d="M21 2H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h7l-2 3v1h8v-1l-2-3h7c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 12H3V4h18v10z"/>
-      </svg>`
+      </svg>`,
     )}`;
   }
 }
@@ -455,7 +296,7 @@ export function getBrowserIcon(browser: string): string {
   return `data:image/svg+xml;utf8,${encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-    </svg>`
+    </svg>`,
   )}`;
 }
 

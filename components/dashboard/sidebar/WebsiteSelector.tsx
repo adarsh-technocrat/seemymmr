@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "@/store/hooks";
 import { fetchAllUserWebsites } from "@/store/slices/websitesSlice";
-import { getLogoDevUrl } from "@/utils/domain-logo";
+import { DomainLogo } from "@/components/ui/domain-logo";
 
 export function SidebarWebsiteSelector() {
   const pathname = usePathname();
@@ -34,17 +33,12 @@ export function SidebarWebsiteSelector() {
       <div className="flex items-center gap-2 w-full">
         <div className="flex items-center gap-3.5 grow">
           {currentWebsite ? (
-            <Image
-              src={
-                currentWebsite.iconUrl ||
-                getLogoDevUrl(currentWebsite.domain) ||
-                ""
-              }
+            <DomainLogo
+              domain={currentWebsite.domain}
+              iconUrl={currentWebsite.iconUrl}
+              size={18}
               alt={currentWebsite.name}
               className="rounded-full w-[18px] h-[18px]"
-              width={18}
-              height={18}
-              unoptimized
             />
           ) : (
             <div className="rounded-full bg-stone-300 w-[18px] h-[18px]" />

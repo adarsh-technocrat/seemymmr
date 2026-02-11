@@ -7,13 +7,19 @@ import {
   getBrowserIcon,
   type Visitor,
 } from "@/utils/realtime-map";
+import { DomainLogo } from "@/components/ui/domain-logo";
 
 interface StatsSectionProps {
   visitors: Visitor[];
   websiteName?: string;
+  websiteDomain?: string;
 }
 
-export function StatsSection({ visitors, websiteName }: StatsSectionProps) {
+export function StatsSection({
+  visitors,
+  websiteName,
+  websiteDomain,
+}: StatsSectionProps) {
   const referrers = useMemo(
     () =>
       Array.from(new Set(visitors.map((v) => v.referrerDomain || "Direct")))
@@ -23,7 +29,7 @@ export function StatsSection({ visitors, websiteName }: StatsSectionProps) {
           count: visitors.filter((v) => (v.referrerDomain || "Direct") === ref)
             .length,
         })),
-    [visitors]
+    [visitors],
   );
 
   const countries = useMemo(
@@ -34,7 +40,7 @@ export function StatsSection({ visitors, websiteName }: StatsSectionProps) {
           code: country,
           count: visitors.filter((v) => v.country === country).length,
         })),
-    [visitors]
+    [visitors],
   );
 
   const devices = useMemo(
@@ -43,7 +49,7 @@ export function StatsSection({ visitors, websiteName }: StatsSectionProps) {
         name: device,
         count: visitors.filter((v) => v.device === device).length,
       })),
-    [visitors]
+    [visitors],
   );
 
   const browsers = useMemo(
@@ -54,7 +60,7 @@ export function StatsSection({ visitors, websiteName }: StatsSectionProps) {
           name: browser,
           count: visitors.filter((v) => v.browser === browser).length,
         })),
-    [visitors]
+    [visitors],
   );
 
   const topReferrer = useMemo(() => {
@@ -72,7 +78,23 @@ export function StatsSection({ visitors, websiteName }: StatsSectionProps) {
         </span>
         <span className="font-semibold">{visitors.length}</span>
         <span className="text-base-secondary">visitors on</span>
-        {topReferrer ? (
+        {websiteDomain ? (
+          <span className="flex items-center gap-1">
+            <DomainLogo
+              domain={websiteDomain}
+              size={14}
+              className="size-3.5 shrink-0 rounded"
+            />
+            <a
+              href={`https://${websiteDomain}?ref=postmetric-realtime-map`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="max-w-[150px] truncate font-semibold hover:underline"
+            >
+              {websiteDomain}
+            </a>
+          </span>
+        ) : topReferrer ? (
           <span className="flex items-center gap-1">
             <img
               src={`https://icons.duckduckgo.com/ip3/${topReferrer.name}.ico`}

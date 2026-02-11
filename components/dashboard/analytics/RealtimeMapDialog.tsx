@@ -27,6 +27,8 @@ interface RealtimeMapDialogProps {
   onOpenChange: (open: boolean) => void;
   websiteId: string;
   websiteName?: string;
+  websiteDomain?: string;
+  websiteIconUrl?: string;
 }
 
 export function RealtimeMapDialog({
@@ -34,6 +36,8 @@ export function RealtimeMapDialog({
   onOpenChange,
   websiteId,
   websiteName = "PostMetric",
+  websiteDomain,
+  websiteIconUrl,
 }: RealtimeMapDialogProps) {
   const {
     visitors,
@@ -181,7 +185,11 @@ export function RealtimeMapDialog({
                   </Button>
                 </div>
               </div>
-              <StatsSection visitors={visitors} websiteName={websiteName} />
+              <StatsSection
+                visitors={visitors}
+                websiteName={websiteName}
+                websiteDomain={websiteDomain}
+              />
               {isMusicPlayerActive && (
                 <MusicPlayer
                   isPlaying={isMusicPlaying}

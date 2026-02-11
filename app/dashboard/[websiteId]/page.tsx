@@ -255,6 +255,8 @@ export default function WebsiteAnalyticsPage({
         onOpenChange={setMapDialogOpen}
         websiteId={websiteId}
         websiteName={website?.name || "PostMetric"}
+        websiteDomain={website?.domain}
+        websiteIconUrl={website?.iconUrl}
       />
 
       <FloatingActionButtons

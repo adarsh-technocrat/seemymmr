@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { getLogoDevUrl } from "@/utils/domain-logo";
+import { DomainLogo } from "@/components/ui/domain-logo";
 
 interface WebsiteSelectorProps {
   websiteId: string;
@@ -25,16 +24,15 @@ export function WebsiteSelector({ websiteId, website }: WebsiteSelectorProps) {
           className="join-item h-8 inline-flex shrink-0 flex-nowrap items-center gap-2 whitespace-nowrap border-0 bg-transparent text-textPrimary hover:bg-gray-50 px-3"
           disabled
         >
-          <Image
-            src={
-              website?.iconUrl || getLogoDevUrl(website?.domain || null) || ""
-            }
-            alt={website?.name || "Loading..."}
-            className="size-5! rounded"
-            width={20}
-            height={20}
-            unoptimized
-          />
+          {website ? (
+            <DomainLogo
+              domain={website.domain}
+              iconUrl={website.iconUrl}
+              size={20}
+              alt={website.name}
+              className="size-5! rounded"
+            />
+          ) : null}
           <h3 className="text-base font-normal">
             {website?.name || "Loading..."}
           </h3>

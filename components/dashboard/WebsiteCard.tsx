@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { ResponsiveContainer, Area, ComposedChart, Bar, YAxis } from "recharts";
 import NumberFlow from "@number-flow/react";
-import { getLogoDevUrl } from "@/utils/domain-logo";
+import { DomainLogo } from "@/components/ui/domain-logo";
 
 interface WebsiteCardProps {
   website: {
@@ -56,13 +55,12 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
         <article className="custom-card custom-card-hover p-4">
           <div className="flex flex-row gap-2">
             <div>
-              <Image
-                src={website.iconUrl || getLogoDevUrl(website.domain) || ""}
+              <DomainLogo
+                domain={website.domain}
+                iconUrl={website.iconUrl}
+                size={24}
                 alt={website.name}
                 className="size-5 rounded"
-                width={24}
-                height={24}
-                unoptimized
               />
             </div>
             <div className="flex-1">
