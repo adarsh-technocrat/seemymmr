@@ -3,6 +3,9 @@ import connectDB from "@/db";
 import Website from "@/db/models/Website";
 import { syncStripePayments } from "@/utils/integrations/stripe";
 
+/** Realtime cron runs every 5 min. 30 min window = 6x overlap so missed runs still get covered. */
+const REALTIME_SYNC_WINDOW_MINUTES = 30;
+
 export async function POST(request: NextRequest) {
   try {
     const authHeader = request.headers.get("authorization");
@@ -28,7 +31,9 @@ export async function POST(request: NextRequest) {
     }> = [];
 
     const endDate = new Date();
-    const startDate = new Date(endDate.getTime() - 15 * 60 * 1000);
+    const startDate = new Date(
+      endDate.getTime() - REALTIME_SYNC_WINDOW_MINUTES * 60 * 1000,
+    );
 
     const syncPromises = websites
       .filter((w) => w.paymentProviders?.stripe?.apiKey)
