@@ -112,7 +112,7 @@ export async function PUT(
           new Date(),
           websiteId,
         )
-        .catch((error) => {});
+        .catch(() => {});
     }
 
     const sanitizedWebsite = sanitizeWebsiteForFrontend(updatedWebsite);

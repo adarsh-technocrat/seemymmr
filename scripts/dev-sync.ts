@@ -94,8 +94,6 @@ async function createSyncJobs(frequency: Options["frequency"] = "hourly") {
   );
 }
 
-// Job processing removed - syncs now happen directly via /api/websites/[websiteId]/sync
-
 async function syncWebsite(
   websiteId: string,
   hoursBack: number = 24,
