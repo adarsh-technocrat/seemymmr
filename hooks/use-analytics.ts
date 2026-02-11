@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchAnalytics } from "@/store/slices/analyticsSlice";
 
@@ -37,6 +37,14 @@ export function useAnalytics(
 
   const period = options?.period ?? selectedPeriod;
   const granularity = options?.granularity ?? selectedGranularity;
+  const analyticsAbortRef = useRef<AbortController | null>(null);
+
+  const getSignalForNewAnalyticsRequest = (): AbortSignal => {
+    analyticsAbortRef.current?.abort();
+    const controller = new AbortController();
+    analyticsAbortRef.current = controller;
+    return controller.signal;
+  };
 
   const getDateRange = (period: string) => {
     let endDate = new Date();
@@ -150,6 +158,7 @@ export function useAnalytics(
         period: periodToUse,
         granularity: granularityValue,
         customDateRange,
+        signal: getSignalForNewAnalyticsRequest(),
       }),
     );
   }, [
@@ -180,6 +189,7 @@ export function useAnalytics(
           period: periodToUse,
           granularity: granularityValue,
           customDateRange,
+          signal: getSignalForNewAnalyticsRequest(),
         }),
       );
     },

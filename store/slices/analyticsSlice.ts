@@ -1,5 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 
+export const ABORTED_PAYLOAD = "__analytics_aborted__";
+
 export const fetchAnalytics = createAsyncThunk(
   "analytics/fetchAnalytics",
   async (
@@ -8,11 +10,13 @@ export const fetchAnalytics = createAsyncThunk(
       period,
       granularity = "daily",
       customDateRange,
+      signal,
     }: {
       websiteId: string;
       period: string;
       granularity?: "hourly" | "daily" | "weekly" | "monthly";
       customDateRange?: { from: Date; to: Date };
+      signal?: AbortSignal;
     },
     { rejectWithValue },
   ) => {
@@ -31,6 +35,7 @@ export const fetchAnalytics = createAsyncThunk(
 
       const response = await fetch(
         `/api/websites/${websiteId}/analytics?${params.toString()}`,
+        { signal },
       );
 
       if (!response.ok) {
@@ -40,7 +45,10 @@ export const fetchAnalytics = createAsyncThunk(
       const data = await response.json();
       return { ...data, period, granularity };
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      if (error?.name === "AbortError") {
+        return rejectWithValue(ABORTED_PAYLOAD);
+      }
+      return rejectWithValue(error?.message ?? "Failed to fetch analytics");
     }
   },
 );
@@ -296,7 +304,10 @@ const analyticsSlice = createSlice({
           state.byWebsiteId[websiteId] = createEmptyWebsiteAnalytics();
         }
         state.byWebsiteId[websiteId].loading = false;
-        state.byWebsiteId[websiteId].error = action.payload as string;
+        // Don't set error for aborted requests (previous call cancelled by date/filter change)
+        if (action.payload !== ABORTED_PAYLOAD) {
+          state.byWebsiteId[websiteId].error = action.payload as string;
+        }
         // Update global loading state
         state.loading = Object.values(state.byWebsiteId).some(
           (data) => data.loading,

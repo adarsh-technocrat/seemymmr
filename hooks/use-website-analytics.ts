@@ -321,6 +321,15 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
   const lastPeriodRef = useRef(ui.selectedPeriod);
   const lastGranularityRef = useRef(ui.selectedGranularity);
   const isPeriodChangingRef = useRef(false);
+  // AbortController: cancel previous analytics request when date/filter changes
+  const analyticsAbortRef = useRef<AbortController | null>(null);
+
+  const getSignalForNewAnalyticsRequest = (): AbortSignal => {
+    analyticsAbortRef.current?.abort();
+    const controller = new AbortController();
+    analyticsAbortRef.current = controller;
+    return controller.signal;
+  };
 
   // When period changes, set default granularity and fetch once
   // This effect handles period/date range changes
@@ -456,6 +465,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           period: periodForApi,
           granularity,
           customDateRange: apiCustomDateRange,
+          signal: getSignalForNewAnalyticsRequest(),
         }),
       );
 
@@ -496,6 +506,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           period: periodForApi,
           granularity,
           customDateRange: apiCustomDateRange,
+          signal: getSignalForNewAnalyticsRequest(),
         }),
       );
     }
@@ -581,6 +592,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           period,
           granularity,
           customDateRange: apiCustomDateRange,
+          signal: getSignalForNewAnalyticsRequest(),
         }),
       );
 
