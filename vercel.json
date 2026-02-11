@@ -1,11 +1,7 @@
 {
   "crons": [
     {
-      "path": "/api/cron/sync-payments",
-      "schedule": "*/5 * * * *"
-    },
-    {
-      "path": "/api/cron/process-jobs",
+      "path": "/api/cron/sync-payment",
       "schedule": "*/5 * * * *"
     }
   ]

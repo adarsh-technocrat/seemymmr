@@ -56,7 +56,7 @@ function parseArgs(): Options {
 async function makeRequest(
   url: string,
   method: "GET" | "POST" = "GET",
-  body?: any
+  body?: any,
 ): Promise<any> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -89,101 +89,27 @@ async function makeRequest(
 async function createSyncJobs(frequency: Options["frequency"] = "hourly") {
   console.log(`\n📥 Creating sync jobs (frequency: ${frequency})...`);
 
-  try {
-    const url = `${BASE_URL}/api/cron/sync-payments?frequency=${frequency}`;
-    const result = await makeRequest(url, "POST");
-
-    console.log(
-      `✅ Created ${result.jobsCreated} sync job(s) for ${result.websitesProcessed} website(s)`
-    );
-    if (result.jobs && result.jobs.length > 0) {
-      console.log("   Jobs created:");
-      result.jobs.forEach((job: any) => {
-        console.log(
-          `   - ${job.provider} for website ${job.websiteId} (job: ${job.jobId})`
-        );
-      });
-    }
-
-    return result;
-  } catch (error: any) {
-    console.error(`❌ Failed to create sync jobs: ${error.message}`);
-    throw error;
-  }
+  throw new Error(
+    "Cron endpoints have been removed. Use --website-id to sync specific websites or sync all websites individually.",
+  );
 }
 
-async function processJobs(batchSize: number = 10) {
-  console.log(`\n⚙️  Processing pending jobs (batch size: ${batchSize})...`);
-
-  let totalProcessed = 0;
-  let attempts = 0;
-  const maxAttempts = 10; // Prevent infinite loops
-
-  while (attempts < maxAttempts) {
-    try {
-      const url = `${BASE_URL}/api/jobs/process`;
-      const result = await makeRequest(url, "POST", {
-        batchSize,
-        maxConcurrent: 3,
-      });
-
-      if (result.processed === 0) {
-        break; // No more jobs to process
-      }
-
-      totalProcessed += result.processed;
-      console.log(`   Processed ${result.processed} job(s)...`);
-
-      if (result.jobs) {
-        result.jobs.forEach((job: any) => {
-          const status = job.status === "completed" ? "✅" : "❌";
-          console.log(`   ${status} Job ${job.jobId}: ${job.status}`);
-          if (job.result) {
-            console.log(
-              `      Synced: ${job.result.synced}, Skipped: ${job.result.skipped}, Errors: ${job.result.errors}`
-            );
-          }
-          if (job.error) {
-            console.log(`      Error: ${job.error}`);
-          }
-        });
-      }
-
-      attempts++;
-
-      // If we processed less than batchSize, we're done
-      if (result.processed < batchSize) {
-        break;
-      }
-    } catch (error: any) {
-      console.error(`❌ Failed to process jobs: ${error.message}`);
-      throw error;
-    }
-  }
-
-  if (totalProcessed > 0) {
-    console.log(`\n✅ Successfully processed ${totalProcessed} job(s) total`);
-  } else {
-    console.log(`\nℹ️  No pending jobs to process`);
-  }
-
-  return totalProcessed;
-}
+// Job processing removed - syncs now happen directly via /api/websites/[websiteId]/sync
 
 async function syncWebsite(
   websiteId: string,
   hoursBack: number = 24,
-  allTime: boolean = false
+  allTime: boolean = false,
 ) {
   if (allTime) {
     // Sync all time: go back 10 years (87,600 hours)
     hoursBack = 10 * 365 * 24;
     console.log(
-      `\n📥 Creating manual sync for website ${websiteId} (ALL TIME - last 10 years)...`
+      `\n📥 Creating manual sync for website ${websiteId} (ALL TIME - last 10 years)...`,
     );
   } else {
     console.log(
-      `\n📥 Creating manual sync for website ${websiteId} (last ${hoursBack} hours)...`
+      `\n📥 Creating manual sync for website ${websiteId} (last ${hoursBack} hours)...`,
     );
   }
 
@@ -200,7 +126,7 @@ async function syncWebsite(
 
     console.log(`✅ Created sync job: ${result.jobId}`);
     console.log(
-      `   Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`
+      `   Date range: ${startDate.toISOString()} to ${endDate.toISOString()}`,
     );
     return result;
   } catch (error: any) {
@@ -232,13 +158,10 @@ async function syncAllWebsitesAllTime() {
   const websites = await getAllWebsites();
 
   if (websites.length === 0) {
-    // Fallback: Use a very large hours-back value with cron endpoint
-    // But cron endpoint doesn't support custom ranges, so we'll need to sync each website individually
-    console.log(
-      `   Using cron endpoint with daily frequency (largest available range)...`
+    // Cannot sync without website list - cron endpoints have been removed
+    throw new Error(
+      "Cannot sync all websites: website list unavailable and cron endpoints have been removed. Please provide --website-id to sync specific websites.",
     );
-    await createSyncJobs("daily");
-    return;
   }
 
   // Sync each website individually with all-time data
@@ -252,7 +175,7 @@ async function syncAllWebsitesAllTime() {
       successCount++;
     } catch (error: any) {
       console.error(
-        `   ❌ Failed to sync website ${website._id}: ${error.message}`
+        `   ❌ Failed to sync website ${website._id}: ${error.message}`,
       );
       errorCount++;
     }
@@ -261,7 +184,7 @@ async function syncAllWebsitesAllTime() {
   console.log(`\n✅ Created sync jobs for ${successCount} website(s)`);
   if (errorCount > 0) {
     console.log(
-      `   ⚠️  Failed to create sync jobs for ${errorCount} website(s)`
+      `   ⚠️  Failed to create sync jobs for ${errorCount} website(s)`,
     );
   }
 }
@@ -274,12 +197,12 @@ async function main() {
   console.log(
     `   Firebase Token: ${
       FIREBASE_TOKEN ? "✅ Set" : "⚠️  Not set (required for sync endpoints)"
-    }`
+    }`,
   );
   console.log(
     `   Cron Secret: ${
       CRON_SECRET ? "✅ Set" : "⚠️  Not set (may fail if required)"
-    }`
+    }`,
   );
 
   try {
@@ -288,32 +211,24 @@ async function main() {
       if (options.websiteId) {
         // Sync specific website with all-time data
         await syncWebsite(options.websiteId, options.hoursBack || 24, true);
-        if (!options.createOnly) {
-          await processJobs();
-        }
       } else {
         // Sync all websites with all-time data
         await syncAllWebsitesAllTime();
-        if (!options.createOnly) {
-          await processJobs();
-        }
       }
     } else if (options.websiteId) {
       // Sync specific website
       await syncWebsite(options.websiteId, options.hoursBack || 24, false);
-      if (!options.createOnly) {
-        await processJobs();
-      }
     } else if (options.processOnly) {
-      // Only process existing jobs
-      await processJobs();
+      // Job processing removed - syncs now happen directly
+      console.log(
+        "⚠️  --process-only is no longer supported. Syncs happen directly.",
+      );
     } else if (options.createOnly) {
-      // Only create sync jobs
+      // Only create sync jobs (cron endpoint handles this)
       await createSyncJobs(options.frequency);
     } else {
-      // Default: create and process
+      // Default: create sync jobs (cron endpoint handles processing)
       await createSyncJobs(options.frequency);
-      await processJobs();
     }
 
     console.log("\n✨ Done!");
@@ -326,7 +241,7 @@ async function main() {
 // Check if fetch is available (Node 18+)
 if (typeof fetch === "undefined") {
   console.error(
-    "❌ This script requires Node.js 18+ with native fetch support"
+    "❌ This script requires Node.js 18+ with native fetch support",
   );
   console.error("   Or install node-fetch: pnpm add -D node-fetch");
   process.exit(1);

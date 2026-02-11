@@ -17,7 +17,6 @@ import { getCampaignBreakdown } from "@/utils/analytics/aggregations/getCampaign
 import type { Granularity } from "@/utils/analytics/types";
 import { getWebsiteById } from "@/utils/database/website";
 import { getUserId } from "@/lib/get-session";
-import { enqueueSyncJob, hasRecentSync } from "@/utils/jobs/queue";
 import connectDB from "@/db";
 import PageView from "@/db/models/PageView";
 import Payment from "@/db/models/Payment";
@@ -25,7 +24,7 @@ import { Types } from "mongoose";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
@@ -73,7 +72,7 @@ export async function GET(
           period,
           timezone,
           website,
-          earliestDate
+          earliestDate,
         );
         startDate = dateRange.startDate;
         endDate = dateRange.endDate;
@@ -147,34 +146,8 @@ export async function GET(
           syncEndDate = new Date();
           syncRange = "last24h";
         }
-
-        // Check and trigger sync for Stripe (only provider with syncConfig support)
-        if (
-          website.paymentProviders?.stripe?.apiKey &&
-          website.paymentProviders.stripe.syncConfig?.enabled !== false
-        ) {
-          const recentSyncExists = await hasRecentSync(websiteId, "stripe", 15);
-
-          if (!recentSyncExists) {
-            try {
-              await enqueueSyncJob({
-                websiteId,
-                provider: "stripe",
-                type: "manual",
-                priority: 85, // High priority for refresh-triggered syncs
-                startDate: syncStartDate,
-                endDate: syncEndDate,
-                syncRange,
-              });
-            } catch (error) {
-            }
-          }
-        }
       }
     }
-
-    // Analytics returns immediately from database
-    // Sync jobs run in background and update data for next refresh
 
     const [
       visitors,
@@ -234,7 +207,7 @@ export async function GET(
       endDate,
       granularity,
       timezone,
-      period
+      period,
     );
 
     // Calculate totals
@@ -264,7 +237,7 @@ export async function GET(
       const previousMetrics = await getMetrics(
         websiteId,
         previousDateRange.startDate,
-        previousDateRange.endDate
+        previousDateRange.endDate,
       );
       percentageChange = calculatePercentageChange(metrics, previousMetrics);
     }
@@ -320,7 +293,7 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: "Failed to fetch analytics" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -376,7 +349,7 @@ function getDateRangeForPeriod(
   period: string,
   timezone: string = "UTC",
   website?: { createdAt?: Date },
-  earliestDataPoint?: Date | null
+  earliestDataPoint?: Date | null,
 ): {
   startDate: Date;
   endDate: Date;
@@ -401,7 +374,7 @@ function getDateRangeForPeriod(
       components.month,
       components.day,
       0,
-      tz
+      tz,
     );
   };
 
@@ -455,7 +428,7 @@ function getDateRangeForPeriod(
     case "week to date":
       endDate = getEndOfDayInTimezone(now, timezone);
       const nowInTz = new Date(
-        now.toLocaleString("en-US", { timeZone: timezone })
+        now.toLocaleString("en-US", { timeZone: timezone }),
       );
       const dayOfWeek = nowInTz.getDay();
       const weekStart = new Date(now);
@@ -485,7 +458,7 @@ function getDateRangeForPeriod(
       // (Users may have been running their business for years before using this platform)
       const maxYearsBack = 5; // Limit to 5 years for performance
       const maxDate = new Date(
-        now.getTime() - maxYearsBack * 365 * 24 * 60 * 60 * 1000
+        now.getTime() - maxYearsBack * 365 * 24 * 60 * 60 * 1000,
       );
 
       if (earliestDataPoint) {
@@ -516,7 +489,7 @@ function getDateRangeForPeriod(
  */
 function getPreviousPeriodDateRange(
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ): { startDate: Date; endDate: Date } {
   const duration = endDate.getTime() - startDate.getTime();
   const previousEndDate = new Date(startDate.getTime() - 1);
@@ -545,7 +518,7 @@ function getTimezoneOffset(timezone: string, date: Date): number {
     utcComponents.day,
     utcComponents.hour,
     0,
-    0
+    0,
   );
   const tzAsLocal = Date.UTC(
     tzComponents.year,
@@ -553,7 +526,7 @@ function getTimezoneOffset(timezone: string, date: Date): number {
     tzComponents.day,
     tzComponents.hour,
     0,
-    0
+    0,
   );
 
   return tzAsLocal - utcAsLocal;
@@ -567,7 +540,7 @@ function createUTCDateFromTimezoneComponents(
   month: number,
   day: number,
   hour: number,
-  timezone: string
+  timezone: string,
 ): Date {
   const utcTimestamp = Date.UTC(year, month - 1, day, hour, 0, 0);
   const testDate = new Date(utcTimestamp);
@@ -618,7 +591,7 @@ function formatTimestampFromComponents(
   },
   timezone: string,
   granularity: Granularity,
-  utcDate: Date
+  utcDate: Date,
 ): string {
   const year = String(components.year);
   const month = String(components.month).padStart(2, "0");
@@ -626,12 +599,12 @@ function formatTimestampFromComponents(
   const offsetMs = getTimezoneOffset(timezone, utcDate);
   const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
   const offsetMinutes = Math.floor(
-    (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000)
+    (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000),
   );
   const offsetSign = offsetMs >= 0 ? "+" : "-";
   const offsetStr = `${offsetSign}${String(offsetHours).padStart(
     2,
-    "0"
+    "0",
   )}:${String(offsetMinutes).padStart(2, "0")}`;
 
   if (granularity === "hourly") {
@@ -648,7 +621,7 @@ function formatTimestampFromComponents(
 function formatTimestampWithTimezone(
   date: Date,
   timezone: string,
-  granularity: Granularity
+  granularity: Granularity,
 ): string {
   const components = getTimezoneComponents(date, timezone);
   const year = String(components.year);
@@ -657,12 +630,12 @@ function formatTimestampWithTimezone(
   const offsetMs = getTimezoneOffset(timezone, date);
   const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
   const offsetMinutes = Math.floor(
-    (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000)
+    (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000),
   );
   const offsetSign = offsetMs >= 0 ? "+" : "-";
   const offsetStr = `${offsetSign}${String(offsetHours).padStart(
     2,
-    "0"
+    "0",
   )}:${String(offsetMinutes).padStart(2, "0")}`;
 
   if (granularity === "hourly") {
@@ -690,7 +663,7 @@ function processDataIntoBuckets(
   endDate: Date,
   granularity: Granularity,
   timezone: string,
-  period?: string
+  period?: string,
 ): Array<{
   name: string;
   visitors: number | null;
@@ -715,7 +688,7 @@ function processDataIntoBuckets(
   const createKey = (
     utcDate: Date,
     granularity: Granularity,
-    timezone: string
+    timezone: string,
   ): string => {
     const tzComponents = getTimezoneComponents(utcDate, timezone);
     let year = tzComponents.year;
@@ -732,10 +705,10 @@ function processDataIntoBuckets(
       case "weekly":
         hour = 0;
         const tzDateStr = `${year}-${String(month).padStart(2, "0")}-${String(
-          day
+          day,
         ).padStart(2, "0")}T00:00:00`;
         const tempDate = new Date(
-          tzDateStr + getTimezoneOffsetString(timezone, utcDate)
+          tzDateStr + getTimezoneOffsetString(timezone, utcDate),
         );
         const dayOfWeek = tempDate.getUTCDay();
         const startOfWeek = new Date(tempDate);
@@ -774,11 +747,11 @@ function processDataIntoBuckets(
     const offsetMs = getTimezoneOffset(timezone, date);
     const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
     const offsetMinutes = Math.floor(
-      (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000)
+      (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000),
     );
     const offsetSign = offsetMs >= 0 ? "+" : "-";
     return `${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(
-      offsetMinutes
+      offsetMinutes,
     ).padStart(2, "0")}`;
   }
 
@@ -849,7 +822,7 @@ function processDataIntoBuckets(
     case "weekly":
       currentHour = 0;
       const weekStartDate = new Date(
-        Date.UTC(currentYear, currentMonth - 1, currentDay)
+        Date.UTC(currentYear, currentMonth - 1, currentDay),
       );
       const dayOfWeek = weekStartDate.getUTCDay();
       const weekStart = new Date(weekStartDate);
@@ -872,7 +845,7 @@ function processDataIntoBuckets(
       currentMonth,
       currentDay,
       currentHour,
-      timezone
+      timezone,
     );
 
     // Check if we've exceeded end date
@@ -884,8 +857,8 @@ function processDataIntoBuckets(
       granularity === "hourly" && isToday
         ? 23
         : isToday
-        ? nowTZ.hour
-        : endTZ.hour;
+          ? nowTZ.hour
+          : endTZ.hour;
 
     // For hourly granularity, compare directly with currentHour to avoid timezone conversion issues
     if (granularity === "hourly") {
@@ -952,7 +925,7 @@ function processDataIntoBuckets(
     const name = formatBucketNameFromComponents(
       tzComponents,
       granularity,
-      timezone
+      timezone,
     );
 
     const timestamp = isToday
@@ -960,7 +933,7 @@ function processDataIntoBuckets(
           tzComponents,
           timezone,
           granularity,
-          bucketDateUTC
+          bucketDateUTC,
         )
       : formatTimestampWithTimezone(bucketDateUTC, timezone, granularity);
 
@@ -1037,7 +1010,7 @@ function processDataIntoBuckets(
 function formatBucketNameFromComponents(
   components: { year: number; month: number; day: number; hour: number },
   granularity: Granularity,
-  timezone: string
+  timezone: string,
 ): string {
   switch (granularity) {
     case "hourly":
@@ -1064,7 +1037,7 @@ function formatBucketNameFromComponents(
       return `${day} ${month}`;
     case "weekly":
       const weekDate = new Date(
-        Date.UTC(components.year, components.month - 1, components.day)
+        Date.UTC(components.year, components.month - 1, components.day),
       );
       return `Week ${getWeekNumber(weekDate)}`;
     case "monthly":
@@ -1087,7 +1060,7 @@ function formatBucketNameFromComponents(
     default:
       return `${components.year}-${String(components.month).padStart(
         2,
-        "0"
+        "0",
       )}-${String(components.day).padStart(2, "0")}`;
   }
 }
@@ -1097,7 +1070,7 @@ function formatBucketNameFromComponents(
  */
 function getWeekNumber(date: Date): number {
   const d = new Date(
-    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+    Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()),
   );
   const dayNum = d.getUTCDay() || 7;
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
@@ -1128,34 +1101,34 @@ function calculateTotals(
     sessionTime: number;
     conversionRate: number;
     revenuePerVisitor: number;
-  }
+  },
 ) {
   const totalVisitors = metrics.visitors;
   const totalSessions = metrics.sessions;
   const totalCustomers = processedData.reduce(
     (sum, item) => sum + (item.customers ?? 0),
-    0
+    0,
   );
   const totalSales = processedData.reduce(
     (sum, item) => sum + (item.sales ?? 0),
-    0
+    0,
   );
   const totalNewRevenue = processedData.reduce(
     (sum, item) => sum + (item.revenue ?? 0) * 100,
-    0
+    0,
   );
   const totalRenewalRevenue = processedData.reduce(
     (sum, item) => sum + (item.renewalRevenue ?? 0) * 100,
-    0
+    0,
   );
   const totalRevenue = totalNewRevenue + totalRenewalRevenue;
   const totalRefundedRevenue = processedData.reduce(
     (sum, item) => sum + (item.refundedRevenue ?? 0) * 100,
-    0
+    0,
   );
   const totalGoal = processedData.reduce(
     (sum, item) => sum + (item.goalCount ?? 0),
-    0
+    0,
   );
 
   return {
@@ -1199,11 +1172,11 @@ function calculatePercentageChange(
     sessionTime: number;
     conversionRate: number;
     revenuePerVisitor: number;
-  }
+  },
 ) {
   const calculateChange = (
     current: number,
-    previous: number
+    previous: number,
   ): string | null => {
     if (previous === 0) {
       return current > 0 ? "100.0" : null;
@@ -1226,20 +1199,20 @@ function calculatePercentageChange(
     totalNewRevenue: calculateChange(currentNewRevenue, previousNewRevenue),
     totalRenewalRevenue: calculateChange(
       currentRenewalRevenue,
-      previousRenewalRevenue
+      previousRenewalRevenue,
     ),
     totalRefundedRevenue: calculateChange(
       current.revenueRefund,
-      previous.revenueRefund
+      previous.revenueRefund,
     ),
     totalGoal: null,
     revenuePerVisitor: calculateChange(
       current.revenuePerVisitor,
-      previous.revenuePerVisitor
+      previous.revenuePerVisitor,
     ),
     conversionRate: calculateChange(
       current.conversionRate,
-      previous.conversionRate
+      previous.conversionRate,
     ),
     goalConversionRate: null,
     bounceRate: calculateChange(current.bounceRate, previous.bounceRate),

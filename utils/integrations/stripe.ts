@@ -6,10 +6,6 @@ import {
   deletePaymentsByProvider,
 } from "@/utils/database/payment";
 import { Types } from "mongoose";
-import {
-  registerPaymentProviderSync,
-  unregisterPaymentProviderSync,
-} from "@/utils/jobs/register";
 import type { IWebsite } from "@/db/models/Website";
 
 export interface SyncResult {
@@ -625,7 +621,6 @@ export function initializeStripeSyncConfig(
 }
 
 export async function handleStripeRemoval(websiteId: string): Promise<void> {
-  await unregisterPaymentProviderSync(websiteId, "stripe");
   await deletePaymentsByProvider(websiteId, "stripe");
 }
 
@@ -634,42 +629,8 @@ export async function handleStripeAddition(
   apiKey: string,
   stripeConfig?: NonNullable<IWebsite["paymentProviders"]>["stripe"],
 ): Promise<void> {
-  const configToUse: NonNullable<IWebsite["paymentProviders"]>["stripe"] =
-    stripeConfig || {
-      apiKey,
-    };
-  await registerPaymentProviderSync(
-    websiteId,
-    "stripe",
-    { stripe: configToUse },
-    { forceInitialSync: true },
-  );
-
-  const baseUrl = getBaseUrl();
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15_000);
-  fetch(`${baseUrl}/api/jobs/process`, {
-    method: "POST",
-    signal: controller.signal,
-    headers: {
-      "Content-Type": "application/json",
-      ...(process.env.CRON_SECRET && {
-        Authorization: `Bearer ${process.env.CRON_SECRET}`,
-      }),
-    },
-    body: JSON.stringify({ batchSize: 10, maxConcurrent: 3 }),
-  })
-    .then((res) => {
-      clearTimeout(timeoutId);
-      if (!res.ok) {
-      }
-    })
-    .catch((err) => {
-      clearTimeout(timeoutId);
-      if (err?.name !== "AbortError") {
-      }
-    });
+  // Stripe addition is now handled by the sync-payment cron endpoint
+  // No job registration or processing needed
 }
 
 function getBaseUrl(): string {

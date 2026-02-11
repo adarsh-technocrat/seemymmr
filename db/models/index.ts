@@ -16,7 +16,6 @@ export { default as SearchConsoleData } from "./SearchConsoleData";
 export { default as ApiKey } from "./ApiKey";
 export { default as TeamMember } from "./TeamMember";
 export { default as EmailNotification } from "./EmailNotification";
-export { default as SyncJob } from "./SyncJob";
 export { default as NewsletterSubscriber } from "./NewsletterSubscriber";
 
 // Export types
@@ -37,11 +36,4 @@ export type { ISearchConsoleData } from "./SearchConsoleData";
 export type { IApiKey } from "./ApiKey";
 export type { ITeamMember } from "./TeamMember";
 export type { IEmailNotification } from "./EmailNotification";
-export type {
-  ISyncJob,
-  SyncJobProvider,
-  SyncJobType,
-  SyncJobStatus,
-  SyncRange,
-} from "./SyncJob";
 export type { INewsletterSubscriber } from "./NewsletterSubscriber";
