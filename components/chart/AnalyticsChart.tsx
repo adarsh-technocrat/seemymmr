@@ -20,6 +20,7 @@ import {
   createRoundedTopRectPath,
 } from "@/utils/analytics/chart";
 import { NotesIcon } from "@/components/icons";
+import { Spinner } from "@/components/ui/spinner";
 import { AnalyticsChartTooltip } from "@/components/dashboard/analytics/tooltips/AnalyticsChartTooltip";
 
 export interface Mention {
@@ -259,11 +260,30 @@ function AnalyticsChartComponent({
   onMentionClick,
   onNoteClick,
   height = "h-72 md:h-96",
+  loading = false,
 }: AnalyticsChartProps) {
   const [showMentionsOnChart, setShowMentionsOnChart] = useState(showMentions);
 
   if (!data || data.length === 0) {
-    return null;
+    return (
+      <div className="p-4">
+        <div
+          className={`flex items-center justify-center w-full ${height} rounded-lg bg-muted/30 border border-borderColor/50`}
+          aria-hidden={!loading}
+        >
+          {loading ? (
+            <div className="flex flex-col items-center gap-2 text-textSecondary">
+              <Spinner className="size-8" aria-label="Loading chart" />
+              <span className="text-sm">Loading chart...</span>
+            </div>
+          ) : (
+            <span className="text-sm text-textSecondary">
+              No chart data for this period
+            </span>
+          )}
+        </div>
+      </div>
+    );
   }
 
   const calculateDomainMax = (dataMax: number): number => {

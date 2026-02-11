@@ -175,6 +175,7 @@ export default function WebsiteAnalyticsPage({
                         setMentionDialogOpen(true);
                       }}
                       height="h-72 md:h-96"
+                      loading={analytics.loading}
                     />
                   </div>
                 </section>

@@ -84,7 +84,7 @@ export function RealtimeMapDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-none max-h-none w-screen h-screen p-0 m-0 rounded-none border-0 bg-gray-50 overflow-hidden left-0 top-0 translate-x-0 translate-y-0 [&>button]:hidden data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 duration-300">
+      <DialogContent className="dialog-content-fullscreen fixed inset-0 max-w-none max-h-none w-screen h-screen p-0 m-0 !rounded-none border-0 bg-gray-50 overflow-hidden [&>button]:hidden">
         <DialogTitle className="sr-only">
           Real-time Visitor Map - {websiteName}
         </DialogTitle>

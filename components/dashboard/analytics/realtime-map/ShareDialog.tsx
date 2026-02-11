@@ -113,7 +113,7 @@ export function ShareDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg !rounded-2xl border-white/40 bg-white/80 backdrop-blur-2xl shadow-xl shadow-white/10 cursor-default [&_button]:cursor-pointer [&_input]:cursor-text [&_[role=switch]]:cursor-pointer">
         <DialogHeader>
           <DialogTitle>Share Realtime Globe</DialogTitle>
           <DialogDescription>
@@ -152,6 +152,7 @@ export function ShareDialog({
                   variant="outline"
                   onClick={handleCopy}
                   title="Copy URL"
+                  className="cursor-pointer"
                 >
                   {copied ? (
                     <Check className="h-4 w-4 text-green-600" />
@@ -175,7 +176,12 @@ export function ShareDialog({
           )}
         </div>
         <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
+          <Button
+            onClick={() => onOpenChange(false)}
+            className="cursor-pointer"
+          >
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
