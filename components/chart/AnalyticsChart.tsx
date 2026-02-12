@@ -48,7 +48,6 @@ interface ForecastDataPoint extends ChartDataPoint {
   isForecast?: boolean;
   solidLineValue?: number | null;
   dashedLineValue?: number | null;
-  /** For today hourly: null when 0 so line/area don't draw on x-axis (trading-style). */
   visitorsForChart?: number | null;
 }
 
@@ -371,58 +370,37 @@ function AnalyticsChartComponent({
     );
   };
 
-  const isHourlyChart =
-    (data[0]?.date?.includes("am") ?? false) ||
-    (data[0]?.date?.includes("pm") ?? false);
-
   const forecastData: ForecastDataPoint[] = data.map((item, index) => {
     const itemIsToday = isToday(item);
     const isForecast =
       currentTimeIndex !== null && index > currentTimeIndex && itemIsToday;
 
     // For today: use real-time projection (only show up to current time index).
-    // Treat 0 as null so the line doesn't draw along the x-axis (trading-style).
-    // For previous dates: always show the full visitor line (preserve null values).
+    // Use 0 for null/empty buckets so the visitor line is continuous (no gaps).
+    // Future hours (past current time) stay null so the line doesn't extend into the future.
     let solidLineValue: number | null = null;
-    let visitorsForChart: number | null = item.visitors ?? null;
+    let visitorsForChart: number | null = null;
     if (itemIsToday) {
       const inRange = currentTimeIndex !== null && index <= currentTimeIndex;
       const raw = item.visitors ?? null;
-      if (inRange && raw !== null && raw !== 0) {
-        solidLineValue = raw;
-        visitorsForChart = raw;
-      } else if (inRange && raw === 0) {
-        solidLineValue = null;
-        visitorsForChart = null;
+      if (inRange) {
+        solidLineValue = raw !== null ? raw : 0;
+        visitorsForChart = raw !== null ? raw : 0;
       } else {
         solidLineValue = null;
         visitorsForChart = null;
       }
     } else {
-      solidLineValue = item.visitors ?? null;
-      visitorsForChart = item.visitors ?? null;
+      solidLineValue =
+        item.visitors !== null && item.visitors !== undefined
+          ? item.visitors
+          : 0;
+      visitorsForChart =
+        item.visitors !== null && item.visitors !== undefined
+          ? item.visitors
+          : 0;
     }
 
-    // Hourly chart: turn 0/null into null so the line doesn't sit on the x-axis, except
-    // keep the first empty bucket after a spike so we draw one visible segment (spike → drop).
-    const isEmptyBucket =
-      solidLineValue === 0 ||
-      visitorsForChart === 0 ||
-      (solidLineValue === null &&
-        visitorsForChart === null &&
-        (item.visitors === 0 || item.visitors == null));
-    if (isHourlyChart && isEmptyBucket) {
-      const prevVisitors = index > 0 ? (data[index - 1].visitors ?? 0) : 0;
-      if (prevVisitors > 0) {
-        solidLineValue = 0;
-        visitorsForChart = 0;
-      } else {
-        solidLineValue = null;
-        visitorsForChart = null;
-      }
-    }
-
-    // Sanitize revenue values to prevent NaN
     const sanitizeRevenue = (
       value: number | undefined | null,
     ): number | undefined => {
