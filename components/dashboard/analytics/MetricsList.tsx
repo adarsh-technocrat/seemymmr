@@ -12,6 +12,32 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+function MetricVariation({
+  variation,
+  trend,
+}: {
+  variation: string;
+  trend: "up" | "down";
+}) {
+  const noChange = variation === "0%";
+  return (
+    <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
+      <span className="text-textSecondary text-xs opacity-80">
+        {noChange ? "—" : variation}
+      </span>
+      {!noChange && (
+        <ChevronUpIcon
+          className={`size-3 ${
+            trend === "down"
+              ? "text-red-500 dark:text-red-700"
+              : "text-green-500 dark:text-green-600 rotate-180"
+          }`}
+        />
+      )}
+    </div>
+  );
+}
+
 interface Metric {
   value: string;
   variation: string;
@@ -82,18 +108,10 @@ export function MetricsList({
                 format={{ notation: "compact" }}
               />
             </div>
-            <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
-              <span className="text-textSecondary text-xs opacity-80">
-                {visitors.variation}
-              </span>
-              <ChevronUpIcon
-                className={`size-3 ${
-                  visitors.trend === "down"
-                    ? "text-red-500 dark:text-red-700"
-                    : "text-green-500 dark:text-green-600 rotate-180"
-                }`}
-              />
-            </div>
+            <MetricVariation
+              variation={visitors.variation}
+              trend={visitors.trend}
+            />
           </div>
         </div>
       </li>
@@ -239,18 +257,10 @@ export function MetricsList({
                   )}
               </Tooltip>
             </TooltipProvider>
-            <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
-              <span className="text-textSecondary text-xs opacity-80">
-                {revenue.variation}
-              </span>
-              <ChevronUpIcon
-                className={`size-3 ${
-                  revenue.trend === "down"
-                    ? "text-red-500 dark:text-red-700"
-                    : "text-green-500 dark:text-green-600 rotate-180"
-                }`}
-              />
-            </div>
+            <MetricVariation
+              variation={revenue.variation}
+              trend={revenue.trend}
+            />
           </div>
         </div>
       </li>
@@ -270,18 +280,10 @@ export function MetricsList({
                 }}
               />
             </div>
-            <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
-              <span className="text-textSecondary text-xs opacity-80">
-                {conversionRate.variation}
-              </span>
-              <ChevronUpIcon
-                className={`size-3 ${
-                  conversionRate.trend === "down"
-                    ? "text-red-500 dark:text-red-700"
-                    : "text-green-500 dark:text-green-600 rotate-180"
-                }`}
-              />
-            </div>
+            <MetricVariation
+              variation={conversionRate.variation}
+              trend={conversionRate.trend}
+            />
           </div>
         </div>
       </li>
@@ -306,18 +308,10 @@ export function MetricsList({
                 />
               </div>
             </div>
-            <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
-              <span className="text-textSecondary text-xs opacity-80">
-                {revenuePerVisitor.variation}
-              </span>
-              <ChevronUpIcon
-                className={`size-3 ${
-                  revenuePerVisitor.trend === "down"
-                    ? "text-red-500 dark:text-red-700"
-                    : "text-green-500 dark:text-green-600 rotate-180"
-                }`}
-              />
-            </div>
+            <MetricVariation
+              variation={revenuePerVisitor.variation}
+              trend={revenuePerVisitor.trend}
+            />
           </div>
         </div>
       </li>
@@ -336,18 +330,10 @@ export function MetricsList({
                 }}
               />
             </div>
-            <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
-              <span className="text-textSecondary text-xs opacity-80">
-                {bounceRate.variation}
-              </span>
-              <ChevronUpIcon
-                className={`size-3 ${
-                  bounceRate.trend === "down"
-                    ? "text-red-500 dark:text-red-700"
-                    : "text-green-500 dark:text-green-600"
-                }`}
-              />
-            </div>
+            <MetricVariation
+              variation={bounceRate.variation}
+              trend={bounceRate.trend}
+            />
           </div>
         </div>
       </li>
@@ -360,18 +346,10 @@ export function MetricsList({
             <div className="whitespace-nowrap text-xl font-bold md:text-[1.65rem] md:leading-9 text-textPrimary">
               {sessionTime.value}
             </div>
-            <div className="flex w-full flex-1 items-center gap-1 leading-none duration-150">
-              <span className="text-textSecondary text-xs opacity-80">
-                {sessionTime.variation}
-              </span>
-              <ChevronUpIcon
-                className={`size-3 ${
-                  sessionTime.trend === "down"
-                    ? "text-red-500 dark:text-red-700"
-                    : "text-green-500 dark:text-green-600 rotate-180"
-                }`}
-              />
-            </div>
+            <MetricVariation
+              variation={sessionTime.variation}
+              trend={sessionTime.trend}
+            />
           </div>
         </div>
       </li>

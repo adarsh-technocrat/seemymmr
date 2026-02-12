@@ -723,8 +723,19 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     }
   };
 
-  // Transform metrics data
+  // Helper: variation and trend from API percentageChange (e.g. "5.2", "-3.1", null)
+  const variationFromChange = (pc: string | null | undefined): string =>
+    pc != null ? `${pc}%` : "0%";
+  const trendFromChange = (pc: string | null | undefined): "up" | "down" => {
+    if (pc == null) return "up";
+    const n = parseFloat(pc);
+    return !Number.isNaN(n) && n < 0 ? "down" : "up";
+  };
+
+  // Transform metrics data (use API percentageChange when available)
   const metricsData = useMemo(() => {
+    const pc = analytics.percentageChange ?? {};
+
     if (!analytics.metrics) {
       return {
         visitors: { value: "0", variation: "0%", trend: "up" as const },
@@ -748,37 +759,37 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     return {
       visitors: {
         value: analytics.metrics.visitors,
-        variation: "0%",
-        trend: "up" as const,
+        variation: variationFromChange(pc.totalVisitors),
+        trend: trendFromChange(pc.totalVisitors),
       },
       revenue: {
         value: analytics.metrics.revenue,
-        variation: "0%",
-        trend: "up" as const,
+        variation: variationFromChange(pc.totalRevenue),
+        trend: trendFromChange(pc.totalRevenue),
       },
       conversionRate: {
         value: analytics.metrics.conversionRate,
-        variation: "0%",
-        trend: "up" as const,
+        variation: variationFromChange(pc.conversionRate),
+        trend: trendFromChange(pc.conversionRate),
       },
       revenuePerVisitor: {
         value: analytics.metrics.revenuePerVisitor,
-        variation: "0%",
-        trend: "up" as const,
+        variation: variationFromChange(pc.revenuePerVisitor),
+        trend: trendFromChange(pc.revenuePerVisitor),
       },
       bounceRate: {
         value: analytics.metrics.bounceRate,
-        variation: "0%",
-        trend: "up" as const,
+        variation: variationFromChange(pc.bounceRate),
+        trend: trendFromChange(pc.bounceRate),
       },
       sessionTime: {
         value: analytics.metrics.sessionTime,
-        variation: "0%",
-        trend: "up" as const,
+        variation: variationFromChange(pc.sessionDuration),
+        trend: trendFromChange(pc.sessionDuration),
       },
       visitorsNow: { value: analytics.metrics.visitorsNow },
     };
-  }, [analytics.metrics]);
+  }, [analytics.metrics, analytics.percentageChange]);
 
   const chartData = analytics.chartData || [];
   const sourceData = getSourceData();

@@ -20,6 +20,7 @@ export function useAnalytics(
     return {
       chartData: [],
       metrics: null,
+      percentageChange: null,
       revenueBreakdown: null,
       breakdowns: null,
       loading: false,

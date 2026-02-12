@@ -18,20 +18,11 @@ export function formatDateDisplay(data: {
     return data.fullDate || data.date;
   }
 
-  // Parse timestamp and get UTC date components for comparison
+  const bucketDateStr = data.timestamp.slice(0, 10);
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const isToday = bucketDateStr === todayStr;
   const dataDate = new Date(data.timestamp);
-  const today = new Date();
-
-  // Compare UTC date parts to avoid timezone issues
-  const dataYear = dataDate.getUTCFullYear();
-  const dataMonth = dataDate.getUTCMonth();
-  const dataDay = dataDate.getUTCDate();
-  const todayYear = today.getUTCFullYear();
-  const todayMonth = today.getUTCMonth();
-  const todayDay = today.getUTCDate();
-
-  const isToday =
-    dataYear === todayYear && dataMonth === todayMonth && dataDay === todayDay;
 
   if (isToday) {
     // Extract hour from timestamp string to get the correct hour
@@ -132,7 +123,7 @@ export function shouldHaveRadiusForNew(props: BarShapeProps): boolean {
   const hasRevenueRefund = (payload.revenueRefund || 0) > 0;
 
   const barCount = [hasRevenueNew, hasRevenueRenewal, hasRevenueRefund].filter(
-    Boolean
+    Boolean,
   ).length;
 
   // If only one bar exists, it should have radius
@@ -156,7 +147,7 @@ export function shouldHaveRadiusForRenewal(props: BarShapeProps): boolean {
   const hasRevenueRefund = (payload.revenueRefund || 0) > 0;
 
   const barCount = [hasRevenueNew, hasRevenueRenewal, hasRevenueRefund].filter(
-    Boolean
+    Boolean,
   ).length;
 
   // If only one bar exists, it should have radius
@@ -182,7 +173,7 @@ export function shouldHaveRadiusForRefund(props: BarShapeProps): boolean {
   const hasRevenueRefund = (payload.revenueRefund || 0) > 0;
 
   const barCount = [hasRevenueNew, hasRevenueRenewal, hasRevenueRefund].filter(
-    Boolean
+    Boolean,
   ).length;
 
   // If only one bar exists, it should have radius
@@ -208,7 +199,7 @@ export function createRoundedTopRectPath(
   y: number,
   width: number,
   height: number,
-  radius: number
+  radius: number,
 ): string {
   // Clamp radius to not exceed half the width or height
   const r = Math.min(radius, width / 2, height);

@@ -48,6 +48,8 @@ interface ForecastDataPoint extends ChartDataPoint {
   isForecast?: boolean;
   solidLineValue?: number | null;
   dashedLineValue?: number | null;
+  /** For today hourly: null when 0 so line/area don't draw on x-axis (trading-style). */
+  visitorsForChart?: number | null;
 }
 
 interface DotProps {
@@ -335,6 +337,10 @@ function AnalyticsChartComponent({
   };
 
   const maxVisitors = Math.max(...data.map((d) => d.visitors ?? 0), 0);
+  const maxRevenue = Math.max(
+    ...data.map((d) => (typeof d.revenue === "number" ? d.revenue : 0)),
+    0,
+  );
 
   const visitorTicks = calculateTicks(maxVisitors);
 
@@ -365,23 +371,55 @@ function AnalyticsChartComponent({
     );
   };
 
+  const isHourlyChart =
+    (data[0]?.date?.includes("am") ?? false) ||
+    (data[0]?.date?.includes("pm") ?? false);
+
   const forecastData: ForecastDataPoint[] = data.map((item, index) => {
     const itemIsToday = isToday(item);
     const isForecast =
       currentTimeIndex !== null && index > currentTimeIndex && itemIsToday;
 
-    // For today: use real-time projection (only show up to current time index)
-    // For previous dates: always show the full visitor line (preserve null values)
+    // For today: use real-time projection (only show up to current time index).
+    // Treat 0 as null so the line doesn't draw along the x-axis (trading-style).
+    // For previous dates: always show the full visitor line (preserve null values).
     let solidLineValue: number | null = null;
+    let visitorsForChart: number | null = item.visitors ?? null;
     if (itemIsToday) {
-      // Today: only show up to current time index
-      solidLineValue =
-        currentTimeIndex !== null && index <= currentTimeIndex
-          ? (item.visitors ?? null)
-          : null;
+      const inRange = currentTimeIndex !== null && index <= currentTimeIndex;
+      const raw = item.visitors ?? null;
+      if (inRange && raw !== null && raw !== 0) {
+        solidLineValue = raw;
+        visitorsForChart = raw;
+      } else if (inRange && raw === 0) {
+        solidLineValue = null;
+        visitorsForChart = null;
+      } else {
+        solidLineValue = null;
+        visitorsForChart = null;
+      }
     } else {
-      // Previous dates: always show the visitor line (preserve null if no data)
       solidLineValue = item.visitors ?? null;
+      visitorsForChart = item.visitors ?? null;
+    }
+
+    // Hourly chart: turn 0/null into null so the line doesn't sit on the x-axis, except
+    // keep the first empty bucket after a spike so we draw one visible segment (spike → drop).
+    const isEmptyBucket =
+      solidLineValue === 0 ||
+      visitorsForChart === 0 ||
+      (solidLineValue === null &&
+        visitorsForChart === null &&
+        (item.visitors === 0 || item.visitors == null));
+    if (isHourlyChart && isEmptyBucket) {
+      const prevVisitors = index > 0 ? (data[index - 1].visitors ?? 0) : 0;
+      if (prevVisitors > 0) {
+        solidLineValue = 0;
+        visitorsForChart = 0;
+      } else {
+        solidLineValue = null;
+        visitorsForChart = null;
+      }
     }
 
     // Sanitize revenue values to prevent NaN
@@ -397,6 +435,7 @@ function AnalyticsChartComponent({
       ...item,
       isForecast,
       solidLineValue,
+      visitorsForChart,
       // Dashed line value: only for currentTimeIndex (today only)
       dashedLineValue:
         currentTimeIndex !== null && index === currentTimeIndex && itemIsToday
@@ -412,48 +451,52 @@ function AnalyticsChartComponent({
     };
   });
 
+  const hasHourlyLabels =
+    data[0]?.date?.includes("am") ?? data[0]?.date?.includes("pm");
+  const nonZeroBuckets = data.filter(
+    (d) =>
+      (d.visitors ?? 0) > 0 || (typeof d.revenue === "number" && d.revenue > 0),
+  ).length;
+  const isSparse =
+    hasHourlyLabels &&
+    data.length > 4 &&
+    nonZeroBuckets <= Math.ceil(data.length / 4);
+
   return (
-    <div className={height}>
-      <ResponsiveContainer width="100%" height="100%">
-        <ComposedChart
-          data={forecastData}
-          margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
-          barCategoryGap="10%"
+    <div className={`flex flex-col gap-1 ${height}`}>
+      {isSparse && (
+        <p
+          className="text-xs text-muted-foreground text-center px-2 py-0.5"
+          role="status"
         >
-          <defs>
-            <linearGradient id="visitorGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#7888b2" stopOpacity={0.4} />
-              <stop offset="40%" stopColor="#7888b2" stopOpacity={0.1} />
-              <stop offset="100%" stopColor="#7888b2" stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid
-            strokeDasharray="3 3"
-            stroke="#e5e7eb"
-            className="stroke-neutral-200 dark:stroke-neutral-600/50!"
-            opacity={0.3}
-            vertical={false}
-            horizontal={true}
-          />
-          <XAxis
-            dataKey="date"
-            stroke="#9ca3af"
-            className="stroke-neutral-200 dark:stroke-neutral-600!"
-            tick={{
-              fill: "hsl(var(--muted-foreground))",
-              fontSize: 11,
-              className: "text-xs fill-textSecondary opacity-80",
-            }}
-            style={{
-              fontSize: "11px",
-            }}
-            interval={1}
-            tickMargin={10}
-            minTickGap={50}
-          />
-          {showVisitors && (
-            <YAxis
-              yAxisId="left"
+          Most of this period has no activity yet. Data updates as visitors and
+          payments are recorded.
+        </p>
+      )}
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart
+            data={forecastData}
+            margin={{ top: 20, right: 30, left: 10, bottom: 20 }}
+            barCategoryGap="10%"
+          >
+            <defs>
+              <linearGradient id="visitorGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#7888b2" stopOpacity={0.4} />
+                <stop offset="40%" stopColor="#7888b2" stopOpacity={0.1} />
+                <stop offset="100%" stopColor="#7888b2" stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#e5e7eb"
+              className="stroke-neutral-200 dark:stroke-neutral-600/50!"
+              opacity={0.3}
+              vertical={false}
+              horizontal={true}
+            />
+            <XAxis
+              dataKey="date"
               stroke="#9ca3af"
               className="stroke-neutral-200 dark:stroke-neutral-600!"
               tick={{
@@ -464,120 +507,144 @@ function AnalyticsChartComponent({
               style={{
                 fontSize: "11px",
               }}
-              tickFormatter={(value) => {
-                if (value >= 1000) return `${value / 1000}k`;
-                return value.toString();
-              }}
-              tickMargin={8}
-              domain={visitorDomain}
-              ticks={visitorTicks}
+              interval={1}
+              tickMargin={10}
+              minTickGap={50}
             />
-          )}
-          {showRevenue && (
-            <YAxis
-              yAxisId="right"
-              orientation="right"
-              stroke="#9ca3af"
-              className="stroke-neutral-200 dark:stroke-neutral-600!"
-              tick={{
-                fill: "hsl(var(--muted-foreground))",
-                fontSize: 11,
-                className: "text-xs fill-textSecondary opacity-80",
-              }}
-              style={{
-                fontSize: "11px",
-              }}
-              tickFormatter={(value) => {
-                const formatter = new Intl.NumberFormat("en-US", {
-                  style: "currency",
-                  currency: currency,
-                  currencyDisplay: "symbol",
-                  notation: value >= 1000 ? "compact" : "standard",
-                  maximumFractionDigits: value >= 1000 ? 1 : 0,
-                });
-                return formatter.format(value);
-              }}
-              tickMargin={8}
-              domain={[0, (dataMax: number) => Math.max(dataMax * 1.5, 50)]}
-              tickCount={5}
-            />
-          )}
+            {showVisitors && (
+              <YAxis
+                yAxisId="left"
+                stroke="#9ca3af"
+                className="stroke-neutral-200 dark:stroke-neutral-600!"
+                tick={{
+                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 11,
+                  className: "text-xs fill-textSecondary opacity-80",
+                }}
+                style={{
+                  fontSize: "11px",
+                }}
+                tickFormatter={(value) => {
+                  if (value >= 1000) return `${value / 1000}k`;
+                  return value.toString();
+                }}
+                tickMargin={8}
+                domain={visitorDomain}
+                ticks={visitorTicks}
+              />
+            )}
+            {showRevenue && (
+              <YAxis
+                yAxisId="right"
+                orientation="right"
+                stroke="#9ca3af"
+                className="stroke-neutral-200 dark:stroke-neutral-600!"
+                tick={{
+                  fill: "hsl(var(--muted-foreground))",
+                  fontSize: 11,
+                  className: "text-xs fill-textSecondary opacity-80",
+                }}
+                style={{
+                  fontSize: "11px",
+                }}
+                tickFormatter={(value) => {
+                  const formatter = new Intl.NumberFormat("en-US", {
+                    style: "currency",
+                    currency: currency,
+                    currencyDisplay: "symbol",
+                    notation: value >= 1000 ? "compact" : "standard",
+                    maximumFractionDigits: value >= 1000 ? 1 : 0,
+                  });
+                  return formatter.format(value);
+                }}
+                tickMargin={8}
+                domain={
+                  maxRevenue <= 0
+                    ? [0, 10]
+                    : [0, (dataMax: number) => Math.max(dataMax * 1.2, 10)]
+                }
+                ticks={maxRevenue <= 0 ? [0, 5, 10] : undefined}
+                tickCount={maxRevenue <= 0 ? undefined : 5}
+              />
+            )}
 
-          <Tooltip content={<AnalyticsChartTooltip currency={currency} />} />
-          {showVisitors && (
-            <Area
-              yAxisId="left"
-              type="monotone"
-              dataKey="visitors"
-              stroke="transparent"
-              strokeWidth={0}
-              fill="url(#visitorGradient)"
-              fillOpacity={0.6}
-            />
-          )}
+            <Tooltip content={<AnalyticsChartTooltip currency={currency} />} />
+            {showVisitors && (
+              <Area
+                yAxisId="left"
+                type="monotone"
+                dataKey="visitorsForChart"
+                stroke="transparent"
+                strokeWidth={0}
+                fill="url(#visitorGradient)"
+                fillOpacity={0.6}
+                connectNulls={false}
+              />
+            )}
 
-          {showRevenue && (
-            <Bar
-              yAxisId="right"
-              dataKey="revenueNew"
-              fill="#E16540"
-              stackId={"stack"}
-              shape={RevenueNewBarShape}
-              maxBarSize={30}
-            />
-          )}
-          {showRevenue && (
-            <Bar
-              yAxisId="right"
-              dataKey="revenueRenewal"
-              fill="#E16540"
-              stackId={"stack"}
-              shape={RevenueRenewalBarShape}
-              maxBarSize={30}
-            />
-          )}
-          {showRevenue && (
-            <Bar
-              yAxisId="right"
-              dataKey="revenueRefund"
-              fill="#E16540"
-              stackId={"stack"}
-              shape={DashedBarShape}
-              maxBarSize={30}
-            />
-          )}
-          {showVisitors && (
-            <Line
-              yAxisId="left"
-              type="monotone"
-              dataKey="solidLineValue"
-              stroke="#8dcdff"
-              strokeWidth={2.5}
-              strokeLinecap="round"
-              isAnimationActive={true}
-              animationBegin={0}
-              animationDuration={800}
-              dot={(props: DotProps & { key?: React.Key }) => {
-                const { key, ...restProps } = props;
-                return (
-                  <ChartDot
-                    key={key}
-                    {...restProps}
-                    currentTimeIndex={currentTimeIndex}
-                    forecastData={forecastData}
-                    showMentionsOnChart={showMentionsOnChart}
-                    onMentionClick={onMentionClick}
-                  />
-                );
-              }}
-              activeDot={(props: DotProps) => (
-                <ActiveDot {...props} onClick={onNoteClick} />
-              )}
-              connectNulls={false}
-            />
-          )}
-        </ComposedChart>
-      </ResponsiveContainer>
+            {showRevenue && (
+              <Bar
+                yAxisId="right"
+                dataKey="revenueNew"
+                fill="#E16540"
+                stackId={"stack"}
+                shape={RevenueNewBarShape}
+                maxBarSize={30}
+              />
+            )}
+            {showRevenue && (
+              <Bar
+                yAxisId="right"
+                dataKey="revenueRenewal"
+                fill="#E16540"
+                stackId={"stack"}
+                shape={RevenueRenewalBarShape}
+                maxBarSize={30}
+              />
+            )}
+            {showRevenue && (
+              <Bar
+                yAxisId="right"
+                dataKey="revenueRefund"
+                fill="#E16540"
+                stackId={"stack"}
+                shape={DashedBarShape}
+                maxBarSize={30}
+              />
+            )}
+            {showVisitors && (
+              <Line
+                yAxisId="left"
+                type="monotone"
+                dataKey="solidLineValue"
+                stroke="#8dcdff"
+                strokeWidth={2.5}
+                strokeLinecap="round"
+                isAnimationActive={true}
+                animationBegin={0}
+                animationDuration={800}
+                dot={(props: DotProps & { key?: React.Key }) => {
+                  const { key, ...restProps } = props;
+                  return (
+                    <ChartDot
+                      key={key}
+                      {...restProps}
+                      currentTimeIndex={currentTimeIndex}
+                      forecastData={forecastData}
+                      showMentionsOnChart={showMentionsOnChart}
+                      onMentionClick={onMentionClick}
+                    />
+                  );
+                }}
+                activeDot={(props: DotProps) => (
+                  <ActiveDot {...props} onClick={onNoteClick} />
+                )}
+                connectNulls={false}
+              />
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

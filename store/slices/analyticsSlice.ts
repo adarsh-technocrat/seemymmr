@@ -84,6 +84,9 @@ interface BreakdownData {
   hostname?: string; // For path breakdowns
 }
 
+/** Percentage change vs previous period (e.g. "5.2", "-3.1", null). From API. */
+export type PercentageChangeMap = Record<string, string | null>;
+
 interface WebsiteAnalytics {
   chartData: ChartDataPoint[];
   metrics: {
@@ -95,6 +98,7 @@ interface WebsiteAnalytics {
     sessionTime: string;
     visitorsNow: string;
   } | null;
+  percentageChange: PercentageChangeMap | null;
   revenueBreakdown: {
     newRevenue: number;
     renewalRevenue: number;
@@ -145,6 +149,7 @@ interface AnalyticsState {
 const createEmptyWebsiteAnalytics = (): WebsiteAnalytics => ({
   chartData: [],
   metrics: null,
+  percentageChange: null,
   revenueBreakdown: null,
   breakdowns: null,
   loading: false,
@@ -251,6 +256,9 @@ const analyticsSlice = createSlice({
             : "0m 0s",
           visitorsNow: "0", // TODO: Get from real-time if available
         };
+
+        // Store percentage change from API (vs previous period)
+        websiteData.percentageChange = action.payload.percentageChange ?? null;
 
         // Store revenue breakdown
         websiteData.revenueBreakdown = {

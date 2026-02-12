@@ -51,18 +51,36 @@ See our [Payment API documentation](/api-reference/payment) for details.
 
 ## Linking payments to visitors
 
-For best results, include visitor/session IDs in your payment metadata:
+You don't need a backend PostMetric integration. Get visitor identification on the **client** and pass it into your payment flow (e.g. Stripe metadata).
+
+### Option 1: Script API (recommended)
+
+Use the PostMetric script's methods (same values as in cookies):
 
 ```javascript
-// When creating a payment
-const payment = await stripe.checkout.sessions.create({
+// When creating a checkout or payment (e.g. before redirecting to Stripe)
+const visitorId = window.postMetric?.getVisitorId?.();
+const sessionId = window.postMetric?.getSessionId?.();
+
+// Pass to your backend or into Stripe metadata
+const session = await stripe.checkout.sessions.create({
   // ... payment config
   metadata: {
-    visitorId: window.postMetric?.getVisitorId(),
-    sessionId: window.postMetric?.getSessionId(),
+    websiteId: "your-website-id",
+    visitorId: visitorId,
+    sessionId: sessionId,
   },
 });
 ```
+
+### Option 2: Client cookies
+
+PostMetric sets cookies that you can read from your own code:
+
+- **Visitor ID:** cookie `_pm_vid`
+- **Session ID:** cookie `_pm_sid`
+
+Read these on the client before starting checkout and include them in payment metadata (e.g. Stripe `metadata.visitorId`, `metadata.sessionId`). Also include `websiteId` in metadata so the webhook can attribute the payment to your site.
 
 ## View revenue data
 

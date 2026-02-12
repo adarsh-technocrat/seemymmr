@@ -18,6 +18,7 @@ import { MentionsDialog } from "@/components/dashboard/analytics/MentionsDialog"
 import { WaitingForEventsBanner } from "@/components/dashboard/analytics/WaitingForEventsBanner";
 import { FloatingActionButtons } from "@/components/dashboard/analytics/FloatingActionButtons";
 import { RealtimeMapDialog } from "@/components/dashboard/analytics/RealtimeMapDialog";
+import { InsightsDialog } from "@/components/dashboard/analytics/InsightsDialog";
 import { Button } from "@/components/ui/button";
 import {
   useWebsiteAnalytics,
@@ -36,6 +37,7 @@ export default function WebsiteAnalyticsPage({
   const dispatch = useAppDispatch();
   const locationCardRef = useRef<HTMLDivElement>(null);
   const [mapDialogOpen, setMapDialogOpen] = useState(false);
+  const [insightsDialogOpen, setInsightsDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!isValidObjectId(websiteId)) {
@@ -259,12 +261,18 @@ export default function WebsiteAnalyticsPage({
         websiteIconUrl={website?.iconUrl}
       />
 
+      <InsightsDialog
+        open={insightsDialogOpen}
+        onOpenChange={setInsightsDialogOpen}
+        websiteId={websiteId}
+      />
+
       <FloatingActionButtons
         onOpenMap={() => {
           setMapDialogOpen(true);
         }}
         onOpenInsights={() => {
-          // Placeholder for insights feature
+          setInsightsDialogOpen(true);
         }}
       />
     </>
