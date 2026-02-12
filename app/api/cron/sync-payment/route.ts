@@ -6,88 +6,108 @@ import { syncStripePayments } from "@/utils/integrations/stripe";
 /** Realtime cron runs every 5 min. 30 min window = 6x overlap so missed runs still get covered. */
 const REALTIME_SYNC_WINDOW_MINUTES = 30;
 
-export async function POST(request: NextRequest) {
-  try {
-    const authHeader = request.headers.get("authorization");
-    const cronSecret = process.env.CRON_SECRET;
+function isCronAuthorized(request: NextRequest): boolean {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret) return true;
+  const authHeader = request.headers.get("authorization");
+  return authHeader === `Bearer ${cronSecret}`;
+}
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+async function runSync(): Promise<{
+  success: true;
+  websitesProcessed: number;
+  totalSynced: number;
+  totalSkipped: number;
+  totalErrors: number;
+  results: Array<{
+    websiteId: string;
+    synced: number;
+    skipped: number;
+    errors: number;
+  }>;
+}> {
+  await connectDB();
 
-    await connectDB();
+  const websites = await Website.find({
+    "paymentProviders.stripe.apiKey": { $exists: true, $ne: null },
+    "paymentProviders.stripe.syncConfig.enabled": { $ne: false },
+    "paymentProviders.stripe.syncConfig.frequency": "realtime",
+  });
 
-    const websites = await Website.find({
-      "paymentProviders.stripe.apiKey": { $exists: true, $ne: null },
-      "paymentProviders.stripe.syncConfig.enabled": { $ne: false },
-      "paymentProviders.stripe.syncConfig.frequency": "realtime",
-    });
+  const results: Array<{
+    websiteId: string;
+    synced: number;
+    skipped: number;
+    errors: number;
+  }> = [];
 
-    const results: Array<{
-      websiteId: string;
-      synced: number;
-      skipped: number;
-      errors: number;
-    }> = [];
+  const endDate = new Date();
+  const startDate = new Date(
+    endDate.getTime() - REALTIME_SYNC_WINDOW_MINUTES * 60 * 1000,
+  );
 
-    const endDate = new Date();
-    const startDate = new Date(
-      endDate.getTime() - REALTIME_SYNC_WINDOW_MINUTES * 60 * 1000,
-    );
-
-    const syncPromises = websites
-      .filter((w) => w.paymentProviders?.stripe?.apiKey)
-      .map(async (website) => {
-        const websiteId = website._id.toString();
-        const stripeApiKey = website.paymentProviders!.stripe!.apiKey!;
-        try {
-          const result = await syncStripePayments(
-            websiteId,
-            stripeApiKey,
-            startDate,
-            endDate,
-          );
-          return {
-            websiteId,
-            synced: result.synced,
-            skipped: result.skipped,
-            errors: result.errors,
-          };
-        } catch (err) {
-          const error = err as Error & { websiteId?: string };
-          error.websiteId = websiteId;
-          throw error;
-        }
-      });
-
-    const settled = await Promise.allSettled(syncPromises);
-    for (const s of settled) {
-      if (s.status === "fulfilled") {
-        results.push(s.value);
-      } else {
-        const websiteId =
-          (s.reason as Error & { websiteId?: string })?.websiteId ?? "unknown";
-        results.push({
+  const syncPromises = websites
+    .filter((w) => w.paymentProviders?.stripe?.apiKey)
+    .map(async (website) => {
+      const websiteId = website._id.toString();
+      const stripeApiKey = website.paymentProviders!.stripe!.apiKey!;
+      try {
+        const result = await syncStripePayments(
           websiteId,
-          synced: 0,
-          skipped: 0,
-          errors: 1,
-        });
+          stripeApiKey,
+          startDate,
+          endDate,
+        );
+        return {
+          websiteId,
+          synced: result.synced,
+          skipped: result.skipped,
+          errors: result.errors,
+        };
+      } catch (err) {
+        const error = err as Error & { websiteId?: string };
+        error.websiteId = websiteId;
+        throw error;
       }
-    }
-
-    const totalSynced = results.reduce((sum, r) => sum + r.synced, 0);
-    const totalSkipped = results.reduce((sum, r) => sum + r.skipped, 0);
-    const totalErrors = results.reduce((sum, r) => sum + r.errors, 0);
-
-    return NextResponse.json({
-      success: true,
-      websitesProcessed: websites.length,
-      totalSynced,
-      totalSkipped,
-      totalErrors,
-      results,
     });
+
+  const settled = await Promise.allSettled(syncPromises);
+  for (const s of settled) {
+    if (s.status === "fulfilled") {
+      results.push(s.value);
+    } else {
+      const websiteId =
+        (s.reason as Error & { websiteId?: string })?.websiteId ?? "unknown";
+      results.push({
+        websiteId,
+        synced: 0,
+        skipped: 0,
+        errors: 1,
+      });
+    }
+  }
+
+  const totalSynced = results.reduce((sum, r) => sum + r.synced, 0);
+  const totalSkipped = results.reduce((sum, r) => sum + r.skipped, 0);
+  const totalErrors = results.reduce((sum, r) => sum + r.errors, 0);
+
+  return {
+    success: true,
+    websitesProcessed: websites.length,
+    totalSynced,
+    totalSkipped,
+    totalErrors,
+    results,
+  };
+}
+
+export async function POST(request: NextRequest) {
+  if (!isCronAuthorized(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  try {
+    const body = await runSync();
+    return NextResponse.json(body);
   } catch (error: any) {
     return NextResponse.json(
       {
@@ -99,9 +119,24 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET() {
-  return NextResponse.json({
-    status: "ok",
-    message: "Realtime payment sync cron endpoint is active",
-  });
+export async function GET(request: NextRequest) {
+  if (!isCronAuthorized(request)) {
+    return NextResponse.json({
+      status: "ok",
+      message:
+        "Realtime payment sync cron endpoint is active. Use POST (or GET with Authorization) to run sync.",
+    });
+  }
+  try {
+    const body = await runSync();
+    return NextResponse.json(body);
+  } catch (error: any) {
+    return NextResponse.json(
+      {
+        error: "Failed to sync realtime payments",
+        message: error?.message,
+      },
+      { status: 500 },
+    );
+  }
 }

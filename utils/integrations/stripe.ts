@@ -529,7 +529,8 @@ export async function syncStripePayments(
   const start =
     startDate || new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000);
   const end = endDate || new Date();
-  return await syncer.syncPayments(start, end, websiteId);
+  const result = await syncer.syncPayments(start, end, websiteId);
+  return result;
 }
 
 export function detectStripeChanges(
