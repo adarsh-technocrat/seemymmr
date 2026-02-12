@@ -4,7 +4,7 @@ import Website from "@/db/models/Website";
 import { syncStripePayments } from "@/utils/integrations/stripe";
 
 /** Realtime cron runs every 5 min. 30 min window = 6x overlap so missed runs still get covered. */
-const REALTIME_SYNC_WINDOW_MINUTES = 1440;
+const REALTIME_SYNC_WINDOW_MINUTES = 30;
 
 function isCronAuthorized(request: NextRequest): boolean {
   const cronSecret = process.env.CRON_SECRET;
