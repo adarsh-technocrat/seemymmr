@@ -4,23 +4,17 @@ import { getRevenueOverTime } from "@/utils/analytics/aggregations/getRevenueOve
 import { getCustomersAndSalesOverTime } from "@/utils/analytics/aggregations/getCustomersAndSalesOverTime.aggregation";
 import { getGoalsOverTime } from "@/utils/analytics/aggregations/getGoalsOverTime.aggregation";
 import { getMetrics } from "@/utils/analytics/aggregations/getMetrics.aggregation";
-import { getSourceBreakdown } from "@/utils/analytics/aggregations/getSourceBreakdown.aggregation";
-import { getPagesBreakdown } from "@/utils/analytics/aggregations/getPagesBreakdown.aggregation";
-import { getHostnamesBreakdown } from "@/utils/analytics/aggregations/getHostnamesBreakdown.aggregation";
-import { getEntryPagesBreakdown } from "@/utils/analytics/aggregations/getEntryPagesBreakdown.aggregation";
-import { getExitLinksBreakdown } from "@/utils/analytics/aggregations/getExitLinksBreakdown.aggregation";
-import { getLocationBreakdown } from "@/utils/analytics/aggregations/getLocationBreakdown.aggregation";
-import { getSystemBreakdown } from "@/utils/analytics/aggregations/getSystemBreakdown.aggregation";
-import { getChannelBreakdownWithReferrers } from "@/utils/analytics/aggregations/getChannelBreakdownWithReferrers.aggregation";
-import { getReferrersBreakdown } from "@/utils/analytics/aggregations/getReferrersBreakdown.aggregation";
-import { getCampaignBreakdown } from "@/utils/analytics/aggregations/getCampaignBreakdown.aggregation";
 import type { Granularity } from "@/utils/analytics/types";
 import { getWebsiteById } from "@/utils/database/website";
 import { getUserId } from "@/lib/get-session";
-import connectDB from "@/db";
-import PageView from "@/db/models/PageView";
-import Payment from "@/db/models/Payment";
-import { Types } from "mongoose";
+import {
+  getDateRangeForPeriod,
+  getTimezoneOffset,
+  getTimezoneComponents,
+  createUTCDateFromTimezoneComponents,
+  getTimezoneOffsetString,
+} from "@/lib/date-time-conversion";
+import { getEarliestDataPoint } from "@/utils/analytics/earliest-data";
 
 export async function GET(
   request: NextRequest,
@@ -33,7 +27,6 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify ownership
     const website = await getWebsiteById(websiteId);
     if (!website) {
       return NextResponse.json({ error: "Website not found" }, { status: 404 });
@@ -149,54 +142,21 @@ export async function GET(
       }
     }
 
-    const [
-      visitors,
-      revenue,
-      customersAndSales,
-      goals,
-      metrics,
-      sourceChannel,
-      sourceReferrer,
-      sourceCampaign,
-      sourceKeyword,
-      pathPages,
-      pathHostnames,
-      pathEntryPages,
-      pathExitLinks,
-      locationCountry,
-      locationRegion,
-      locationCity,
-      systemBrowser,
-      systemOS,
-      systemDevice,
-      channelsWithReferrers,
-    ] = await Promise.all([
-      getVisitorsOverTime(websiteId, startDate, endDate, granularity),
-      getRevenueOverTime(websiteId, startDate, endDate, granularity),
-      getCustomersAndSalesOverTime(websiteId, startDate, endDate, granularity),
-      getGoalsOverTime(websiteId, startDate, endDate, granularity),
-      getMetrics(websiteId, startDate, endDate),
-      // Source breakdowns
-      getSourceBreakdown(websiteId, startDate, endDate, "channel"),
-      getReferrersBreakdown(websiteId, startDate, endDate),
-      getCampaignBreakdown(websiteId, startDate, endDate),
-      getSourceBreakdown(websiteId, startDate, endDate, "keyword"),
-      // Path breakdowns
-      getPagesBreakdown(websiteId, startDate, endDate),
-      getHostnamesBreakdown(websiteId, startDate, endDate),
-      getEntryPagesBreakdown(websiteId, startDate, endDate),
-      getExitLinksBreakdown(websiteId, startDate, endDate),
-      // Location breakdowns
-      getLocationBreakdown(websiteId, startDate, endDate, "country"),
-      getLocationBreakdown(websiteId, startDate, endDate, "region"),
-      getLocationBreakdown(websiteId, startDate, endDate, "city"),
-      // System breakdowns
-      getSystemBreakdown(websiteId, startDate, endDate, "browser"),
-      getSystemBreakdown(websiteId, startDate, endDate, "os"),
-      getSystemBreakdown(websiteId, startDate, endDate, "device"),
-      // Channels with nested referrers
-      getChannelBreakdownWithReferrers(websiteId, startDate, endDate),
-    ]);
+    // Core time-series and metrics only. Breakdowns are available via
+    // GET /api/websites/[websiteId]/analytics/breakdowns/[breakdown]
+    const [visitors, revenue, customersAndSales, goals, metrics] =
+      await Promise.all([
+        getVisitorsOverTime(websiteId, startDate, endDate, granularity),
+        getRevenueOverTime(websiteId, startDate, endDate, granularity),
+        getCustomersAndSalesOverTime(
+          websiteId,
+          startDate,
+          endDate,
+          granularity,
+        ),
+        getGoalsOverTime(websiteId, startDate, endDate, granularity),
+        getMetrics(websiteId, startDate, endDate),
+      ]);
 
     const processedData = processDataIntoBuckets(
       visitors,
@@ -262,29 +222,30 @@ export async function GET(
       currency: "$",
       percentageChange,
       includeRenewalRevenue: true,
+      // Fetch breakdowns from GET /api/websites/[websiteId]/analytics/breakdowns/[breakdown]
       breakdowns: {
         source: {
-          channel: sourceChannel || [],
-          referrer: sourceReferrer || [],
-          campaign: sourceCampaign || [],
-          keyword: sourceKeyword || [],
-          channels: channelsWithReferrers || [],
+          channel: [],
+          referrer: [],
+          campaign: [],
+          keyword: [],
+          channels: [],
         },
         path: {
-          pages: pathPages || [],
-          hostnames: pathHostnames || [],
-          entryPages: pathEntryPages || [],
-          exitLinks: pathExitLinks || [],
+          pages: [],
+          hostnames: [],
+          entryPages: [],
+          exitLinks: [],
         },
         location: {
-          country: locationCountry || [],
-          region: locationRegion || [],
-          city: locationCity || [],
+          country: [],
+          region: [],
+          city: [],
         },
         system: {
-          browser: systemBrowser || [],
-          os: systemOS || [],
-          device: systemDevice || [],
+          browser: [],
+          os: [],
+          device: [],
         },
       },
     };
@@ -299,192 +260,6 @@ export async function GET(
 }
 
 /**
- * Get the earliest data point (payment or pageview) for a website
- */
-async function getEarliestDataPoint(websiteId: string): Promise<Date | null> {
-  await connectDB();
-  const websiteObjectId = new Types.ObjectId(websiteId);
-
-  // Get earliest payment
-  const earliestPayment = await Payment.findOne({
-    websiteId: websiteObjectId,
-  })
-    .sort({ timestamp: 1 })
-    .select("timestamp")
-    .lean();
-
-  // Get earliest pageview
-  const earliestPageView = await PageView.findOne({
-    websiteId: websiteObjectId,
-  })
-    .sort({ timestamp: 1 })
-    .select("timestamp")
-    .lean();
-
-  // Return the earliest of the two, or null if no data exists
-  const dates: Date[] = [];
-  if (earliestPayment?.timestamp) {
-    dates.push(new Date(earliestPayment.timestamp));
-  }
-  if (earliestPageView?.timestamp) {
-    dates.push(new Date(earliestPageView.timestamp));
-  }
-
-  if (dates.length === 0) {
-    return null;
-  }
-
-  const earliest = new Date(Math.min(...dates.map((d) => d.getTime())));
-  return earliest;
-}
-
-/**
- * Get date range based on period string
- * @param period - The period string (e.g., "today", "yesterday", etc.)
- * @param timezone - The timezone to use for date calculations (e.g., "Asia/Calcutta")
- * @param website - Optional website object to use createdAt for "All time"
- * @param earliestDataPoint - Optional earliest data point from database for "All time"
- */
-function getDateRangeForPeriod(
-  period: string,
-  timezone: string = "UTC",
-  website?: { createdAt?: Date },
-  earliestDataPoint?: Date | null,
-): {
-  startDate: Date;
-  endDate: Date;
-} {
-  // Handle custom period format: custom:YYYY-MM-DD:YYYY-MM-DD
-  if (period.startsWith("custom:")) {
-    const parts = period.split(":");
-    if (parts.length === 3) {
-      const startDate = new Date(parts[1] + "T00:00:00");
-      const endDate = new Date(parts[2] + "T23:59:59");
-      return { startDate, endDate };
-    }
-  }
-
-  const periodLower = period.toLowerCase();
-  const now = new Date();
-
-  const getStartOfDayInTimezone = (date: Date, tz: string): Date => {
-    const components = getTimezoneComponents(date, tz);
-    return createUTCDateFromTimezoneComponents(
-      components.year,
-      components.month,
-      components.day,
-      0,
-      tz,
-    );
-  };
-
-  const getEndOfDayInTimezone = (date: Date, tz: string): Date => {
-    const startOfDay = getStartOfDayInTimezone(date, tz);
-    return new Date(startOfDay.getTime() + 24 * 60 * 60 * 1000 - 1);
-  };
-
-  let startDate: Date;
-  let endDate: Date;
-
-  switch (periodLower) {
-    case "today":
-      startDate = getStartOfDayInTimezone(now, timezone);
-      endDate = getEndOfDayInTimezone(now, timezone);
-      break;
-    case "yesterday":
-      const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-      startDate = getStartOfDayInTimezone(yesterday, timezone);
-      endDate = getEndOfDayInTimezone(yesterday, timezone);
-      break;
-    case "last24h":
-    case "last 24 hours":
-      endDate = new Date();
-      startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
-      break;
-    case "last7d":
-    case "last7days":
-    case "last 7 days":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      startDate = getStartOfDayInTimezone(sevenDaysAgo, timezone);
-      break;
-    case "last30d":
-    case "last30days":
-    case "last 30 days":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      startDate = getStartOfDayInTimezone(thirtyDaysAgo, timezone);
-      break;
-    case "last12m":
-    case "last12months":
-    case "last 12 months":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      const twelveMonthsAgo = new Date(now);
-      twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
-      twelveMonthsAgo.setDate(1);
-      startDate = getStartOfDayInTimezone(twelveMonthsAgo, timezone);
-      break;
-    case "week":
-    case "week to date":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      const nowInTz = new Date(
-        now.toLocaleString("en-US", { timeZone: timezone }),
-      );
-      const dayOfWeek = nowInTz.getDay();
-      const weekStart = new Date(now);
-      weekStart.setDate(now.getDate() - dayOfWeek);
-      startDate = getStartOfDayInTimezone(weekStart, timezone);
-      break;
-    case "month":
-    case "month to date":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      const monthStart = new Date(now);
-      monthStart.setDate(1);
-      startDate = getStartOfDayInTimezone(monthStart, timezone);
-      break;
-    case "year":
-    case "year to date":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      const yearStart = new Date(now);
-      yearStart.setMonth(0);
-      yearStart.setDate(1);
-      startDate = getStartOfDayInTimezone(yearStart, timezone);
-      break;
-    case "all":
-    case "all time":
-      endDate = getEndOfDayInTimezone(now, timezone);
-      // For "All time", show data from the earliest data point in the database
-      // This reflects the actual data available, not when the website was created
-      // (Users may have been running their business for years before using this platform)
-      const maxYearsBack = 5; // Limit to 5 years for performance
-      const maxDate = new Date(
-        now.getTime() - maxYearsBack * 365 * 24 * 60 * 60 * 1000,
-      );
-
-      if (earliestDataPoint) {
-        // Use earliest data point from database, but limit to maxYearsBack
-        const earliest = new Date(earliestDataPoint);
-        startDate = earliest > maxDate ? earliest : maxDate;
-      } else {
-        // No data yet: Use maxYearsBack as fallback
-        startDate = maxDate;
-      }
-
-      // Ensure startDate is at the beginning of the month for monthly granularity
-      const startMonth = new Date(startDate);
-      startMonth.setDate(1);
-      startMonth.setHours(0, 0, 0, 0);
-      startDate = getStartOfDayInTimezone(startMonth, timezone);
-      break;
-    default:
-      startDate = getStartOfDayInTimezone(now, timezone);
-      endDate = getEndOfDayInTimezone(now, timezone);
-  }
-
-  return { startDate, endDate };
-}
-
-/**
  * Get previous period date range for comparison
  */
 function getPreviousPeriodDateRange(
@@ -496,86 +271,6 @@ function getPreviousPeriodDateRange(
   const previousStartDate = new Date(previousEndDate.getTime() - duration);
 
   return { startDate: previousStartDate, endDate: previousEndDate };
-}
-
-/**
- * Get timezone offset in milliseconds
- * Returns positive value if timezone is ahead of UTC (e.g., IST is +5:30 = +19800000 ms)
- */
-function getTimezoneOffset(timezone: string, date: Date): number {
-  const utcDate = new Date(date.getTime());
-  const utcComponents = {
-    year: utcDate.getUTCFullYear(),
-    month: utcDate.getUTCMonth() + 1,
-    day: utcDate.getUTCDate(),
-    hour: utcDate.getUTCHours(),
-  };
-  const tzComponents = getTimezoneComponents(utcDate, timezone);
-
-  const utcAsLocal = Date.UTC(
-    utcComponents.year,
-    utcComponents.month - 1,
-    utcComponents.day,
-    utcComponents.hour,
-    0,
-    0,
-  );
-  const tzAsLocal = Date.UTC(
-    tzComponents.year,
-    tzComponents.month - 1,
-    tzComponents.day,
-    tzComponents.hour,
-    0,
-    0,
-  );
-
-  return tzAsLocal - utcAsLocal;
-}
-
-/**
- * Create UTC Date from timezone components
- */
-function createUTCDateFromTimezoneComponents(
-  year: number,
-  month: number,
-  day: number,
-  hour: number,
-  timezone: string,
-): Date {
-  const utcTimestamp = Date.UTC(year, month - 1, day, hour, 0, 0);
-  const testDate = new Date(utcTimestamp);
-  const offsetMs = getTimezoneOffset(timezone, testDate);
-  return new Date(utcTimestamp - offsetMs);
-}
-
-/**
- * Get timezone components from UTC date
- */
-function getTimezoneComponents(utcDate: Date, timezone: string) {
-  const formatter = new Intl.DateTimeFormat("en-US", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-
-  const parts = formatter.formatToParts(utcDate);
-  const partsMap: Record<string, string> = {};
-  parts.forEach((part) => {
-    partsMap[part.type] = part.value;
-  });
-
-  return {
-    year: parseInt(partsMap.year!),
-    month: parseInt(partsMap.month!),
-    day: parseInt(partsMap.day!),
-    hour: parseInt(partsMap.hour!),
-    minute: parseInt(partsMap.minute!),
-  };
 }
 
 /**
@@ -741,19 +436,6 @@ function processDataIntoBuckets(
         return `${year}-${monthStr}-${dayStr}`;
     }
   };
-
-  // Get timezone offset as string
-  function getTimezoneOffsetString(timezone: string, date: Date): string {
-    const offsetMs = getTimezoneOffset(timezone, date);
-    const offsetHours = Math.floor(Math.abs(offsetMs) / (60 * 60 * 1000));
-    const offsetMinutes = Math.floor(
-      (Math.abs(offsetMs) % (60 * 60 * 1000)) / (60 * 1000),
-    );
-    const offsetSign = offsetMs >= 0 ? "+" : "-";
-    return `${offsetSign}${String(offsetHours).padStart(2, "0")}:${String(
-      offsetMinutes,
-    ).padStart(2, "0")}`;
-  }
 
   visitors.forEach((item) => {
     const date = item.date instanceof Date ? item.date : new Date(item.date);

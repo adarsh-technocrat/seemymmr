@@ -17,6 +17,8 @@ export { default as ApiKey } from "./ApiKey";
 export { default as TeamMember } from "./TeamMember";
 export { default as EmailNotification } from "./EmailNotification";
 export { default as NewsletterSubscriber } from "./NewsletterSubscriber";
+export { default as FeedbackPost } from "./FeedbackPost";
+export { default as FeedbackComment } from "./FeedbackComment";
 
 // Export types
 export type { IUser } from "./User";
@@ -37,3 +39,5 @@ export type { IApiKey } from "./ApiKey";
 export type { ITeamMember } from "./TeamMember";
 export type { IEmailNotification } from "./EmailNotification";
 export type { INewsletterSubscriber } from "./NewsletterSubscriber";
+export type { IFeedbackPost } from "./FeedbackPost";
+export type { IFeedbackComment } from "./FeedbackComment";
