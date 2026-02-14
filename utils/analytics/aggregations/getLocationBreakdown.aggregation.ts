@@ -15,7 +15,7 @@ export async function getLocationBreakdown(
   websiteId: string,
   startDate: Date,
   endDate: Date,
-  type: "country" | "region" | "city" = "country"
+  type: "country" | "region" | "city" = "country",
 ) {
   await connectDB();
 
@@ -165,10 +165,10 @@ export async function getLocationBreakdown(
 
   // Step 4: Combine all data
   const revenueMap = new Map(
-    revenueData.map((item) => [item._id || "Unknown", item])
+    revenueData.map((item) => [item._id || "Unknown", item]),
   );
   const goalsMap = new Map(
-    goalsData.map((item) => [item._id || "Unknown", item])
+    goalsData.map((item) => [item._id || "Unknown", item]),
   );
 
   const result = sessionsData.map((item) => {
@@ -216,8 +216,8 @@ export async function getLocationBreakdown(
         type === "country"
           ? getLocationImageUrlFromCode(locationCode, type)
           : flagCountryCode
-          ? getLocationImageUrlFromCode(flagCountryCode, "country")
-          : "",
+            ? getLocationImageUrlFromCode(flagCountryCode, "country")
+            : "",
       revenue,
       conversionRate,
       goalCount,

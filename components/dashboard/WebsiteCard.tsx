@@ -37,7 +37,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
   });
 
   const totalVisitors = analytics.chartData.reduce(
-    (sum, point) => sum + point.visitors,
+    (sum, point) => sum + (point.visitors ?? 0),
     0,
   );
 

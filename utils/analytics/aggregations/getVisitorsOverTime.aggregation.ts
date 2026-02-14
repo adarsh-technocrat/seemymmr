@@ -8,12 +8,18 @@ export async function getVisitorsOverTime(
   websiteId: string,
   startDate: Date,
   endDate: Date,
-  granularity: Granularity = "daily"
+  granularity: Granularity = "daily",
+  timezone?: string,
 ) {
   await connectDB();
 
   const websiteObjectId = new Types.ObjectId(websiteId);
   const unit = getDateTruncUnit(granularity);
+  const dateTrunc: { date: string; unit: string; timezone?: string } = {
+    date: "$timestamp",
+    unit,
+  };
+  if (timezone) dateTrunc.timezone = timezone;
 
   const pipeline = [
     {
@@ -25,10 +31,7 @@ export async function getVisitorsOverTime(
     {
       $group: {
         _id: {
-          $dateTrunc: {
-            date: "$timestamp",
-            unit: unit,
-          },
+          $dateTrunc: dateTrunc,
         },
         visitors: { $addToSet: "$visitorId" },
       },

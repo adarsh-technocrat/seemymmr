@@ -3,17 +3,24 @@ import Payment from "@/db/models/Payment";
 import { Types } from "mongoose";
 import type { Granularity } from "../types";
 import { getDateTruncUnit } from "../utils";
+import { TimeZone } from "timezones-list";
 
 export async function getRevenueOverTime(
   websiteId: string,
   startDate: Date,
   endDate: Date,
-  granularity: Granularity = "daily"
+  granularity: Granularity = "daily",
+  timezone?: TimeZone["tzCode"],
 ) {
   await connectDB();
 
   const websiteObjectId = new Types.ObjectId(websiteId);
   const unit = getDateTruncUnit(granularity);
+  const dateTrunc: { date: string; unit: string; timezone?: string } = {
+    date: "$timestamp",
+    unit,
+  };
+  if (timezone) dateTrunc.timezone = timezone;
 
   const pipeline = [
     {
@@ -25,10 +32,7 @@ export async function getRevenueOverTime(
     {
       $group: {
         _id: {
-          $dateTrunc: {
-            date: "$timestamp",
-            unit: unit,
-          },
+          $dateTrunc: dateTrunc,
         },
         revenueNew: {
           $sum: {

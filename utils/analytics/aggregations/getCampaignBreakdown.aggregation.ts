@@ -16,7 +16,7 @@ import { getDateTruncUnit } from "../utils";
 export async function getCampaignBreakdown(
   websiteId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   await connectDB();
 
@@ -307,7 +307,7 @@ export async function getCampaignBreakdown(
 
   revenueData.forEach((item) => {
     const { paramRef, paramSource, paramVia } = extractParamsFromPath(
-      item.firstPageViewPath
+      item.firstPageViewPath,
     );
     const key = JSON.stringify({
       utm_source: item.utmSource || "",
@@ -335,7 +335,7 @@ export async function getCampaignBreakdown(
 
   goalsData.forEach((item) => {
     const { paramRef, paramSource, paramVia } = extractParamsFromPath(
-      item.firstPageViewPath
+      item.firstPageViewPath,
     );
     const key = JSON.stringify({
       utm_source: item.utmSource || "",

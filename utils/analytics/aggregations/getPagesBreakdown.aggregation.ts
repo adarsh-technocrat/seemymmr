@@ -10,7 +10,7 @@ import { getDateTruncUnit } from "../utils";
 export async function getPagesBreakdown(
   websiteId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   await connectDB();
 
@@ -175,13 +175,13 @@ export async function getPagesBreakdown(
     revenueData.map((item) => [
       `${item._id.path || "Unknown"}::${item._id.hostname || "Unknown"}`,
       item,
-    ])
+    ]),
   );
   const goalsMap = new Map(
     goalsData.map((item) => [
       `${item._id.path || "Unknown"}::${item._id.hostname || "Unknown"}`,
       item,
-    ])
+    ]),
   );
 
   const result = pagesData.map((item) => {

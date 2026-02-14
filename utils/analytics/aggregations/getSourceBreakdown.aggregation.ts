@@ -17,7 +17,7 @@ export async function getSourceBreakdown(
   websiteId: string,
   startDate: Date,
   endDate: Date,
-  type: "channel" | "referrer" | "campaign" | "keyword" = "channel"
+  type: "channel" | "referrer" | "campaign" | "keyword" = "channel",
 ) {
   await connectDB();
 
@@ -491,7 +491,7 @@ export async function getSourceBreakdown(
     revenueData.forEach((item) => {
       const resolvedChannel = resolveChannel(
         item.referrer || null,
-        item.utmMedium || null
+        item.utmMedium || null,
       );
       const referrerDomain = item.referrerDomain || "direct";
       const key = `${resolvedChannel}::${referrerDomain}`;
@@ -508,7 +508,7 @@ export async function getSourceBreakdown(
       rev.paymentCount += item.paymentCount || 0;
       if (item.sessionsWithPayments) {
         item.sessionsWithPayments.forEach((sid: string) =>
-          rev.sessionsWithPayments.add(sid)
+          rev.sessionsWithPayments.add(sid),
         );
       }
     });
@@ -518,7 +518,7 @@ export async function getSourceBreakdown(
     goalsData.forEach((item) => {
       const resolvedChannel = resolveChannel(
         item.referrer || null,
-        item.utmMedium || null
+        item.utmMedium || null,
       );
       const referrerDomain = item.referrerDomain || "direct";
       const key = `${resolvedChannel}::${referrerDomain}`;
@@ -533,7 +533,7 @@ export async function getSourceBreakdown(
       goal.goalCount += item.goalCount || 0;
       if (item.uniqueVisitorsWithGoals) {
         item.uniqueVisitorsWithGoals.forEach((vid: string) =>
-          goal.uniqueVisitorsWithGoals.add(vid)
+          goal.uniqueVisitorsWithGoals.add(vid),
         );
       }
     });
@@ -544,7 +544,7 @@ export async function getSourceBreakdown(
     sessionsData.forEach((item) => {
       const resolvedChannel = resolveChannel(
         item._id.referrer || null,
-        item._id.utmMedium || null
+        item._id.utmMedium || null,
       );
       const referrerDomain = item._id.referrerDomain || "direct";
       const key = `${resolvedChannel}::${referrerDomain}`;
@@ -670,11 +670,11 @@ export async function getSourceBreakdown(
       const totalUv = channel.uv;
       const totalSessionsWithPayments = channel.referrers.reduce(
         (sum: number, ref: any) => sum + (ref.paymentCount || 0),
-        0
+        0,
       );
       const totalUniqueVisitorsWithGoals = channel.referrers.reduce(
         (sum: number, ref: any) => sum + (ref.goalCount || 0),
-        0
+        0,
       );
 
       channel.conversionRate =
@@ -709,10 +709,10 @@ export async function getSourceBreakdown(
 
   // For non-channel types, use original logic
   const revenueMap = new Map(
-    revenueData.map((item) => [item._id || "direct", item])
+    revenueData.map((item) => [item._id || "direct", item]),
   );
   const goalsMap = new Map(
-    goalsData.map((item) => [item._id || "direct", item])
+    goalsData.map((item) => [item._id || "direct", item]),
   );
 
   const result = sessionsData.map((item) => {

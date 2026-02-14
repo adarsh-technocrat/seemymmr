@@ -86,7 +86,7 @@ export function getTimezoneOffsetString(timezone: string, date: Date): string {
 
 export function getDateRangeForPeriod(
   period: string,
-  timezone: string = "UTC",
+  timezone: TimeZone["tzCode"],
   _website?: { createdAt?: Date },
   earliestDataPoint?: Date | null,
 ): { startDate: Date; endDate: Date } {

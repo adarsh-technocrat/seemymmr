@@ -55,6 +55,7 @@ export default function WebsiteAnalyticsPage({
     canGoNext,
     availableGranularities,
     analytics,
+    refetch,
     chartData,
     metricsData,
     revenueBreakdown,
@@ -105,7 +106,7 @@ export default function WebsiteAnalyticsPage({
               size="icon"
               className="h-8 w-8 max-md:hidden border border-borderColor bg-white text-textPrimary hover:bg-gray-50 rounded-md"
               title="Refresh analytics data (Cmd+R / Ctrl+R)"
-              onClick={() => analytics.refetch()}
+              onClick={() => refetch()}
               disabled={analytics.loading}
             >
               <svg

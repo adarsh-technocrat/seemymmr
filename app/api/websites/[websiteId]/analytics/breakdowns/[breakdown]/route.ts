@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getWebsiteById } from "@/utils/database/website";
 import { getUserId } from "@/lib/get-session";
 import { getDateRangeForPeriod } from "@/lib/date-time-conversion";
-import { getEarliestDataPoint } from "@/utils/analytics/earliest-data";
 import { getSourceBreakdown } from "@/utils/analytics/aggregations/getSourceBreakdown.aggregation";
 import { getReferrersBreakdown } from "@/utils/analytics/aggregations/getReferrersBreakdown.aggregation";
 import { getCampaignBreakdown } from "@/utils/analytics/aggregations/getCampaignBreakdown.aggregation";
@@ -13,24 +12,11 @@ import { getEntryPagesBreakdown } from "@/utils/analytics/aggregations/getEntryP
 import { getExitLinksBreakdown } from "@/utils/analytics/aggregations/getExitLinksBreakdown.aggregation";
 import { getLocationBreakdown } from "@/utils/analytics/aggregations/getLocationBreakdown.aggregation";
 import { getSystemBreakdown } from "@/utils/analytics/aggregations/getSystemBreakdown.aggregation";
-
-const VALID_BREAKDOWNS = [
-  "source-channel",
-  "source-referrer",
-  "source-campaign",
-  "source-keyword",
-  "source-channels",
-  "path-pages",
-  "path-hostnames",
-  "path-entry-pages",
-  "path-exit-links",
-  "location-country",
-  "location-region",
-  "location-city",
-  "system-browser",
-  "system-os",
-  "system-device",
-] as const;
+import {
+  BREAKDOWN_KEYS,
+  isBreakdownKey,
+} from "@/lib/constants/analytics-breakdowns";
+import { TimeZone } from "timezones-list";
 
 export async function GET(
   request: NextRequest,
@@ -39,13 +25,11 @@ export async function GET(
   try {
     const { websiteId, breakdown } = await params;
 
-    if (
-      !VALID_BREAKDOWNS.includes(breakdown as (typeof VALID_BREAKDOWNS)[number])
-    ) {
+    if (!isBreakdownKey(breakdown)) {
       return NextResponse.json(
         {
           error: "Invalid breakdown",
-          validBreakdowns: VALID_BREAKDOWNS,
+          validBreakdowns: BREAKDOWN_KEYS,
         },
         { status: 400 },
       );
@@ -69,7 +53,8 @@ export async function GET(
     const period = searchParams.get("period") || "today";
     const startDateStr = searchParams.get("startDate");
     const endDateStr = searchParams.get("endDate");
-    const timezone = website.settings?.timezone || "Asia/Calcutta";
+    const timezone: string =
+      (website.settings?.timezone as TimeZone["tzCode"]) || "Asia/Kolkata";
 
     let startDate: Date;
     let endDate: Date;
@@ -78,17 +63,7 @@ export async function GET(
       startDate = new Date(startDateStr);
       endDate = new Date(endDateStr);
     } else {
-      const isAllTime =
-        period.toLowerCase() === "all" || period.toLowerCase() === "all time";
-      const earliestDataPoint = isAllTime
-        ? await getEarliestDataPoint(websiteId)
-        : null;
-      const dateRange = getDateRangeForPeriod(
-        period,
-        timezone,
-        website,
-        earliestDataPoint,
-      );
+      const dateRange = getDateRangeForPeriod(period, timezone);
       startDate = dateRange.startDate;
       endDate = dateRange.endDate;
     }

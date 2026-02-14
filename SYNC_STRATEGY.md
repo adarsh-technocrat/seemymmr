@@ -30,13 +30,11 @@ We now use **wider sync windows with buffers** to ensure comprehensive coverage:
 1. **Duplicate Prevention**: The sync function checks for existing payments by `providerPaymentId` before inserting, so wider ranges don't create duplicates.
 
 2. **Timezone Safety**: Syncing 48 hours for "today" ensures we catch all payments regardless of:
-
    - User's timezone
    - Server timezone
    - Payment processor timezone
 
 3. **Processing Delays**: The buffer accounts for:
-
    - Payment processing delays
    - Webhook delivery delays
    - Clock skew between systems
@@ -92,9 +90,6 @@ Check sync status:
 ```bash
 # View recent sync jobs
 GET /api/websites/{websiteId}/sync
-
-# Debug endpoint shows what's in DB vs what API returns
-GET /api/websites/{websiteId}/analytics/debug?period=Today
 ```
 
 ## Best Practices

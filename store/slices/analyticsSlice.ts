@@ -1,6 +1,13 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import {
+  BREAKDOWN_KEYS,
+  type BreakdownKey,
+} from "@/lib/constants/analytics-breakdowns";
 
 export const ABORTED_PAYLOAD = "__analytics_aborted__";
+
+export { BREAKDOWN_KEYS };
+export type { BreakdownKey };
 
 export const fetchAnalytics = createAsyncThunk(
   "analytics/fetchAnalytics",
@@ -53,6 +60,42 @@ export const fetchAnalytics = createAsyncThunk(
   },
 );
 
+export const fetchBreakdown = createAsyncThunk(
+  "analytics/fetchBreakdown",
+  async (
+    {
+      websiteId,
+      breakdown,
+      period,
+      customDateRange,
+      signal,
+    }: {
+      websiteId: string;
+      breakdown: BreakdownKey;
+      period: string;
+      customDateRange?: { from: Date; to: Date };
+      signal?: AbortSignal;
+    },
+    { rejectWithValue },
+  ) => {
+    const params = new URLSearchParams({ period });
+    if (customDateRange?.from && customDateRange?.to) {
+      params.set("startDate", customDateRange.from.toISOString());
+      params.set("endDate", customDateRange.to.toISOString());
+    }
+    const response = await fetch(
+      `/api/websites/${websiteId}/analytics/breakdowns/${breakdown}?${params.toString()}`,
+      { signal },
+    );
+    if (!response.ok) {
+      throw new Error("Failed to fetch breakdown");
+    }
+    const data = await response.json();
+    const list = data.data ?? [];
+    return { websiteId, breakdown, data: list };
+  },
+);
+
 interface ChartDataPoint {
   date: string;
   fullDate?: string;
@@ -74,17 +117,16 @@ interface ChartDataPoint {
 
 interface BreakdownData {
   name: string;
-  uv: number; // Unique visitors
-  revenue?: number; // Revenue in cents
-  image?: string; // Image URL (for system and location breakdowns)
-  flag?: string; // Flag emoji (for location breakdowns)
+  uv: number;
+  revenue?: number;
+  image?: string;
+  flag?: string;
   conversionRate?: number;
   goalCount?: number;
   goalConversionRate?: number;
-  hostname?: string; // For path breakdowns
+  hostname?: string;
 }
 
-/** Percentage change vs previous period (e.g. "5.2", "-3.1", null). From API. */
 export type PercentageChangeMap = Record<string, string | null>;
 
 interface WebsiteAnalytics {
@@ -110,7 +152,7 @@ interface WebsiteAnalytics {
       referrer: BreakdownData[];
       campaign: BreakdownData[];
       keyword: BreakdownData[];
-      channels?: BreakdownData[]; // Channels with nested referrers
+      channels?: BreakdownData[];
     };
     path: {
       pages: BreakdownData[];
@@ -138,12 +180,41 @@ interface WebsiteAnalytics {
 }
 
 interface AnalyticsState {
-  // Store analytics data per websiteId
   byWebsiteId: Record<string, WebsiteAnalytics>;
-  // Global loading state (true if any website is loading)
+  breakdownsByWebsiteId: Record<
+    string,
+    NonNullable<WebsiteAnalytics["breakdowns"]> | null
+  >;
   loading: boolean;
-  // Current website being viewed (for backward compatibility)
   currentWebsiteId: string | null;
+}
+
+function getEmptyBreakdowns(): WebsiteAnalytics["breakdowns"] {
+  return {
+    source: {
+      channel: [],
+      referrer: [],
+      campaign: [],
+      keyword: [],
+      channels: [],
+    },
+    path: {
+      pages: [],
+      hostnames: [],
+      entryPages: [],
+      exitLinks: [],
+    },
+    location: {
+      country: [],
+      region: [],
+      city: [],
+    },
+    system: {
+      browser: [],
+      os: [],
+      device: [],
+    },
+  };
 }
 
 const createEmptyWebsiteAnalytics = (): WebsiteAnalytics => ({
@@ -162,6 +233,7 @@ const createEmptyWebsiteAnalytics = (): WebsiteAnalytics => ({
 
 const initialState: AnalyticsState = {
   byWebsiteId: {},
+  breakdownsByWebsiteId: {},
   loading: false,
   currentWebsiteId: null,
 };
@@ -172,11 +244,11 @@ const analyticsSlice = createSlice({
   reducers: {
     clearAnalytics: (state, action?: PayloadAction<string | undefined>) => {
       if (action?.payload) {
-        // Clear specific website
         delete state.byWebsiteId[action.payload];
+        delete state.breakdownsByWebsiteId[action.payload];
       } else {
-        // Clear all
         state.byWebsiteId = {};
+        state.breakdownsByWebsiteId = {};
       }
       state.currentWebsiteId = null;
     },
@@ -202,7 +274,6 @@ const analyticsSlice = createSlice({
         }
         state.byWebsiteId[websiteId].loading = true;
         state.byWebsiteId[websiteId].error = null;
-        // Set global loading to true if any website is loading
         state.loading = Object.values(state.byWebsiteId).some(
           (data) => data.loading,
         );
@@ -224,24 +295,23 @@ const analyticsSlice = createSlice({
             date: item.name,
             fullDate: formatFullDate(item.timestamp),
             timestamp: item.timestamp,
-            visitors: item.visitors ?? 0,
-            revenue: (item.revenue ?? 0) + (item.renewalRevenue ?? 0), // Total revenue
-            revenueNew: item.revenue ?? 0,
-            revenueRenewal: item.renewalRevenue ?? 0,
-            revenueRefund: item.refundedRevenue ?? 0,
+            visitors: item.visitors,
+            revenue: (item.revenue ?? 0) + (item.renewalRevenue ?? 0),
+            revenueNew: item.revenue,
+            revenueRenewal: item.renewalRevenue,
+            revenueRefund: item.refundedRevenue,
             revenuePerVisitor:
               (item.visitors ?? 0) > 0
                 ? ((item.revenue ?? 0) + (item.renewalRevenue ?? 0)) /
                   (item.visitors ?? 1)
                 : 0,
-            conversionRate: 0, // Will be calculated if needed
+            conversionRate: 0,
           };
         });
 
-        // Store metrics from totals
         websiteData.metrics = {
           visitors: formatNumber(action.payload.totalVisitors || 0),
-          revenue: formatCurrency((action.payload.totalRevenue || 0) * 100), // Convert to cents
+          revenue: formatCurrency((action.payload.totalRevenue || 0) * 100),
           conversionRate: action.payload.conversionRate
             ? `${action.payload.conversionRate.toFixed(2)}%`
             : "0%",
@@ -254,53 +324,21 @@ const analyticsSlice = createSlice({
           sessionTime: action.payload.sessionDuration
             ? formatDuration(action.payload.sessionDuration)
             : "0m 0s",
-          visitorsNow: "0", // TODO: Get from real-time if available
+          visitorsNow: "0",
         };
 
-        // Store percentage change from API (vs previous period)
         websiteData.percentageChange = action.payload.percentageChange ?? null;
 
-        // Store revenue breakdown
         websiteData.revenueBreakdown = {
           newRevenue: action.payload.totalNewRevenue || 0,
           renewalRevenue: action.payload.totalRenewalRevenue || 0,
           refundedRevenue: action.payload.totalRefundedRevenue || 0,
         };
 
-        if (action.payload.breakdowns) {
-          websiteData.breakdowns = {
-            source: {
-              channel: action.payload.breakdowns.source?.channel || [],
-              referrer: action.payload.breakdowns.source?.referrer || [],
-              campaign: action.payload.breakdowns.source?.campaign || [],
-              keyword: action.payload.breakdowns.source?.keyword || [],
-            },
-            path: {
-              pages: action.payload.breakdowns.path?.pages || [],
-              hostnames: action.payload.breakdowns.path?.hostnames || [],
-              entryPages: action.payload.breakdowns.path?.entryPages || [],
-              exitLinks: action.payload.breakdowns.path?.exitLinks || [],
-            },
-            location: {
-              country: action.payload.breakdowns.location?.country || [],
-              region: action.payload.breakdowns.location?.region || [],
-              city: action.payload.breakdowns.location?.city || [],
-            },
-            system: {
-              browser: action.payload.breakdowns.system?.browser || [],
-              os: action.payload.breakdowns.system?.os || [],
-              device: action.payload.breakdowns.system?.device || [],
-            },
-          };
-        } else {
-          websiteData.breakdowns = null;
-        }
-
         websiteData.currentStartDate = null;
         websiteData.currentEndDate = null;
         websiteData.currentGranularity = action.meta.arg.granularity || "daily";
 
-        // Update global state
         state.currentWebsiteId = websiteId;
         state.loading = Object.values(state.byWebsiteId).some(
           (data) => data.loading,
@@ -312,14 +350,67 @@ const analyticsSlice = createSlice({
           state.byWebsiteId[websiteId] = createEmptyWebsiteAnalytics();
         }
         state.byWebsiteId[websiteId].loading = false;
-        // Don't set error for aborted requests (previous call cancelled by date/filter change)
         if (action.payload !== ABORTED_PAYLOAD) {
           state.byWebsiteId[websiteId].error = action.payload as string;
         }
-        // Update global loading state
         state.loading = Object.values(state.byWebsiteId).some(
           (data) => data.loading,
         );
+      })
+      .addCase(fetchBreakdown.fulfilled, (state, action) => {
+        const { websiteId, breakdown, data } = action.payload;
+        if (state.breakdownsByWebsiteId[websiteId] == null) {
+          state.breakdownsByWebsiteId[websiteId] = getEmptyBreakdowns();
+        }
+        const b = state.breakdownsByWebsiteId[websiteId]!;
+        const list = Array.isArray(data) ? data : [];
+        switch (breakdown) {
+          case "source-channel":
+            b.source.channel = list;
+            break;
+          case "source-referrer":
+            b.source.referrer = list;
+            break;
+          case "source-campaign":
+            b.source.campaign = list;
+            break;
+          case "source-keyword":
+            b.source.keyword = list;
+            break;
+          case "source-channels":
+            b.source.channels = list;
+            break;
+          case "path-pages":
+            b.path.pages = list;
+            break;
+          case "path-hostnames":
+            b.path.hostnames = list;
+            break;
+          case "path-entry-pages":
+            b.path.entryPages = list;
+            break;
+          case "path-exit-links":
+            b.path.exitLinks = list;
+            break;
+          case "location-country":
+            b.location.country = list;
+            break;
+          case "location-region":
+            b.location.region = list;
+            break;
+          case "location-city":
+            b.location.city = list;
+            break;
+          case "system-browser":
+            b.system.browser = list;
+            break;
+          case "system-os":
+            b.system.os = list;
+            break;
+          case "system-device":
+            b.system.device = list;
+            break;
+        }
       });
   },
 });

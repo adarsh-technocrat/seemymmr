@@ -14,15 +14,19 @@ export function useAnalytics(
   const dispatch = useAppDispatch();
   const analytics = useAppSelector((state) => {
     const websiteData = state.analytics.byWebsiteId[websiteId];
+    const breakdowns =
+      state.analytics.breakdownsByWebsiteId[websiteId] ??
+      websiteData?.breakdowns ??
+      null;
     if (websiteData) {
-      return websiteData;
+      return { ...websiteData, breakdowns };
     }
     return {
       chartData: [],
       metrics: null,
       percentageChange: null,
       revenueBreakdown: null,
-      breakdowns: null,
+      breakdowns,
       loading: false,
       error: null,
       lastFetched: null,

@@ -11,7 +11,11 @@ import {
   setSelectedGoalTab,
 } from "@/store/slices/uiSlice";
 import { fetchWebsiteDetailsById } from "@/store/slices/websitesSlice";
-import { fetchAnalytics } from "@/store/slices/analyticsSlice";
+import {
+  fetchAnalytics,
+  fetchBreakdown,
+  type BreakdownKey,
+} from "@/store/slices/analyticsSlice";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useRealtimeVisitors } from "@/hooks/use-realtime-visitors";
 import type { ChartDataPoint } from "@/components/chart";
@@ -80,7 +84,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     settings?: WebsiteSettings;
   } | null;
 
-  // Calculate the number of days for a period
   const getPeriodDays = (period: string): number => {
     switch (period) {
       case "Today":
@@ -106,12 +109,10 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     }
   };
 
-  // Get date range based on period and offset
   const getDateRangeForPeriod = (period: string, offset: number) => {
     let endDate = new Date();
     const periodDays = getPeriodDays(period);
 
-    // Adjust dates based on offset
     if (
       offset !== 0 &&
       period !== "Week to date" &&
@@ -219,7 +220,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     return { startDate, endDate };
   };
 
-  // Calculate current date range with offset
   const currentDateRange = useMemo(() => {
     if (
       ui.selectedPeriod === "Custom" &&
@@ -234,7 +234,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     return getDateRangeForPeriod(ui.selectedPeriod, periodOffset);
   }, [ui.selectedPeriod, periodOffset, customDateRange]);
 
-  // Get available granularity options based on selected period
   const getAvailableGranularities = (): Array<
     "Hourly" | "Daily" | "Weekly" | "Monthly"
   > => {
@@ -295,33 +294,24 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     [ui.selectedPeriod, currentDateRange],
   );
 
-  // Use analytics hook
-  // Only pass customDateRange when the API must receive explicit dates (Custom period or
-  // Previous/Next offset). For named periods with offset 0 we pass undefined so Refresh
-  // sends period=Today (etc.) and the API computes the range in website timezone, matching
-  // initial load and avoiding UTC vs timezone mismatch.
   const passCustomRange = periodOffset !== 0 || ui.selectedPeriod === "Custom";
   const analytics = useAnalytics(websiteId, {
     customDateRange: passCustomRange ? currentDateRange : undefined,
     disableAutoFetch: true,
   });
 
-  // Real-time visitors hook
   const { visitorsNow: realtimeVisitorsNow, isConnected } =
     useRealtimeVisitors(websiteId);
 
-  // Fetch website data on mount
   useEffect(() => {
     if (websiteId) {
       dispatch(fetchWebsiteDetailsById(websiteId));
     }
   }, [websiteId, dispatch]);
 
-  // Track what changed to prevent duplicate API calls
   const lastPeriodRef = useRef(ui.selectedPeriod);
   const lastGranularityRef = useRef(ui.selectedGranularity);
   const isPeriodChangingRef = useRef(false);
-  // AbortController: cancel previous analytics request when date/filter changes
   const analyticsAbortRef = useRef<AbortController | null>(null);
 
   const getSignalForNewAnalyticsRequest = (): AbortSignal => {
@@ -331,8 +321,64 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     return controller.signal;
   };
 
-  // When period changes, set default granularity and fetch once
-  // This effect handles period/date range changes
+  const getBreakdownKeysForCurrentTabs = (): BreakdownKey[] => [
+    ui.selectedSourceTab === "Channel"
+      ? "source-channels"
+      : ui.selectedSourceTab === "Referrer"
+        ? "source-referrer"
+        : ui.selectedSourceTab === "Campaign"
+          ? "source-campaign"
+          : "source-keyword",
+    ui.selectedPathTab === "Page"
+      ? "path-pages"
+      : ui.selectedPathTab === "Hostname"
+        ? "path-hostnames"
+        : ui.selectedPathTab === "Entry page"
+          ? "path-entry-pages"
+          : "path-exit-links",
+    ui.selectedLocationTab === "Country" || ui.selectedLocationTab === "Map"
+      ? "location-country"
+      : ui.selectedLocationTab === "Region"
+        ? "location-region"
+        : "location-city",
+    ui.selectedSystemTab === "Browser"
+      ? "system-browser"
+      : ui.selectedSystemTab === "OS"
+        ? "system-os"
+        : "system-device",
+  ];
+
+  const fetchAnalyticsForCurrentFilters = (
+    period: string,
+    granularity: "hourly" | "daily" | "weekly" | "monthly",
+    apiCustomDateRange: { from: Date; to: Date } | undefined,
+    options?: { withSignal?: boolean },
+  ) => {
+    const signal =
+      options?.withSignal !== false
+        ? getSignalForNewAnalyticsRequest()
+        : undefined;
+    dispatch(
+      fetchAnalytics({
+        websiteId,
+        period,
+        granularity,
+        customDateRange: apiCustomDateRange,
+        signal,
+      }),
+    );
+    getBreakdownKeysForCurrentTabs().forEach((breakdown) => {
+      dispatch(
+        fetchBreakdown({
+          websiteId,
+          breakdown,
+          period,
+          customDateRange: apiCustomDateRange,
+        }),
+      );
+    });
+  };
+
   useEffect(() => {
     if (!websiteId) return;
 
@@ -343,12 +389,9 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         customDateRange?.from &&
         customDateRange?.to);
 
-    // If period changed, set default granularity and fetch
     if (periodChanged) {
       isPeriodChangingRef.current = true;
 
-      // Calculate default granularity inline (first available for this period)
-      // This avoids depending on availableGranularities which changes when period changes
       const period = ui.selectedPeriod;
       const daysDiff = currentDateRange
         ? Math.ceil(
@@ -391,7 +434,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         defaultGranularity = "Weekly";
       }
 
-      // Check if current granularity is available using the same logic
       const currentGranularityAvailable =
         period === "Today" ||
         period === "Yesterday" ||
@@ -419,14 +461,12 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
                       daysDiff > 90
                     ? ui.selectedGranularity === "Weekly" ||
                       ui.selectedGranularity === "Monthly"
-                    : true; // Default: allow any granularity
+                    : true;
 
-      // If current granularity is not available, set the default
       if (!currentGranularityAvailable) {
         dispatch(setSelectedGranularity(defaultGranularity));
       }
 
-      // Use the effective granularity
       const effectiveGranularity = currentGranularityAvailable
         ? ui.selectedGranularity
         : defaultGranularity;
@@ -437,8 +477,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "weekly"
         | "monthly";
 
-      // If we have a custom date range (from offset or custom selection), use it
-      // Otherwise, use the period directly
       let apiCustomDateRange: { from: Date; to: Date } | undefined;
       let periodForApi = ui.selectedPeriod;
 
@@ -447,29 +485,21 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         customDateRange?.from &&
         customDateRange?.to
       ) {
-        // Custom date range is already set
         apiCustomDateRange = {
           from: customDateRange.from,
           to: customDateRange.to,
         };
       } else if (periodOffset !== 0) {
-        // Use offset to calculate custom date range
         const { startDate, endDate } = currentDateRange;
         apiCustomDateRange = { from: startDate, to: endDate };
       }
 
-      // Fetch analytics once with default granularity
-      dispatch(
-        fetchAnalytics({
-          websiteId,
-          period: periodForApi,
-          granularity,
-          customDateRange: apiCustomDateRange,
-          signal: getSignalForNewAnalyticsRequest(),
-        }),
+      fetchAnalyticsForCurrentFilters(
+        periodForApi,
+        granularity,
+        apiCustomDateRange,
       );
 
-      // Update refs
       lastPeriodRef.current = ui.selectedPeriod;
       lastGranularityRef.current = effectiveGranularity;
       isPeriodChangingRef.current = false;
@@ -500,14 +530,10 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         apiCustomDateRange = { from: startDate, to: endDate };
       }
 
-      dispatch(
-        fetchAnalytics({
-          websiteId,
-          period: periodForApi,
-          granularity,
-          customDateRange: apiCustomDateRange,
-          signal: getSignalForNewAnalyticsRequest(),
-        }),
+      fetchAnalyticsForCurrentFilters(
+        periodForApi,
+        granularity,
+        apiCustomDateRange,
       );
     }
   }, [
@@ -517,14 +543,9 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     currentDateRange,
     ui.selectedPeriod,
     customDateRange,
-    // Note: availableGranularities removed from deps to prevent double calls
-    // We calculate default granularity inline instead
   ]);
 
-  // Auto-adjust granularity if current selection is not available (when period hasn't changed)
-  // This only updates the UI, doesn't trigger fetch
   useEffect(() => {
-    // Skip if period is changing (handled in the effect above)
     if (isPeriodChangingRef.current) return;
 
     const needsAdjust =
@@ -540,17 +561,13 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     dispatch,
   ]);
 
-  // Fetch analytics when user explicitly changes granularity (period hasn't changed)
   useEffect(() => {
     if (!websiteId) return;
 
-    // Skip if period is changing (handled in the effect above)
     if (isPeriodChangingRef.current) {
       return;
     }
 
-    // Skip if period changed (that's handled by the period change effect)
-    // This check ensures we don't fetch when period change triggers granularity change
     if (lastPeriodRef.current !== ui.selectedPeriod) {
       return;
     }
@@ -558,7 +575,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     const granularityChanged =
       lastGranularityRef.current !== ui.selectedGranularity;
 
-    // Only fetch if granularity changed (user-initiated) and it's valid
     if (
       granularityChanged &&
       availableGranularities.includes(ui.selectedGranularity)
@@ -586,15 +602,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         apiCustomDateRange = { from: startDate, to: endDate };
       }
 
-      dispatch(
-        fetchAnalytics({
-          websiteId,
-          period,
-          granularity,
-          customDateRange: apiCustomDateRange,
-          signal: getSignalForNewAnalyticsRequest(),
-        }),
-      );
+      fetchAnalyticsForCurrentFilters(period, granularity, apiCustomDateRange);
 
       lastGranularityRef.current = ui.selectedGranularity;
     }
@@ -609,7 +617,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     ui.selectedGranularity,
   ]);
 
-  // Period navigation handlers
   const handlePreviousPeriod = () => {
     if (
       ui.selectedPeriod === "Custom" &&
@@ -648,17 +655,14 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     if (period !== "Custom") {
       setCustomDateRange({ from: undefined, to: undefined });
     }
-    // Granularity will be auto-adjusted by the useEffect if needed
   };
 
   const canGoNext = periodOffset > 0;
 
-  // Get breakdown data
   const getSourceData = () => {
     if (!analytics.breakdowns) return [];
     switch (ui.selectedSourceTab) {
       case "Channel":
-        // Use channelsWithReferrers for Channel tab to show nested referrers
         return (
           analytics.breakdowns.source.channels ||
           analytics.breakdowns.source.channel ||
@@ -723,7 +727,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     }
   };
 
-  // Helper: variation and trend from API percentageChange (e.g. "5.2", "-3.1", null)
   const variationFromChange = (pc: string | null | undefined): string =>
     pc != null ? `${pc}%` : "0%";
   const trendFromChange = (pc: string | null | undefined): "up" | "down" => {
@@ -732,7 +735,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     return !Number.isNaN(n) && n < 0 ? "down" : "up";
   };
 
-  // Transform metrics data (use API percentageChange when available)
   const metricsData = useMemo(() => {
     const pc = analytics.percentageChange ?? {};
 
@@ -802,8 +804,34 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       ? realtimeVisitorsNow.toString()
       : metricsData.visitorsNow.value;
 
+  const refetch = () => {
+    if (!websiteId) return;
+    const period = ui.selectedPeriod;
+    const granularity = ui.selectedGranularity.toLowerCase() as
+      | "hourly"
+      | "daily"
+      | "weekly"
+      | "monthly";
+    let apiCustomDateRange: { from: Date; to: Date } | undefined;
+    if (
+      ui.selectedPeriod === "Custom" &&
+      customDateRange?.from &&
+      customDateRange?.to
+    ) {
+      apiCustomDateRange = {
+        from: customDateRange.from,
+        to: customDateRange.to,
+      };
+    } else if (periodOffset !== 0 && currentDateRange) {
+      apiCustomDateRange = {
+        from: currentDateRange.startDate,
+        to: currentDateRange.endDate,
+      };
+    }
+    fetchAnalyticsForCurrentFilters(period, granularity, apiCustomDateRange);
+  };
+
   return {
-    // State
     ui,
     website,
     periodOffset,
@@ -814,8 +842,8 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     availableGranularities,
     currentDateRange,
 
-    // Data
     analytics,
+    refetch,
     chartData,
     metricsData,
     revenueBreakdown: analytics.revenueBreakdown,
@@ -826,7 +854,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     visitorsNow,
     isConnected,
 
-    // Handlers
     handlePreviousPeriod,
     handleNextPeriod,
     handlePeriodSelect,
@@ -834,7 +861,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     setMentionDialogOpen,
     setSelectedMentionData,
 
-    // Tab handlers
     setSelectedSourceTab: (tab: string) =>
       dispatch(setSelectedSourceTab(tab as typeof ui.selectedSourceTab)),
     setSelectedPathTab: (tab: string) =>

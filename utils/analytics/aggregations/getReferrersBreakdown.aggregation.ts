@@ -16,7 +16,7 @@ import { getDateTruncUnit } from "../utils";
 export async function getReferrersBreakdown(
   websiteId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   await connectDB();
 
@@ -574,7 +574,7 @@ export async function getReferrersBreakdown(
     if (!path) return { paramRef: null, paramVia: null };
     try {
       const url = new URL(
-        path.startsWith("http") ? path : `https://example.com${path}`
+        path.startsWith("http") ? path : `https://example.com${path}`,
       );
       const paramRef =
         url.searchParams.get("ref") || url.searchParams.get("param_ref");
@@ -599,7 +599,7 @@ export async function getReferrersBreakdown(
     const channelName = resolveChannel(item.referrer, item.utmMedium);
     const referrerDomain = item.referrerDomain || "direct";
     const { paramRef, paramVia } = extractParamsFromPath(
-      item.firstPageViewPath
+      item.firstPageViewPath,
     );
 
     // Add revenue to domain entry
@@ -674,7 +674,7 @@ export async function getReferrersBreakdown(
     const channelName = resolveChannel(item.referrer, item.utmMedium);
     const referrerDomain = item.referrerDomain || "direct";
     const { paramRef, paramVia } = extractParamsFromPath(
-      item.firstPageViewPath
+      item.firstPageViewPath,
     );
 
     // Add goals to domain entry

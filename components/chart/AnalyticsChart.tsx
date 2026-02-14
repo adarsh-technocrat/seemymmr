@@ -12,6 +12,7 @@ import {
   ResponsiveContainer,
   ComposedChart,
 } from "recharts";
+import { isSameDay, parseISO } from "date-fns";
 import {
   getCurrentTimeIndex,
   shouldHaveRadiusForNew,
@@ -70,7 +71,6 @@ interface ActiveDotProps extends DotProps {
   onClick?: (data: ChartDataPoint) => void;
 }
 
-// Custom bar shape for revenueNew (solid bars)
 function RevenueNewBarShape(props: any) {
   const { x, y, width, height, fill } = props;
   if (!x || !y || !width || !height || isNaN(height) || !isFinite(height))
@@ -101,7 +101,6 @@ function RevenueNewBarShape(props: any) {
   );
 }
 
-// Custom bar shape for revenueRenewal (solid bars)
 function RevenueRenewalBarShape(props: any) {
   const { x, y, width, height, fill } = props;
   if (!x || !y || !width || !height || isNaN(height) || !isFinite(height))
@@ -109,7 +108,7 @@ function RevenueRenewalBarShape(props: any) {
 
   const hasRadius = shouldHaveRadiusForRenewal(props);
   const radius = 4;
-  const opacity = 0.6; // Reduced opacity to distinguish from revenueNew
+  const opacity = 0.6;
 
   if (hasRadius) {
     return (
@@ -133,7 +132,6 @@ function RevenueRenewalBarShape(props: any) {
   );
 }
 
-// Custom bar shape for dashed bars (Refunds)
 function DashedBarShape(props: any) {
   const { x, y, width, height, fill } = props;
   if (!x || !y || !width || !height || isNaN(height) || !isFinite(height))
@@ -147,15 +145,12 @@ function DashedBarShape(props: any) {
 
   if (hasRadius) {
     const pathData = createRoundedTopRectPath(x, y, width, height, radius);
-    // Extract top border path (rounded top only)
     const topPath = `M ${x} ${y + radius} Q ${x} ${y} ${x + radius} ${y} L ${
       x + width - radius
     } ${y} Q ${x + width} ${y} ${x + width} ${y + radius}`;
     return (
       <g>
-        {/* Background fill with opacity */}
         <path d={pathData} fill={fill} fillOpacity={fillOpacity} />
-        {/* Dashed top border (rounded) */}
         <path
           d={topPath}
           fill="none"
@@ -164,7 +159,6 @@ function DashedBarShape(props: any) {
           strokeDasharray="4 2"
           strokeOpacity={borderOpacity}
         />
-        {/* Dashed left border */}
         <line
           x1={x}
           y1={y + radius}
@@ -175,7 +169,6 @@ function DashedBarShape(props: any) {
           strokeDasharray="4 2"
           strokeOpacity={borderOpacity}
         />
-        {/* Dashed right border */}
         <line
           x1={x + width}
           y1={y + radius}
@@ -192,7 +185,6 @@ function DashedBarShape(props: any) {
 
   return (
     <g>
-      {/* Background fill with opacity */}
       <rect
         x={x}
         y={y}
@@ -201,7 +193,6 @@ function DashedBarShape(props: any) {
         fill={fill}
         fillOpacity={fillOpacity}
       />
-      {/* Dashed top border */}
       <line
         x1={x}
         y1={y}
@@ -212,7 +203,6 @@ function DashedBarShape(props: any) {
         strokeDasharray="4 2"
         strokeOpacity={borderOpacity}
       />
-      {/* Dashed left border */}
       <line
         x1={x}
         y1={y}
@@ -223,7 +213,6 @@ function DashedBarShape(props: any) {
         strokeDasharray="4 2"
         strokeOpacity={borderOpacity}
       />
-      {/* Dashed right border */}
       <line
         x1={x + width}
         y1={y}
@@ -355,51 +344,22 @@ function AnalyticsChartComponent({
 
   const currentTimeIndex = getCurrentTimeIndex(data);
 
-  // Helper function to check if a data point is today
-  // Uses UTC date parts to avoid timezone issues
-  const isToday = (item: ChartDataPoint): boolean => {
+  const isTodayBucket = (item: ChartDataPoint): boolean => {
     if (!item.timestamp) return false;
-    const dataDate = new Date(item.timestamp);
-    const today = new Date();
-
-    // Compare UTC date parts to avoid timezone issues
-    return (
-      dataDate.getUTCFullYear() === today.getUTCFullYear() &&
-      dataDate.getUTCMonth() === today.getUTCMonth() &&
-      dataDate.getUTCDate() === today.getUTCDate()
-    );
+    try {
+      return isSameDay(parseISO(item.timestamp), new Date());
+    } catch {
+      return false;
+    }
   };
 
   const forecastData: ForecastDataPoint[] = data.map((item, index) => {
-    const itemIsToday = isToday(item);
+    const itemIsToday = isTodayBucket(item);
     const isForecast =
       currentTimeIndex !== null && index > currentTimeIndex && itemIsToday;
 
-    // For today: use real-time projection (only show up to current time index).
-    // Use 0 for null/empty buckets so the visitor line is continuous (no gaps).
-    // Future hours (past current time) stay null so the line doesn't extend into the future.
-    let solidLineValue: number | null = null;
-    let visitorsForChart: number | null = null;
-    if (itemIsToday) {
-      const inRange = currentTimeIndex !== null && index <= currentTimeIndex;
-      const raw = item.visitors ?? null;
-      if (inRange) {
-        solidLineValue = raw !== null ? raw : 0;
-        visitorsForChart = raw !== null ? raw : 0;
-      } else {
-        solidLineValue = null;
-        visitorsForChart = null;
-      }
-    } else {
-      solidLineValue =
-        item.visitors !== null && item.visitors !== undefined
-          ? item.visitors
-          : 0;
-      visitorsForChart =
-        item.visitors !== null && item.visitors !== undefined
-          ? item.visitors
-          : 0;
-    }
+    const solidLineValue = item.visitors ?? null;
+    const visitorsForChart = item.visitors ?? null;
 
     const sanitizeRevenue = (
       value: number | undefined | null,
@@ -414,12 +374,7 @@ function AnalyticsChartComponent({
       isForecast,
       solidLineValue,
       visitorsForChart,
-      // Dashed line value: only for currentTimeIndex (today only)
-      dashedLineValue:
-        currentTimeIndex !== null && index === currentTimeIndex && itemIsToday
-          ? (item.visitors ?? null)
-          : null,
-      // Sanitize revenue values
+      dashedLineValue: null,
       revenueNew: sanitizeRevenue(item.revenueNew),
       revenueRenewal: sanitizeRevenue(item.revenueRenewal),
       revenueRefund: sanitizeRevenue(item.revenueRefund),
@@ -644,25 +599,21 @@ function ChartDot({
     }
   };
 
-  // Helper function to check if a data point is today
-  const isToday = (item: ChartDataPoint | undefined): boolean => {
+  const isTodayBucket = (item: ChartDataPoint | undefined): boolean => {
     if (!item?.timestamp) return false;
-    const dataDate = new Date(item.timestamp);
-    const today = new Date();
-    return (
-      dataDate.getFullYear() === today.getFullYear() &&
-      dataDate.getMonth() === today.getMonth() &&
-      dataDate.getDate() === today.getDate()
-    );
+    try {
+      return isSameDay(parseISO(item.timestamp), new Date());
+    } catch {
+      return false;
+    }
   };
 
-  // Show dot at current time - only for today's data
   if (
     currentTimeIndex !== null &&
     index === currentTimeIndex &&
     cx &&
     cy &&
-    isToday(payload)
+    isTodayBucket(payload)
   ) {
     return (
       <g>
@@ -679,7 +630,6 @@ function ChartDot({
     );
   }
 
-  // Show mention avatars if present
   if (payload?.hasMention && cx && cy && showMentionsOnChart) {
     const avatarIndex = forecastData.findIndex((d) => d.date === payload.date);
     const profileMentions = payload.mentions

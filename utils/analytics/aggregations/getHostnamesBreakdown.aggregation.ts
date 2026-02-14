@@ -10,7 +10,7 @@ import { getDateTruncUnit } from "../utils";
 export async function getHostnamesBreakdown(
   websiteId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   await connectDB();
 
@@ -110,10 +110,10 @@ export async function getHostnamesBreakdown(
 
   // Step 4: Combine all data
   const revenueMap = new Map(
-    revenueData.map((item) => [item._id || "Unknown", item])
+    revenueData.map((item) => [item._id || "Unknown", item]),
   );
   const goalsMap = new Map(
-    goalsData.map((item) => [item._id || "Unknown", item])
+    goalsData.map((item) => [item._id || "Unknown", item]),
   );
 
   const result = hostnamesData.map((item) => {

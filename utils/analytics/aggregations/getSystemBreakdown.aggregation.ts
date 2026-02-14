@@ -11,7 +11,7 @@ export async function getSystemBreakdown(
   websiteId: string,
   startDate: Date,
   endDate: Date,
-  type: "browser" | "os" | "device" = "browser"
+  type: "browser" | "os" | "device" = "browser",
 ) {
   await connectDB();
 
@@ -150,10 +150,10 @@ export async function getSystemBreakdown(
 
   // Step 4: Combine all data
   const revenueMap = new Map(
-    revenueData.map((item) => [item._id || "Unknown", item])
+    revenueData.map((item) => [item._id || "Unknown", item]),
   );
   const goalsMap = new Map(
-    goalsData.map((item) => [item._id || "Unknown", item])
+    goalsData.map((item) => [item._id || "Unknown", item]),
   );
 
   const result = sessionsData.map((item) => {

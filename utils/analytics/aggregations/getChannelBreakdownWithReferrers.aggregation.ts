@@ -9,7 +9,7 @@ import {
 export async function getChannelBreakdownWithReferrers(
   websiteId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   await connectDB();
 

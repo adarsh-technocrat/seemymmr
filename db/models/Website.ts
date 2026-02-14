@@ -16,6 +16,7 @@ export interface IWebsite extends Document {
     trackUserIdentification?: boolean;
     // New settings
     timezone?: string; // e.g., "America/New_York"
+    currency?: string; // e.g., "USD", "EUR"
     colorScheme?: string; // Hex color for charts, e.g., "#e78468"
     nickname?: string; // Friendly nickname
     additionalDomains?: string[]; // Other domains that can send data
@@ -121,6 +122,10 @@ const WebsiteSchema = new Schema<IWebsite>(
       timezone: {
         type: String,
         default: "UTC",
+      },
+      currency: {
+        type: String,
+        default: "USD",
       },
       colorScheme: {
         type: String,
@@ -239,7 +244,7 @@ const WebsiteSchema = new Schema<IWebsite>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Prevent model re-compilation during hot reload in development

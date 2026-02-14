@@ -10,7 +10,7 @@ import { getDateTruncUnit } from "../utils";
 export async function getExitLinksBreakdown(
   websiteId: string,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
 ) {
   await connectDB();
 
