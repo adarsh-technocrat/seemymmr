@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { NextRequest } from "next/server";
 import { adminAuth } from "@/lib/firebase/admin";
 import connectDB from "@/db";
@@ -13,7 +14,11 @@ export interface Session {
   };
 }
 
-export async function getSession(
+/**
+ * Session is cached per-request so multiple getSession/getUserId calls
+ * (e.g. in the same route or across helpers) only verify the token and hit DB once.
+ */
+async function getSessionUncached(
   request?: NextRequest,
 ): Promise<Session | null> {
   try {
@@ -23,12 +28,10 @@ export async function getSession(
       if (authHeader?.startsWith("Bearer ")) {
         idToken = authHeader.substring(7);
       } else {
-        // Try to get from cookies
         const cookieStore = await cookies();
         idToken = cookieStore.get("firebaseToken")?.value || null;
       }
     } else {
-      // For server components, get from cookies
       const cookieStore = await cookies();
       idToken = cookieStore.get("firebaseToken")?.value || null;
     }
@@ -37,7 +40,6 @@ export async function getSession(
       return null;
     }
 
-    // Verify the Firebase ID token
     const decodedToken = await adminAuth.verifyIdToken(idToken);
     const { email } = decodedToken;
 
@@ -47,7 +49,6 @@ export async function getSession(
 
     await connectDB();
 
-    // Get user from database
     const dbUser = await User.findOne({
       email: email.toLowerCase(),
     });
@@ -69,10 +70,15 @@ export async function getSession(
   }
 }
 
-/**
- * Get the current user ID from the session
- */
+const getSessionCached = cache(getSessionUncached);
+
+export async function getSession(
+  request?: NextRequest,
+): Promise<Session | null> {
+  return getSessionCached(request);
+}
+
 export async function getUserId(request?: NextRequest): Promise<string | null> {
-  const session = await getSession(request);
+  const session = await getSessionCached(request);
   return session?.user?.id || null;
 }

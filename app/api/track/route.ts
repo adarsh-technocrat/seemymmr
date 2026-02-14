@@ -93,7 +93,6 @@ export async function POST(request: NextRequest) {
 
 async function handleTrack(request: NextRequest, method: "GET" | "POST") {
   try {
-    await connectDB();
     let requestBody: TrackingRequestBody | null = null;
     if (method === "POST") {
       try {
@@ -115,6 +114,8 @@ async function handleTrack(request: NextRequest, method: "GET" | "POST") {
         },
       });
     }
+
+    await connectDB();
 
     const hostnameForValidation: string = requestBody?.hostname || "unknown";
 

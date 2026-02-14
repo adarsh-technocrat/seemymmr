@@ -9,7 +9,7 @@ const SORT_VALUES = ["hot", "top", "recent"] as const;
 
 export async function GET(request: NextRequest) {
   try {
-    await connectDB();
+    const [_, userId] = await Promise.all([connectDB(), getUserId(request)]);
     const sort = (request.nextUrl.searchParams.get("sort") ||
       "hot") as (typeof SORT_VALUES)[number];
     if (!SORT_VALUES.includes(sort)) {
@@ -32,7 +32,6 @@ export async function GET(request: NextRequest) {
     }
 
     const posts = await query.lean();
-    const userId = await getUserId(request);
 
     const list = posts.map((p) => {
       const author = p.userId as {
@@ -85,7 +84,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Title is required" }, { status: 400 });
     }
 
-    await connectDB();
     const post = await FeedbackPost.create({
       title: title.trim(),
       description: typeof description === "string" ? description.trim() : "",

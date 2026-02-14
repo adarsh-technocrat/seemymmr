@@ -25,6 +25,7 @@ const FeedbackPostSchema = new Schema<IFeedbackPost>(
 
 FeedbackPostSchema.index({ createdAt: -1 });
 FeedbackPostSchema.index({ upvoteCount: -1 });
+FeedbackPostSchema.index({ upvoteCount: -1, createdAt: -1 });
 FeedbackPostSchema.index({ userId: 1 });
 
 const FeedbackPost: Model<IFeedbackPost> =

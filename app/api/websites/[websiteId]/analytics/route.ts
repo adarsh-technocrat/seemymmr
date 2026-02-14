@@ -234,15 +234,21 @@ export async function GET(
     const currency = website.settings?.currency ?? "USD";
 
     const { startDate, endDate } = getDateRangeForPeriod(period, timezone);
+    const { startDate: prevStart, endDate: prevEnd } = getPreviousPeriodRange(
+      startDate,
+      endDate,
+    );
 
     const [
       metrics,
+      prevMetrics,
       visitorsOverTime,
       revenueOverTime,
       customersSalesOverTime,
       goalsOverTime,
     ] = await Promise.all([
       getMetrics(websiteId, startDate, endDate),
+      getMetrics(websiteId, prevStart, prevEnd),
       getVisitorsOverTime(websiteId, startDate, endDate, granularity, timezone),
       getRevenueOverTime(websiteId, startDate, endDate, granularity, timezone),
       getCustomersAndSalesOverTime(
@@ -284,12 +290,6 @@ export async function GET(
       startDate,
       endDate,
     );
-
-    const { startDate: prevStart, endDate: prevEnd } = getPreviousPeriodRange(
-      startDate,
-      endDate,
-    );
-    const prevMetrics = await getMetrics(websiteId, prevStart, prevEnd);
 
     const percentageChange = {
       visitors: computePercentageChange(metrics.visitors, prevMetrics.visitors),

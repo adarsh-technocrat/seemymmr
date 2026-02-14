@@ -149,12 +149,12 @@ const SessionSchema = new Schema<ISession>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-// Compound indexes for common queries
 SessionSchema.index({ websiteId: 1, createdAt: -1 });
 SessionSchema.index({ websiteId: 1, lastSeenAt: -1 });
+SessionSchema.index({ websiteId: 1, firstVisitAt: 1 });
 SessionSchema.index({ visitorId: 1, websiteId: 1 });
 
 // Prevent model re-compilation during hot reload in development

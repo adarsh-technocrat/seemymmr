@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUserId } from "@/lib/get-session";
 import { getWebsiteById } from "@/utils/database/website";
-import connectDB from "@/db";
 import Session from "@/db/models/Session";
 import { Types } from "mongoose";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ websiteId: string }> }
+  { params }: { params: Promise<{ websiteId: string }> },
 ) {
   try {
     const { websiteId } = await params;
@@ -26,8 +25,6 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
     }
 
-    await connectDB();
-
     const websiteObjectId = new Types.ObjectId(websiteId);
 
     const sessionCount = await Session.countDocuments({
@@ -39,7 +36,7 @@ export async function GET(
   } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

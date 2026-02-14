@@ -14,16 +14,18 @@ export async function GET(
       return NextResponse.json({ error: "Invalid post ID" }, { status: 400 });
     }
 
-    await connectDB();
-    const post = await FeedbackPost.findById(postId)
-      .populate("userId", "name avatarUrl email")
-      .lean();
+    const [userId, post] = await Promise.all([
+      getUserId(request),
+      connectDB().then(() =>
+        FeedbackPost.findById(postId)
+          .populate("userId", "name avatarUrl email")
+          .lean(),
+      ),
+    ]);
 
     if (!post) {
       return NextResponse.json({ error: "Post not found" }, { status: 404 });
     }
-
-    const userId = await getUserId(request);
     const author = post.userId as {
       _id: unknown;
       name?: string;
