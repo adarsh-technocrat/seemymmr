@@ -23,31 +23,18 @@ import {
   ChevronDownIcon,
   CalendarIcon,
 } from "@/components/icons";
+import { PERIOD_OPTIONS, type PeriodOption } from "@/lib/constants/periods";
 
 interface PeriodSelectorProps {
   selectedPeriod: string;
   periodOffset: number;
   customDateRange: DateRange | undefined;
-  onPeriodChange: (period: string) => void;
+  onPeriodChange: (period: PeriodOption) => void;
   onPreviousPeriod: () => void;
   onNextPeriod: () => void;
   onCustomDateRangeChange: (range: DateRange | undefined) => void;
   canGoNext: boolean;
 }
-
-const periodOptions = [
-  "Today",
-  "Yesterday",
-  "Last 24 hours",
-  "Last 7 days",
-  "Last 30 days",
-  "Last 12 months",
-  "Week to date",
-  "Month to date",
-  "Year to date",
-  "All time",
-  "Custom",
-];
 
 export function PeriodSelector({
   selectedPeriod,
@@ -113,7 +100,7 @@ export function PeriodSelector({
     });
   };
 
-  const handlePeriodSelect = (period: string) => {
+  const handlePeriodSelect = (period: PeriodOption) => {
     if (period === "Custom") {
       setCustomDatePickerOpen(true);
       return;
@@ -163,11 +150,11 @@ export function PeriodSelector({
                     customDateRange?.from &&
                     customDateRange?.to
                       ? `${formatDateForDisplay(
-                          customDateRange.from
+                          customDateRange.from,
                         )} → ${formatDateForDisplay(customDateRange.to)}`
                       : periodOffset > 0
-                      ? `${selectedPeriod} (${periodOffset} ago)`
-                      : selectedPeriod}
+                        ? `${selectedPeriod} (${periodOffset} ago)`
+                        : selectedPeriod}
                   </h3>
                   <ChevronDownIcon className="size-3.5 shrink-0 opacity-30 duration-200" />
                 </Button>
@@ -182,7 +169,7 @@ export function PeriodSelector({
                   hour12: true,
                 })}
               </div>
-              {periodOptions.map((period) => (
+              {PERIOD_OPTIONS.map((period) => (
                 <React.Fragment key={period}>
                   {period === "Custom" && <DropdownMenuSeparator />}
                   {period === "Custom" ? (

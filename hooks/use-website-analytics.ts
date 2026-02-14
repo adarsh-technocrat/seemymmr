@@ -16,6 +16,7 @@ import {
   fetchBreakdown,
   type BreakdownKey,
 } from "@/store/slices/analyticsSlice";
+import { toApiPeriod } from "@/lib/constants/periods";
 import { useAnalytics } from "@/hooks/use-analytics";
 import { useRealtimeVisitors } from "@/hooks/use-realtime-visitors";
 import type { ChartDataPoint } from "@/components/chart";
@@ -341,6 +342,8 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     return undefined;
   };
 
+  const getApiPeriod = (): string => toApiPeriod(ui.selectedPeriod);
+
   const getSignalForNewAnalyticsRequest = (): AbortSignal => {
     analyticsAbortRef.current?.abort();
     const controller = new AbortController();
@@ -505,7 +508,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "monthly";
 
       fetchAnalyticsForCurrentFilters(
-        ui.selectedPeriod,
+        getApiPeriod(),
         granularity,
         getApiCustomDateRange(),
       );
@@ -524,7 +527,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "monthly";
 
       fetchAnalyticsForCurrentFilters(
-        ui.selectedPeriod,
+        getApiPeriod(),
         granularity,
         getApiCustomDateRange(),
       );
@@ -579,7 +582,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "monthly";
 
       fetchAnalyticsForCurrentFilters(
-        ui.selectedPeriod,
+        getApiPeriod(),
         granularity,
         getApiCustomDateRange(),
       );
@@ -615,7 +618,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
 
     const prev = lastBreakdownTabsRef.current;
     const apiCustomDateRange = getApiCustomDateRange();
-    const period = ui.selectedPeriod;
+    const period = getApiPeriod();
 
     if (prev.source !== currentTabs.source) {
       dispatch(
@@ -858,7 +861,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
   const refetch = () => {
     if (!websiteId) return;
     fetchAnalyticsForCurrentFilters(
-      ui.selectedPeriod,
+      getApiPeriod(),
       ui.selectedGranularity.toLowerCase() as
         | "hourly"
         | "daily"
