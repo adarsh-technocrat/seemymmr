@@ -6,7 +6,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { NavItem } from "./NavItem";
 import { NavSection } from "./NavSection";
-import { SidebarWebsiteSelector } from "./WebsiteSelector";
 import {
   LayoutDashboard,
   Sparkles,
@@ -112,7 +111,6 @@ export function Sidebar() {
       <div className="flex-1 flex flex-col justify-between gap-8 overflow-y-auto">
         <nav className="flex flex-col gap-6">
           <div className="flex flex-col gap-6 items-stretch">
-            <SidebarWebsiteSelector />
             <NavItem
               href="/dashboard"
               icon={<LayoutDashboard className="w-[18px] h-[18px]" />}

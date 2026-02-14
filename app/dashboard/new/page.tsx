@@ -1,21 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { ArrowLeftIcon } from "@/components/icons";
 import { useAppDispatch } from "@/store/hooks";
 import { createNewWebsiteWithDomain } from "@/store/slices/websitesSlice";
 import { DomainLogo } from "@/components/ui/domain-logo";
+import { Loader2 } from "lucide-react";
 
 export default function AddSitePage() {
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const [currentTime, setCurrentTime] = useState("");
   const [domain, setDomain] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -90,6 +94,7 @@ export default function AddSitePage() {
 
                 if (!domainValue || typeof domainValue !== "string") return;
 
+                setIsSubmitting(true);
                 try {
                   const website = await dispatch(
                     createNewWebsiteWithDomain({
@@ -97,9 +102,18 @@ export default function AddSitePage() {
                       name: domainValue.replace(/^www\./, "").split(".")[0],
                     }),
                   ).unwrap();
-                  window.location.href = `/dashboard/${website._id}`;
-                } catch (error: any) {
-                  alert(error || "Failed to create website");
+                  toast.success("Website added", {
+                    description: "Redirecting to analytics…",
+                  });
+                  router.push(`/dashboard/${website._id}`);
+                } catch (error: unknown) {
+                  const message =
+                    error instanceof Error
+                      ? error.message
+                      : "Failed to create website";
+                  toast.error("Couldn’t add website", { description: message });
+                } finally {
+                  setIsSubmitting(false);
                 }
               }}
             >
@@ -183,13 +197,21 @@ export default function AddSitePage() {
 
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className={buttonVariants({
                       size: "default",
                       className:
-                        "w-full mt-6 bg-primary hover:bg-primary/90 text-white font-medium shadow-sm",
+                        "w-full mt-6 bg-primary hover:bg-primary/90 text-white font-medium shadow-sm disabled:opacity-70 disabled:pointer-events-none",
                     })}
                   >
-                    Add website
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="size-4 animate-spin mr-2" />
+                        Adding…
+                      </>
+                    ) : (
+                      "Add website"
+                    )}
                   </button>
                 </CardContent>
               </Card>

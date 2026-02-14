@@ -1,6 +1,7 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
+import { use, useState, useEffect, useMemo } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { fetchWebsiteDetailsById } from "@/store/slices/websitesSlice";
 import { GeneralSettings } from "@/components/dashboard/settings/GeneralSettings";
@@ -26,6 +27,8 @@ const SETTINGS_TABS = [
   { id: "exclusions", label: "Exclusions" },
   { id: "security", label: "Security" },
 ] as const;
+
+const TAB_IDS = new Set(SETTINGS_TABS.map((t) => t.id));
 
 export default function SettingsPage({
   params,
@@ -77,7 +80,33 @@ export default function SettingsPage({
     };
   } | null;
 
-  const [activeTab, setActiveTab] = useState("general");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
+  const tabFromUrl = searchParams.get("tab");
+  const activeTab = useMemo(() => {
+    if (
+      tabFromUrl &&
+      TAB_IDS.has(tabFromUrl as (typeof SETTINGS_TABS)[number]["id"])
+    ) {
+      return tabFromUrl as (typeof SETTINGS_TABS)[number]["id"];
+    }
+    return "general";
+  }, [tabFromUrl]);
+
+  const setActiveTab = (tab: string) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (tab === "general") {
+      params.delete("tab");
+    } else {
+      params.set("tab", tab);
+    }
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
 
   useEffect(() => {
     if (websiteId) {

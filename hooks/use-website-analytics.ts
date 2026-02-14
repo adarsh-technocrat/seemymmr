@@ -312,6 +312,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
 
   const lastPeriodRef = useRef(ui.selectedPeriod);
   const lastGranularityRef = useRef(ui.selectedGranularity);
+  const lastWebsiteIdRef = useRef(websiteId);
   const isPeriodChangingRef = useRef(false);
   const analyticsAbortRef = useRef<AbortController | null>(null);
   const lastBreakdownTabsRef = useRef<{
@@ -411,6 +412,24 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
 
   useEffect(() => {
     if (!websiteId) return;
+
+    const websiteChanged = lastWebsiteIdRef.current !== websiteId;
+    if (websiteChanged) {
+      lastWebsiteIdRef.current = websiteId;
+      lastPeriodRef.current = ui.selectedPeriod;
+      lastGranularityRef.current = ui.selectedGranularity;
+      const granularity = ui.selectedGranularity.toLowerCase() as
+        | "hourly"
+        | "daily"
+        | "weekly"
+        | "monthly";
+      fetchAnalyticsForCurrentFilters(
+        getApiPeriod(),
+        granularity,
+        getApiCustomDateRange(),
+      );
+      return;
+    }
 
     const periodChanged = lastPeriodRef.current !== ui.selectedPeriod;
     const dateRangeChanged =
