@@ -313,6 +313,33 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
   const lastGranularityRef = useRef(ui.selectedGranularity);
   const isPeriodChangingRef = useRef(false);
   const analyticsAbortRef = useRef<AbortController | null>(null);
+  const lastBreakdownTabsRef = useRef<{
+    source: string;
+    path: string;
+    location: string;
+    system: string;
+  } | null>(null);
+
+  useEffect(() => {
+    lastBreakdownTabsRef.current = null;
+  }, [websiteId]);
+
+  const getApiCustomDateRange = (): { from: Date; to: Date } | undefined => {
+    if (
+      ui.selectedPeriod === "Custom" &&
+      customDateRange?.from &&
+      customDateRange?.to
+    ) {
+      return { from: customDateRange.from, to: customDateRange.to };
+    }
+    if (periodOffset !== 0 && currentDateRange) {
+      return {
+        from: currentDateRange.startDate,
+        to: currentDateRange.endDate,
+      };
+    }
+    return undefined;
+  };
 
   const getSignalForNewAnalyticsRequest = (): AbortSignal => {
     analyticsAbortRef.current?.abort();
@@ -477,27 +504,10 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "weekly"
         | "monthly";
 
-      let apiCustomDateRange: { from: Date; to: Date } | undefined;
-      let periodForApi = ui.selectedPeriod;
-
-      if (
-        ui.selectedPeriod === "Custom" &&
-        customDateRange?.from &&
-        customDateRange?.to
-      ) {
-        apiCustomDateRange = {
-          from: customDateRange.from,
-          to: customDateRange.to,
-        };
-      } else if (periodOffset !== 0) {
-        const { startDate, endDate } = currentDateRange;
-        apiCustomDateRange = { from: startDate, to: endDate };
-      }
-
       fetchAnalyticsForCurrentFilters(
-        periodForApi,
+        ui.selectedPeriod,
         granularity,
-        apiCustomDateRange,
+        getApiCustomDateRange(),
       );
 
       lastPeriodRef.current = ui.selectedPeriod;
@@ -513,27 +523,10 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "weekly"
         | "monthly";
 
-      let apiCustomDateRange: { from: Date; to: Date } | undefined;
-      let periodForApi = ui.selectedPeriod;
-
-      if (
-        ui.selectedPeriod === "Custom" &&
-        customDateRange?.from &&
-        customDateRange?.to
-      ) {
-        apiCustomDateRange = {
-          from: customDateRange.from,
-          to: customDateRange.to,
-        };
-      } else if (periodOffset !== 0) {
-        const { startDate, endDate } = currentDateRange;
-        apiCustomDateRange = { from: startDate, to: endDate };
-      }
-
       fetchAnalyticsForCurrentFilters(
-        periodForApi,
+        ui.selectedPeriod,
         granularity,
-        apiCustomDateRange,
+        getApiCustomDateRange(),
       );
     }
   }, [
@@ -585,24 +578,11 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         | "weekly"
         | "monthly";
 
-      let apiCustomDateRange: { from: Date; to: Date } | undefined;
-      let period = ui.selectedPeriod;
-
-      if (
-        ui.selectedPeriod === "Custom" &&
-        customDateRange?.from &&
-        customDateRange?.to
-      ) {
-        apiCustomDateRange = {
-          from: customDateRange.from,
-          to: customDateRange.to,
-        };
-      } else if (periodOffset !== 0) {
-        const { startDate, endDate } = currentDateRange;
-        apiCustomDateRange = { from: startDate, to: endDate };
-      }
-
-      fetchAnalyticsForCurrentFilters(period, granularity, apiCustomDateRange);
+      fetchAnalyticsForCurrentFilters(
+        ui.selectedPeriod,
+        granularity,
+        getApiCustomDateRange(),
+      );
 
       lastGranularityRef.current = ui.selectedGranularity;
     }
@@ -615,6 +595,81 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
     customDateRange,
     availableGranularities,
     ui.selectedGranularity,
+  ]);
+
+  useEffect(() => {
+    if (!websiteId || isPeriodChangingRef.current) return;
+
+    const keys = getBreakdownKeysForCurrentTabs();
+    const currentTabs = {
+      source: ui.selectedSourceTab,
+      path: ui.selectedPathTab,
+      location: ui.selectedLocationTab,
+      system: ui.selectedSystemTab,
+    };
+
+    if (lastBreakdownTabsRef.current === null) {
+      lastBreakdownTabsRef.current = currentTabs;
+      return;
+    }
+
+    const prev = lastBreakdownTabsRef.current;
+    const apiCustomDateRange = getApiCustomDateRange();
+    const period = ui.selectedPeriod;
+
+    if (prev.source !== currentTabs.source) {
+      dispatch(
+        fetchBreakdown({
+          websiteId,
+          breakdown: keys[0],
+          period,
+          customDateRange: apiCustomDateRange,
+        }),
+      );
+    }
+    if (prev.path !== currentTabs.path) {
+      dispatch(
+        fetchBreakdown({
+          websiteId,
+          breakdown: keys[1],
+          period,
+          customDateRange: apiCustomDateRange,
+        }),
+      );
+    }
+    if (prev.location !== currentTabs.location) {
+      dispatch(
+        fetchBreakdown({
+          websiteId,
+          breakdown: keys[2],
+          period,
+          customDateRange: apiCustomDateRange,
+        }),
+      );
+    }
+    if (prev.system !== currentTabs.system) {
+      dispatch(
+        fetchBreakdown({
+          websiteId,
+          breakdown: keys[3],
+          period,
+          customDateRange: apiCustomDateRange,
+        }),
+      );
+    }
+
+    lastBreakdownTabsRef.current = currentTabs;
+  }, [
+    websiteId,
+    dispatch,
+    ui.selectedSourceTab,
+    ui.selectedPathTab,
+    ui.selectedLocationTab,
+    ui.selectedSystemTab,
+    ui.selectedPeriod,
+    periodOffset,
+    customDateRange,
+    currentDateRange,
   ]);
 
   const handlePreviousPeriod = () => {
@@ -658,74 +713,6 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
   };
 
   const canGoNext = periodOffset > 0;
-
-  const getSourceData = () => {
-    if (!analytics.breakdowns) return [];
-    switch (ui.selectedSourceTab) {
-      case "Channel":
-        return (
-          analytics.breakdowns.source.channels ||
-          analytics.breakdowns.source.channel ||
-          []
-        );
-      case "Referrer":
-        return analytics.breakdowns.source.referrer || [];
-      case "Campaign":
-        return analytics.breakdowns.source.campaign || [];
-      case "Keyword":
-        return analytics.breakdowns.source.keyword || [];
-      default:
-        return (
-          analytics.breakdowns.source.channels ||
-          analytics.breakdowns.source.channel ||
-          []
-        );
-    }
-  };
-
-  const getPathData = () => {
-    if (!analytics.breakdowns) return [];
-    switch (ui.selectedPathTab) {
-      case "Page":
-        return analytics.breakdowns.path.pages || [];
-      case "Hostname":
-        return analytics.breakdowns.path.hostnames || [];
-      case "Entry page":
-        return analytics.breakdowns.path.entryPages || [];
-      case "Exit link":
-        return analytics.breakdowns.path.exitLinks || [];
-      default:
-        return analytics.breakdowns.path.pages || [];
-    }
-  };
-
-  const getLocationData = () => {
-    if (!analytics.breakdowns) return [];
-    switch (ui.selectedLocationTab) {
-      case "Country":
-        return analytics.breakdowns.location.country || [];
-      case "Region":
-        return analytics.breakdowns.location.region || [];
-      case "City":
-        return analytics.breakdowns.location.city || [];
-      default:
-        return analytics.breakdowns.location.country || [];
-    }
-  };
-
-  const getSystemData = () => {
-    if (!analytics.breakdowns) return [];
-    switch (ui.selectedSystemTab) {
-      case "Browser":
-        return analytics.breakdowns.system.browser || [];
-      case "OS":
-        return analytics.breakdowns.system.os || [];
-      case "Device":
-        return analytics.breakdowns.system.device || [];
-      default:
-        return analytics.breakdowns.system.browser || [];
-    }
-  };
 
   const variationFromChange = (pc: string | null | undefined): string =>
     pc != null ? `${pc}%` : "0%";
@@ -794,10 +781,74 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
   }, [analytics.metrics, analytics.percentageChange]);
 
   const chartData = analytics.chartData || [];
-  const sourceData = getSourceData();
-  const pathData = getPathData();
-  const locationData = getLocationData();
-  const systemData = getSystemData();
+
+  const sourceData = useMemo(() => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedSourceTab) {
+      case "Channel":
+        return (
+          analytics.breakdowns.source.channels ||
+          analytics.breakdowns.source.channel ||
+          []
+        );
+      case "Referrer":
+        return analytics.breakdowns.source.referrer || [];
+      case "Campaign":
+        return analytics.breakdowns.source.campaign || [];
+      case "Keyword":
+        return analytics.breakdowns.source.keyword || [];
+      default:
+        return (
+          analytics.breakdowns.source.channels ||
+          analytics.breakdowns.source.channel ||
+          []
+        );
+    }
+  }, [analytics.breakdowns, ui.selectedSourceTab]);
+
+  const pathData = useMemo(() => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedPathTab) {
+      case "Page":
+        return analytics.breakdowns.path.pages || [];
+      case "Hostname":
+        return analytics.breakdowns.path.hostnames || [];
+      case "Entry page":
+        return analytics.breakdowns.path.entryPages || [];
+      case "Exit link":
+        return analytics.breakdowns.path.exitLinks || [];
+      default:
+        return analytics.breakdowns.path.pages || [];
+    }
+  }, [analytics.breakdowns, ui.selectedPathTab]);
+
+  const locationData = useMemo(() => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedLocationTab) {
+      case "Country":
+        return analytics.breakdowns.location.country || [];
+      case "Region":
+        return analytics.breakdowns.location.region || [];
+      case "City":
+        return analytics.breakdowns.location.city || [];
+      default:
+        return analytics.breakdowns.location.country || [];
+    }
+  }, [analytics.breakdowns, ui.selectedLocationTab]);
+
+  const systemData = useMemo(() => {
+    if (!analytics.breakdowns) return [];
+    switch (ui.selectedSystemTab) {
+      case "Browser":
+        return analytics.breakdowns.system.browser || [];
+      case "OS":
+        return analytics.breakdowns.system.os || [];
+      case "Device":
+        return analytics.breakdowns.system.device || [];
+      default:
+        return analytics.breakdowns.system.browser || [];
+    }
+  }, [analytics.breakdowns, ui.selectedSystemTab]);
 
   const visitorsNow =
     realtimeVisitorsNow > 0
@@ -806,29 +857,15 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
 
   const refetch = () => {
     if (!websiteId) return;
-    const period = ui.selectedPeriod;
-    const granularity = ui.selectedGranularity.toLowerCase() as
-      | "hourly"
-      | "daily"
-      | "weekly"
-      | "monthly";
-    let apiCustomDateRange: { from: Date; to: Date } | undefined;
-    if (
-      ui.selectedPeriod === "Custom" &&
-      customDateRange?.from &&
-      customDateRange?.to
-    ) {
-      apiCustomDateRange = {
-        from: customDateRange.from,
-        to: customDateRange.to,
-      };
-    } else if (periodOffset !== 0 && currentDateRange) {
-      apiCustomDateRange = {
-        from: currentDateRange.startDate,
-        to: currentDateRange.endDate,
-      };
-    }
-    fetchAnalyticsForCurrentFilters(period, granularity, apiCustomDateRange);
+    fetchAnalyticsForCurrentFilters(
+      ui.selectedPeriod,
+      ui.selectedGranularity.toLowerCase() as
+        | "hourly"
+        | "daily"
+        | "weekly"
+        | "monthly",
+      getApiCustomDateRange(),
+    );
   };
 
   return {
