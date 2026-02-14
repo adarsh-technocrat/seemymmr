@@ -58,8 +58,12 @@ export function HorizontalStackedBarChart({
   };
 
   const getBarColor = (key: string): string => {
+    const keyConfig = config[key];
+    if (key === "revenue" && keyConfig && "color" in keyConfig && keyConfig.color) {
+      return keyConfig.color;
+    }
     if (key === "revenue") {
-      return "#E16540";
+      return "#E78468";
     }
     return "#8dcdff";
   };

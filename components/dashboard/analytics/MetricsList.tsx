@@ -57,6 +57,8 @@ interface MetricsListProps {
   showVisitorsOnChart: boolean;
   isConnected: boolean;
   currency?: string;
+  /** Website color scheme for revenue indicators (hex). Defaults to #E78468. */
+  colorScheme?: string;
   revenueBreakdown?: {
     newRevenue: number;
     renewalRevenue: number;
@@ -80,6 +82,7 @@ export function MetricsList({
   showVisitorsOnChart,
   isConnected,
   currency = "USD",
+  colorScheme = "#E78468",
   revenueBreakdown,
   onShowRevenueChange,
   onShowMentionsChange,
@@ -123,7 +126,14 @@ export function MetricsList({
               onCheckedChange={(checked) =>
                 onShowRevenueChange(checked === true)
               }
-              className="data-[state=checked]:bg-[#e78468] data-[state=checked]:border-[#e78468]"
+              style={
+                showRevenueOnChart
+                  ? {
+                      backgroundColor: colorScheme,
+                      borderColor: colorScheme,
+                    }
+                  : undefined
+              }
             />
             <div className="text-textSecondary whitespace-nowrap text-xs md:text-sm">
               Revenue
@@ -184,13 +194,13 @@ export function MetricsList({
                               <div
                                 className="w-3 h-3 rounded-sm border-[1.5px] border-dashed opacity-80 overflow-hidden"
                                 style={{
-                                  borderColor: "#E16540",
+                                  borderColor: colorScheme,
                                 }}
                               >
                                 <div
                                   className="h-full w-full opacity-35"
                                   style={{
-                                    backgroundColor: "#E16540",
+                                    backgroundColor: colorScheme,
                                   }}
                                 ></div>
                               </div>
@@ -213,7 +223,7 @@ export function MetricsList({
                               <div
                                 className="w-3 h-3 rounded-sm"
                                 style={{
-                                  backgroundColor: "#E16540",
+                                  backgroundColor: colorScheme,
                                   opacity: 0.6,
                                 }}
                               ></div>
@@ -236,7 +246,7 @@ export function MetricsList({
                               <div
                                 className="w-3 h-3 rounded-sm"
                                 style={{
-                                  backgroundColor: "#E16540",
+                                  backgroundColor: colorScheme,
                                 }}
                               ></div>
                               <span className="text-[11px] text-textSecondary">

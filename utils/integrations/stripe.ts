@@ -542,7 +542,6 @@ export function detectStripeChanges(
 
   const isNewStripeKey = !!newApiKey && currentApiKey !== newApiKey;
   const isStripeRemoved = !newApiKey && !!currentApiKey;
-
   return {
     isNewStripeKey,
     isStripeRemoved,

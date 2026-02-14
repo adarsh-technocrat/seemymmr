@@ -27,12 +27,14 @@ interface BreakdownCardProps {
   onTabChange: (tab: string) => void;
   chartType?: "bar" | "pie" | "horizontalBar";
   colors?: string[];
+  /** Website color scheme for revenue in breakdown charts (hex). Defaults to #E78468. */
+  colorScheme?: string;
 }
 
 const DEFAULT_COLORS = ["#4f6d85", "#4a6880", "#6b8aa7", "#7a99b5", "#2d3d4d"];
 
 const generateStackedData = (
-  baseData: BreakdownData[]
+  baseData: BreakdownData[],
 ): HorizontalStackedBarChartData[] => {
   return baseData.map((item) => {
     const itemName = item.name || "Unknown";
@@ -57,16 +59,16 @@ const generateStackedData = (
   });
 };
 
-const chartConfig: ChartConfig = {
+const getChartConfig = (colorScheme: string): ChartConfig => ({
   visitors: {
     label: "Visitors",
     color: "#8dcdff",
   },
   revenue: {
     label: "Revenue",
-    color: "#E16540",
+    color: colorScheme,
   },
-};
+});
 
 export function BreakdownCard({
   title,
@@ -76,7 +78,9 @@ export function BreakdownCard({
   onTabChange,
   chartType = "bar",
   colors = DEFAULT_COLORS,
+  colorScheme = "#E78468",
 }: BreakdownCardProps) {
+  const chartConfig = getChartConfig(colorScheme);
   const sanitizedData = data
     .map((item) => ({
       ...item,
@@ -94,7 +98,14 @@ export function BreakdownCard({
     }
 
     if (chartType === "pie") {
-      return <PieChart data={sanitizedData} colors={colors} height="h-96" />;
+      return (
+        <PieChart
+          data={sanitizedData}
+          colors={colors}
+          height="h-96"
+          colorScheme={colorScheme}
+        />
+      );
     }
 
     if (chartType === "horizontalBar") {

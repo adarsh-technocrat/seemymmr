@@ -234,6 +234,7 @@ interface AnalyticsChartProps {
   showRevenue?: boolean;
   showVisitors?: boolean;
   currency?: string;
+  colorScheme?: string;
   onMentionClick?: (data: ChartDataPoint) => void;
   onNoteClick?: (data: ChartDataPoint) => void;
   height?: string;
@@ -247,6 +248,7 @@ function AnalyticsChartComponent({
   showRevenue = true,
   showVisitors = true,
   currency = "USD",
+  colorScheme = "#E78468",
   onMentionClick,
   onNoteClick,
   height = "h-72 md:h-96",
@@ -448,7 +450,14 @@ function AnalyticsChartComponent({
               />
             )}
 
-            <Tooltip content={<AnalyticsChartTooltip currency={currency} />} />
+            <Tooltip
+              content={
+                <AnalyticsChartTooltip
+                  currency={currency}
+                  colorScheme={colorScheme}
+                />
+              }
+            />
             {showVisitors && (
               <Area
                 yAxisId="left"
@@ -466,7 +475,7 @@ function AnalyticsChartComponent({
               <Bar
                 yAxisId="right"
                 dataKey="revenueNew"
-                fill="#E16540"
+                fill={colorScheme}
                 stackId={"stack"}
                 shape={RevenueNewBarShape}
                 maxBarSize={30}
@@ -476,7 +485,7 @@ function AnalyticsChartComponent({
               <Bar
                 yAxisId="right"
                 dataKey="revenueRenewal"
-                fill="#E16540"
+                fill={colorScheme}
                 stackId={"stack"}
                 shape={RevenueRenewalBarShape}
                 maxBarSize={30}
@@ -486,7 +495,7 @@ function AnalyticsChartComponent({
               <Bar
                 yAxisId="right"
                 dataKey="revenueRefund"
-                fill="#E16540"
+                fill={colorScheme}
                 stackId={"stack"}
                 shape={DashedBarShape}
                 maxBarSize={30}

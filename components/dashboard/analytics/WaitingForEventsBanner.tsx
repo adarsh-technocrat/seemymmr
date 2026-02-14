@@ -10,12 +10,15 @@ interface WaitingForEventsBannerProps {
   metrics?: {
     visitors: number;
   };
+  /** Website color scheme for banner accent (hex). Defaults to #E78468. */
+  colorScheme?: string;
 }
 
 export function WaitingForEventsBanner({
   loading,
   domain,
   websiteId,
+  colorScheme = "#E78468",
 }: WaitingForEventsBannerProps) {
   const [hasAnyEvents, setHasAnyEvents] = useState<boolean | null>(null);
   const shouldContinueCheckingRef = useRef(true);
@@ -67,7 +70,10 @@ export function WaitingForEventsBanner({
 
   return (
     <div className="relative mx-2 mb-0 z-0">
-      <div className="bg-[#E16540] rounded-t-md px-2 py-1.5">
+      <div
+        className="rounded-t-md px-2 py-1.5"
+        style={{ backgroundColor: colorScheme }}
+      >
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <div className="shrink-0">

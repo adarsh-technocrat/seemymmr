@@ -12,10 +12,14 @@ interface WebsiteCardProps {
     domain: string;
     name: string;
     iconUrl?: string;
+    settings?: { colorScheme?: string };
   };
 }
 
+const DEFAULT_COLOR_SCHEME = "#E78468";
+
 export function WebsiteCard({ website }: WebsiteCardProps) {
+  const colorScheme = website.settings?.colorScheme || DEFAULT_COLOR_SCHEME;
   const analytics = useAnalytics(website._id, {
     period: "Today",
     granularity: "hourly",
@@ -117,7 +121,7 @@ export function WebsiteCard({ website }: WebsiteCardProps) {
                       <Bar
                         yAxisId="right"
                         dataKey="revenue"
-                        fill="#E16540"
+                        fill={colorScheme}
                         maxBarSize={10}
                         radius={[2, 2, 0, 0]}
                         name="Revenue"

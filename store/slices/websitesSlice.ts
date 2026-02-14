@@ -15,7 +15,7 @@ export const fetchAllUserWebsites = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const fetchWebsiteDetailsById = createAsyncThunk(
@@ -33,7 +33,7 @@ export const fetchWebsiteDetailsById = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateWebsiteSettingsAndConfiguration = createAsyncThunk(
@@ -46,7 +46,7 @@ export const updateWebsiteSettingsAndConfiguration = createAsyncThunk(
       websiteId: string;
       updates: any;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(`/api/websites/${websiteId}`, {
@@ -65,7 +65,58 @@ export const updateWebsiteSettingsAndConfiguration = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
+);
+
+export const connectStripeRevenue = createAsyncThunk(
+  "websites/connectStripeRevenue",
+  async (
+    { websiteId, apiKey }: { websiteId: string; apiKey: string },
+    { rejectWithValue },
+  ) => {
+    try {
+      const response = await fetch(
+        `/api/websites/${websiteId}/revenue/stripe/connect`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ apiKey }),
+        },
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to connect Stripe");
+      }
+
+      const data = await response.json();
+      return data.website;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const disconnectStripeRevenue = createAsyncThunk(
+  "websites/disconnectStripeRevenue",
+  async (websiteId: string, { rejectWithValue }) => {
+    try {
+      const response = await fetch(
+        `/api/websites/${websiteId}/revenue/stripe/disconnect`,
+        { method: "POST" },
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to disconnect Stripe");
+      }
+
+      const data = await response.json();
+      return data.website;
+    } catch (error: any) {
+      return rejectWithValue(error.message);
+    }
+  },
 );
 
 export const createNewWebsiteWithDomain = createAsyncThunk(
@@ -80,7 +131,7 @@ export const createNewWebsiteWithDomain = createAsyncThunk(
       name: string;
       iconUrl?: string;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch("/api/websites", {
@@ -103,7 +154,7 @@ export const createNewWebsiteWithDomain = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const deleteWebsiteById = createAsyncThunk(
@@ -123,7 +174,7 @@ export const deleteWebsiteById = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 // API Keys Thunks
@@ -142,7 +193,7 @@ export const fetchAllApiKeysForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const createNewApiKeyForWebsite = createAsyncThunk(
@@ -155,7 +206,7 @@ export const createNewApiKeyForWebsite = createAsyncThunk(
       websiteId: string;
       name: string;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(`/api/websites/${websiteId}/api-keys`, {
@@ -176,7 +227,7 @@ export const createNewApiKeyForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const deleteApiKeyByIdFromWebsite = createAsyncThunk(
@@ -189,14 +240,14 @@ export const deleteApiKeyByIdFromWebsite = createAsyncThunk(
       websiteId: string;
       keyId: string;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(
         `/api/websites/${websiteId}/api-keys/${keyId}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -208,7 +259,7 @@ export const deleteApiKeyByIdFromWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 // Team Management Thunks
@@ -230,7 +281,7 @@ export const fetchAllTeamMembersForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const inviteTeamMemberToWebsite = createAsyncThunk(
@@ -245,7 +296,7 @@ export const inviteTeamMemberToWebsite = createAsyncThunk(
       email: string;
       role: "viewer" | "editor" | "admin";
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(`/api/websites/${websiteId}/team`, {
@@ -267,7 +318,7 @@ export const inviteTeamMemberToWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateTeamMemberRoleForWebsite = createAsyncThunk(
@@ -282,7 +333,7 @@ export const updateTeamMemberRoleForWebsite = createAsyncThunk(
       memberId: string;
       role: "viewer" | "editor" | "admin";
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(
@@ -291,7 +342,7 @@ export const updateTeamMemberRoleForWebsite = createAsyncThunk(
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ role }),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -303,7 +354,7 @@ export const updateTeamMemberRoleForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const removeTeamMemberFromWebsite = createAsyncThunk(
@@ -316,14 +367,14 @@ export const removeTeamMemberFromWebsite = createAsyncThunk(
       websiteId: string;
       memberId: string;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(
         `/api/websites/${websiteId}/team/${memberId}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (!response.ok) {
@@ -335,7 +386,7 @@ export const removeTeamMemberFromWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 // Notifications Thunks
@@ -359,7 +410,7 @@ export const fetchNotificationSettingsForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateNotificationSettingsForWebsite = createAsyncThunk(
@@ -374,7 +425,7 @@ export const updateNotificationSettingsForWebsite = createAsyncThunk(
       weeklySummary: boolean;
       trafficSpike: boolean;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const response = await fetch(`/api/websites/${websiteId}/notifications`, {
@@ -389,7 +440,7 @@ export const updateNotificationSettingsForWebsite = createAsyncThunk(
       if (!response.ok) {
         const error = await response.json();
         throw new Error(
-          error.error || "Failed to update notification settings"
+          error.error || "Failed to update notification settings",
         );
       }
 
@@ -403,7 +454,7 @@ export const updateNotificationSettingsForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 // Import Thunk
@@ -417,7 +468,7 @@ export const importPlausibleDataForWebsite = createAsyncThunk(
       websiteId: string;
       file: File;
     },
-    { rejectWithValue }
+    { rejectWithValue },
   ) => {
     try {
       const formData = new FormData();
@@ -428,7 +479,7 @@ export const importPlausibleDataForWebsite = createAsyncThunk(
         {
           method: "POST",
           body: formData,
-        }
+        },
       );
 
       if (!response.ok) {
@@ -441,7 +492,7 @@ export const importPlausibleDataForWebsite = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export interface Website {
@@ -594,21 +645,61 @@ const websitesSlice = createSlice({
           state.currentWebsite = action.payload;
           // Update in websites array if it exists
           const index = state.websites.findIndex(
-            (w) => w._id === action.payload._id
+            (w) => w._id === action.payload._id,
           );
           if (index !== -1) {
             state.websites[index] = action.payload;
           }
           state.error = null;
-        }
+        },
       )
       .addCase(
         updateWebsiteSettingsAndConfiguration.rejected,
         (state, action) => {
           state.updating = false;
           state.error = action.payload as string;
-        }
+        },
       )
+      // Connect Stripe Revenue
+      .addCase(connectStripeRevenue.pending, (state) => {
+        state.updating = true;
+        state.error = null;
+      })
+      .addCase(connectStripeRevenue.fulfilled, (state, action) => {
+        state.updating = false;
+        state.currentWebsite = action.payload;
+        const index = state.websites.findIndex(
+          (w) => w._id === action.payload._id,
+        );
+        if (index !== -1) {
+          state.websites[index] = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(connectStripeRevenue.rejected, (state, action) => {
+        state.updating = false;
+        state.error = action.payload as string;
+      })
+      // Disconnect Stripe Revenue
+      .addCase(disconnectStripeRevenue.pending, (state) => {
+        state.updating = true;
+        state.error = null;
+      })
+      .addCase(disconnectStripeRevenue.fulfilled, (state, action) => {
+        state.updating = false;
+        state.currentWebsite = action.payload;
+        const index = state.websites.findIndex(
+          (w) => w._id === action.payload._id,
+        );
+        if (index !== -1) {
+          state.websites[index] = action.payload;
+        }
+        state.error = null;
+      })
+      .addCase(disconnectStripeRevenue.rejected, (state, action) => {
+        state.updating = false;
+        state.error = action.payload as string;
+      })
       // Create New Website With Domain
       .addCase(createNewWebsiteWithDomain.pending, (state) => {
         state.creating = true;
@@ -677,7 +768,7 @@ const websitesSlice = createSlice({
       .addCase(deleteApiKeyByIdFromWebsite.fulfilled, (state, action) => {
         state.apiKeysLoading = false;
         state.apiKeys = state.apiKeys.filter(
-          (key) => key._id !== action.payload
+          (key) => key._id !== action.payload,
         );
         state.apiKeysError = null;
       })
@@ -721,7 +812,7 @@ const websitesSlice = createSlice({
       .addCase(updateTeamMemberRoleForWebsite.fulfilled, (state, action) => {
         state.teamLoading = false;
         const member = state.teamMembers.find(
-          (m) => m._id === action.payload.memberId
+          (m) => m._id === action.payload.memberId,
         );
         if (member) {
           member.role = action.payload.role;
@@ -740,7 +831,7 @@ const websitesSlice = createSlice({
       .addCase(removeTeamMemberFromWebsite.fulfilled, (state, action) => {
         state.teamLoading = false;
         state.teamMembers = state.teamMembers.filter(
-          (m) => m._id !== action.payload
+          (m) => m._id !== action.payload,
         );
         state.teamError = null;
       })
@@ -759,14 +850,14 @@ const websitesSlice = createSlice({
           state.notificationsLoading = false;
           state.notifications = action.payload;
           state.notificationsError = null;
-        }
+        },
       )
       .addCase(
         fetchNotificationSettingsForWebsite.rejected,
         (state, action) => {
           state.notificationsLoading = false;
           state.notificationsError = action.payload as string;
-        }
+        },
       )
       // Update Notification Settings For Website
       .addCase(updateNotificationSettingsForWebsite.pending, (state) => {
@@ -779,14 +870,14 @@ const websitesSlice = createSlice({
           state.notificationsLoading = false;
           state.notifications = action.payload;
           state.notificationsError = null;
-        }
+        },
       )
       .addCase(
         updateNotificationSettingsForWebsite.rejected,
         (state, action) => {
           state.notificationsLoading = false;
           state.notificationsError = action.payload as string;
-        }
+        },
       )
       // Import Plausible Data For Website
       .addCase(importPlausibleDataForWebsite.pending, (state) => {

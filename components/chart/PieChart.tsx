@@ -21,12 +21,15 @@ interface PieChartProps {
   data: PieChartData[];
   colors?: string[];
   height?: string;
+  /** Website color scheme for revenue in tooltip (hex). Defaults to #E78468. */
+  colorScheme?: string;
 }
 
 export function PieChart({
   data,
   colors = DEFAULT_COLORS,
   height = "h-96",
+  colorScheme = "#E78468",
 }: PieChartProps) {
   const sanitizedData = data
     .map((item) => ({
@@ -223,7 +226,12 @@ export function PieChart({
             ))}
           </Pie>
           <Tooltip
-            content={<PieChartTooltip allData={sanitizedData} />}
+            content={
+              <PieChartTooltip
+                allData={sanitizedData}
+                colorScheme={colorScheme}
+              />
+            }
             cursor={{ fill: "transparent" }}
             animationDuration={200}
           />

@@ -397,7 +397,6 @@ export function GeneralSettings({
         </form>
       </Card>
 
-      {/* Color Scheme */}
       <Card className="custom-card">
         <CardHeader>
           <CardTitle>Color scheme</CardTitle>
@@ -421,31 +420,13 @@ export function GeneralSettings({
                       : "group-hover:ring-2 group-hover:ring-neutral/50 group-hover:ring-offset-2 group-hover:ring-offset-base-100"
                   }`}
                   style={{ backgroundColor: color }}
-                >
-                  {colorScheme === color && (
-                    <div className="absolute -right-2 -top-2 flex size-5 items-center justify-center rounded-full bg-neutral text-neutral-content shadow-md">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        viewBox="0 0 16 16"
-                        fill="currentColor"
-                        className="size-3"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M12.416 3.376a.75.75 0 0 1 .208 1.04l-5 7.5a.75.75 0 0 1-1.154.114l-3-3a.75.75 0 0 1 1.06-1.06l2.353 2.353 4.493-6.74a.75.75 0 0 1 1.04-.207Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                    </div>
-                  )}
-                </div>
+                />
               </button>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* #1 KPI */}
       <Card className="custom-card overflow-visible">
         <form>
           <CardHeader>

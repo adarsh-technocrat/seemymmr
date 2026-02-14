@@ -49,6 +49,7 @@ interface PieTooltipProps {
   active?: boolean;
   payload?: RechartsPiePayload[];
   allData?: BreakdownData[];
+  colorScheme?: string;
 }
 
 const DEFAULT_COLORS = ["#4f6d85", "#4a6880", "#6b8aa7", "#7a99b5", "#2d3d4d"];
@@ -57,6 +58,7 @@ export const PieChartTooltip = ({
   active,
   payload,
   allData,
+  colorScheme = "#E78468",
 }: PieTooltipProps) => {
   if (!active || !payload || !payload.length || !allData) {
     return null;
@@ -132,7 +134,7 @@ export const PieChartTooltip = ({
             <div
               className="w-2.5 h-2.5 rounded-sm"
               style={{
-                backgroundColor: "#E16540",
+                backgroundColor: colorScheme,
               }}
             ></div>
             <span className="text-textSecondary">Revenue</span>

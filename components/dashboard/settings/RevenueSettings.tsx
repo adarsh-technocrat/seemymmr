@@ -4,7 +4,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppDispatch } from "@/store/hooks";
-import { updateWebsiteSettingsAndConfiguration } from "@/store/slices/websitesSlice";
+import {
+  updateWebsiteSettingsAndConfiguration,
+  connectStripeRevenue,
+  disconnectStripeRevenue,
+} from "@/store/slices/websitesSlice";
 
 import {
   Card,
@@ -225,17 +229,7 @@ export function RevenueSettings({
     setLoading(true);
     try {
       await dispatch(
-        updateWebsiteSettingsAndConfiguration({
-          websiteId,
-          updates: {
-            paymentProviders: {
-              ...website?.paymentProviders,
-              stripe: {
-                apiKey: stripeApiKey,
-              },
-            },
-          },
-        }),
+        connectStripeRevenue({ websiteId, apiKey: stripeApiKey }),
       ).unwrap();
       onUpdate();
       setStripeApiKey("");
@@ -249,30 +243,15 @@ export function RevenueSettings({
   const handleDisconnectStripe = async () => {
     setLoading(true);
     try {
-      // Remove stripe from paymentProviders by setting it to null
-      const updatedPaymentProviders = { ...website?.paymentProviders };
-      if (updatedPaymentProviders.stripe) {
-        delete updatedPaymentProviders.stripe;
-      }
-
-      await dispatch(
-        updateWebsiteSettingsAndConfiguration({
-          websiteId,
-          updates: {
-            paymentProviders: updatedPaymentProviders,
-          },
-        }),
-      ).unwrap();
+      await dispatch(disconnectStripeRevenue(websiteId)).unwrap();
       onUpdate();
       setShowDisconnectDialog(false);
     } catch (error) {
-      // Error disconnecting Stripe
     } finally {
       setLoading(false);
     }
   };
 
-  // Check connection status from the backend flag (API key is not sent to frontend)
   const isStripeConnected = !!website?.paymentProviders?.stripe?.connected;
 
   const handleSaveCurrency = async (e: React.FormEvent) => {

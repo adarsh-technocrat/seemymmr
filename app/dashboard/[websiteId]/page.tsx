@@ -79,6 +79,9 @@ export default function WebsiteAnalyticsPage({
     setSelectedGranularity,
   } = useWebsiteAnalytics({ websiteId });
 
+  const colorScheme =
+    (website?.settings as WebsiteSettings)?.colorScheme || "#E78468";
+
   return (
     <>
       <main className="mx-auto min-h-screen max-w-7xl pb-32">
@@ -134,6 +137,7 @@ export default function WebsiteAnalyticsPage({
                   loading={analytics.loading}
                   domain={website?.domain}
                   websiteId={websiteId}
+                  colorScheme={colorScheme}
                 />
                 <section className="custom-card group">
                   <MetricsList
@@ -151,6 +155,7 @@ export default function WebsiteAnalyticsPage({
                     currency={
                       (website?.settings as WebsiteSettings)?.currency || "USD"
                     }
+                    colorScheme={colorScheme}
                     revenueBreakdown={revenueBreakdown}
                     onShowRevenueChange={(checked) =>
                       dispatch(setShowRevenueOnChart(checked))
@@ -173,6 +178,7 @@ export default function WebsiteAnalyticsPage({
                         (website?.settings as WebsiteSettings)?.currency ||
                         "USD"
                       }
+                      colorScheme={colorScheme}
                       onMentionClick={(data) => {
                         setSelectedMentionData(data);
                         setMentionDialogOpen(true);
@@ -196,6 +202,7 @@ export default function WebsiteAnalyticsPage({
               chartType={
                 ui.selectedSourceTab === "Channel" ? "pie" : "horizontalBar"
               }
+              colorScheme={colorScheme}
             />
           </div>
 
@@ -207,6 +214,7 @@ export default function WebsiteAnalyticsPage({
               data={pathData}
               onTabChange={setSelectedPathTab}
               chartType="horizontalBar"
+              colorScheme={colorScheme}
             />
           </div>
 
@@ -220,6 +228,7 @@ export default function WebsiteAnalyticsPage({
               chartType={
                 ui.selectedLocationTab === "Map" ? "bar" : "horizontalBar"
               }
+              colorScheme={colorScheme}
             />
           </div>
 
@@ -231,6 +240,7 @@ export default function WebsiteAnalyticsPage({
               data={systemData}
               onTabChange={setSelectedSystemTab}
               chartType="horizontalBar"
+              colorScheme={colorScheme}
             />
           </div>
 

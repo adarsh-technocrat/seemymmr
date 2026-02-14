@@ -15,6 +15,7 @@ export default function DashboardPage() {
     domain: string;
     name: string;
     iconUrl?: string;
+    settings?: { colorScheme?: string };
   }>;
   const loading = useAppSelector((state) => state.websites.loading) as boolean;
 
@@ -59,9 +60,10 @@ export default function DashboardPage() {
                   domain: string;
                   name: string;
                   iconUrl?: string;
+                  settings?: { colorScheme?: string };
                 }) => (
                   <WebsiteCard key={website._id} website={website} />
-                )
+                ),
               )}
             </ul>
           )}

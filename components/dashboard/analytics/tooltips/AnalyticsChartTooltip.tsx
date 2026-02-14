@@ -14,12 +14,14 @@ interface AnalyticsChartTooltipProps {
     name?: string;
   }>;
   currency?: string;
+  colorScheme?: string;
 }
 
 export const AnalyticsChartTooltip = ({
   active,
   payload,
   currency = "USD",
+  colorScheme = "#E78468",
 }: AnalyticsChartTooltipProps) => {
   if (active && payload && payload.length > 0) {
     const data = payload[0].payload as ChartDataPoint;
@@ -64,13 +66,13 @@ export const AnalyticsChartTooltip = ({
                   <div
                     className="w-3 h-3 rounded-sm border-[1.5px] border-dashed opacity-80 overflow-hidden"
                     style={{
-                      borderColor: "#E16540",
+                      borderColor: colorScheme,
                     }}
                   >
                     <div
                       className="h-full w-full opacity-35"
                       style={{
-                        backgroundColor: "#E16540",
+                        backgroundColor: colorScheme,
                       }}
                     ></div>
                   </div>
@@ -91,7 +93,7 @@ export const AnalyticsChartTooltip = ({
                   <div
                     className="w-3 h-3 rounded-sm"
                     style={{
-                      backgroundColor: "#E16540",
+                      backgroundColor: colorScheme,
                       opacity: 0.6,
                     }}
                   ></div>
@@ -112,7 +114,7 @@ export const AnalyticsChartTooltip = ({
                   <div
                     className="w-3 h-3 rounded-sm"
                     style={{
-                      backgroundColor: "#E16540",
+                      backgroundColor: colorScheme,
                     }}
                   ></div>
                   <span className="text-textSecondary">New</span>

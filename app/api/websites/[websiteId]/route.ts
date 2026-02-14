@@ -7,11 +7,6 @@ import {
 import { getUserId } from "@/lib/get-session";
 import { isValidObjectId } from "@/utils/validation";
 import { sanitizeWebsiteForFrontend } from "@/utils/database/website-sanitize";
-import {
-  processStripeConfigChanges,
-  detectStripeChanges,
-  StripePaymentSyncer,
-} from "@/utils/integrations/stripe";
 
 export async function GET(
   request: NextRequest,
@@ -79,19 +74,6 @@ export async function PUT(
     const body = await request.json();
     const { name, domain, iconUrl, settings, paymentProviders } = body;
 
-    const stripeConfigResult = await processStripeConfigChanges(
-      websiteId,
-      website,
-      paymentProviders,
-    );
-
-    if (stripeConfigResult.error) {
-      return NextResponse.json(
-        { error: stripeConfigResult.error },
-        { status: stripeConfigResult.statusCode || 400 },
-      );
-    }
-
     const updatedWebsite = await updateWebsite(websiteId, {
       name,
       domain,
@@ -99,21 +81,6 @@ export async function PUT(
       settings,
       paymentProviders,
     });
-
-    const changes = detectStripeChanges(website, paymentProviders);
-
-    // Stripe removal (delete payments + cancel jobs) is already done in processStripeConfigChanges → handleStripeRemoval
-
-    if (changes.isNewStripeKey && paymentProviders?.stripe?.apiKey) {
-      const syncer = new StripePaymentSyncer(paymentProviders.stripe.apiKey);
-      syncer
-        .syncPayments(
-          new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000),
-          new Date(),
-          websiteId,
-        )
-        .catch(() => {});
-    }
 
     const sanitizedWebsite = sanitizeWebsiteForFrontend(updatedWebsite);
 
