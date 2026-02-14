@@ -178,7 +178,7 @@ export function getDateRangeForPeriod(
     case "all":
     case "all time":
       endDate = endOfDayInTimezone(now, timezone);
-      const maxYearsBack = 5;
+      const maxYearsBack = 3;
       const maxDate = new Date(
         now.getTime() - maxYearsBack * 365 * 24 * 60 * 60 * 1000,
       );

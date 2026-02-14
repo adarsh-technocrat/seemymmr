@@ -203,12 +203,17 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
         startDate.setDate(1);
         startDate.setHours(0, 0, 0, 0);
         break;
-      case "All time":
-        startDate = new Date(0);
+      case "All time": {
+        const maxYearsBack = 3;
+        startDate = new Date(
+          Date.now() - maxYearsBack * 365 * 24 * 60 * 60 * 1000,
+        );
+        startDate.setHours(0, 0, 0, 0);
         if (offset > 0) {
           endDate = new Date(Date.now() - offset * 365 * 24 * 60 * 60 * 1000);
         }
         break;
+      }
       default:
         if (offset > 0) {
           endDate.setDate(endDate.getDate() - offset * periodDays);
@@ -259,19 +264,23 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       return ["Hourly", "Daily"];
     }
 
-    if (
-      period === "Last 7 days" ||
-      period === "Week to date" ||
-      (daysDiff > 2 && daysDiff <= 7)
-    ) {
+    if (period === "Week to date") {
+      return ["Hourly", "Daily"];
+    }
+
+    if (period === "Last 7 days" || (daysDiff > 2 && daysDiff <= 7)) {
       return ["Daily", "Weekly"];
     }
 
-    if (
-      period === "Last 30 days" ||
-      period === "Month to date" ||
-      (daysDiff > 7 && daysDiff <= 90)
-    ) {
+    if (period === "Month to date") {
+      return ["Daily", "Weekly"];
+    }
+
+    if (period === "Year to date") {
+      return ["Daily", "Weekly"];
+    }
+
+    if (period === "Last 30 days" || (daysDiff > 7 && daysDiff <= 90)) {
       return ["Daily", "Weekly", "Monthly"];
     }
 
@@ -279,11 +288,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       return ["Weekly", "Monthly"];
     }
 
-    if (
-      period === "Last 12 months" ||
-      period === "Year to date" ||
-      daysDiff > 90
-    ) {
+    if (period === "Last 12 months" || daysDiff > 90) {
       return ["Weekly", "Monthly"];
     }
 
@@ -474,7 +479,7 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       ) {
         defaultGranularity = "Daily";
       } else if (period === "All time") {
-        defaultGranularity = "Weekly";
+        defaultGranularity = "Monthly";
       } else if (
         period === "Last 12 months" ||
         period === "Year to date" ||
@@ -491,34 +496,44 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
           : daysDiff <= 2
             ? ui.selectedGranularity === "Hourly" ||
               ui.selectedGranularity === "Daily"
-            : period === "Last 7 days" ||
-                period === "Week to date" ||
-                (daysDiff > 2 && daysDiff <= 7)
-              ? ui.selectedGranularity === "Daily" ||
+            : period === "Week to date"
+              ? ui.selectedGranularity === "Hourly" ||
+                ui.selectedGranularity === "Daily" ||
                 ui.selectedGranularity === "Weekly"
-              : period === "Last 30 days" ||
-                  period === "Month to date" ||
-                  (daysDiff > 7 && daysDiff <= 90)
+              : period === "Last 7 days" || (daysDiff > 2 && daysDiff <= 7)
                 ? ui.selectedGranularity === "Daily" ||
-                  ui.selectedGranularity === "Weekly" ||
-                  ui.selectedGranularity === "Monthly"
-                : period === "All time"
-                  ? ui.selectedGranularity === "Weekly" ||
-                    ui.selectedGranularity === "Monthly"
-                  : period === "Last 12 months" ||
-                      period === "Year to date" ||
-                      daysDiff > 90
-                    ? ui.selectedGranularity === "Weekly" ||
+                  ui.selectedGranularity === "Weekly"
+                : period === "Month to date"
+                  ? ui.selectedGranularity === "Daily" ||
+                    ui.selectedGranularity === "Weekly"
+                  : period === "Last 30 days" ||
+                      (daysDiff > 7 && daysDiff <= 90)
+                    ? ui.selectedGranularity === "Daily" ||
+                      ui.selectedGranularity === "Weekly" ||
                       ui.selectedGranularity === "Monthly"
-                    : true;
+                    : period === "All time"
+                      ? ui.selectedGranularity === "Weekly" ||
+                        ui.selectedGranularity === "Monthly"
+                      : period === "Year to date"
+                        ? ui.selectedGranularity === "Daily" ||
+                          ui.selectedGranularity === "Weekly"
+                        : period === "Last 12 months" || daysDiff > 90
+                          ? ui.selectedGranularity === "Weekly" ||
+                            ui.selectedGranularity === "Monthly"
+                          : true;
 
-      if (!currentGranularityAvailable) {
+      if (period === "All time" && periodChanged) {
+        dispatch(setSelectedGranularity("Monthly"));
+      } else if (!currentGranularityAvailable) {
         dispatch(setSelectedGranularity(defaultGranularity));
       }
 
-      const effectiveGranularity = currentGranularityAvailable
-        ? ui.selectedGranularity
-        : defaultGranularity;
+      const effectiveGranularity =
+        period === "All time" && periodChanged
+          ? "Monthly"
+          : currentGranularityAvailable
+            ? ui.selectedGranularity
+            : defaultGranularity;
 
       const granularity = effectiveGranularity.toLowerCase() as
         | "hourly"
@@ -567,7 +582,14 @@ export function useWebsiteAnalytics({ websiteId }: UseWebsiteAnalyticsProps) {
       availableGranularities.length > 0 &&
       !availableGranularities.includes(ui.selectedGranularity);
     if (needsAdjust) {
-      dispatch(setSelectedGranularity(availableGranularities[0]));
+      const isAllTimeOptions =
+        availableGranularities.length === 2 &&
+        availableGranularities.includes("Weekly") &&
+        availableGranularities.includes("Monthly");
+      const valueToSet = isAllTimeOptions
+        ? "Monthly"
+        : availableGranularities[0];
+      dispatch(setSelectedGranularity(valueToSet));
     }
   }, [
     availableGranularities,

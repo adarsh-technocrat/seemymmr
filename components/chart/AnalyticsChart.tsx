@@ -276,71 +276,12 @@ function AnalyticsChartComponent({
     );
   }
 
-  const calculateDomainMax = (dataMax: number): number => {
-    if (dataMax <= 0) {
-      return 5;
-    }
-    const paddedMax = dataMax * 1.2;
-
-    if (paddedMax < 100) {
-      return Math.round(paddedMax / 20) * 20 || 20;
-    } else if (paddedMax < 500) {
-      return Math.round(paddedMax / 100) * 100 || 100;
-    } else if (paddedMax < 1000) {
-      return Math.round(paddedMax / 200) * 200 || 200;
-    } else if (paddedMax < 5000) {
-      return Math.round(paddedMax / 1000) * 1000 || 1000;
-    } else if (paddedMax < 10000) {
-      const candidates = [
-        Math.round(paddedMax / 2000) * 2000,
-        Math.round(paddedMax / 4000) * 4000,
-        Math.round(paddedMax / 5000) * 5000,
-        Math.round(paddedMax / 8000) * 8000,
-        Math.round(paddedMax / 10000) * 10000,
-      ];
-      const validCandidates = candidates.filter((c) => c >= paddedMax);
-      return validCandidates.length > 0
-        ? Math.min(...validCandidates)
-        : Math.max(...candidates);
-    } else if (paddedMax < 50000) {
-      const candidates = [
-        Math.round(paddedMax / 5000) * 5000,
-        Math.round(paddedMax / 10000) * 10000,
-      ];
-      const validCandidates = candidates.filter((c) => c >= paddedMax);
-      return validCandidates.length > 0
-        ? Math.min(...validCandidates)
-        : Math.max(...candidates);
-    } else {
-      return Math.round(paddedMax / 10000) * 10000 || 10000;
-    }
-  };
-
-  const calculateTicks = (dataMax: number): number[] => {
-    if (dataMax <= 0) {
-      return [0, 1, 2, 3, 4, 5];
-    }
-    const max = calculateDomainMax(dataMax);
-    return [0, max * 0.25, max * 0.5, max * 0.75, max];
-  };
-
-  const maxVisitors = Math.max(...data.map((d) => d.visitors ?? 0), 0);
   const maxRevenue = Math.max(
     ...data.map((d) => (typeof d.revenue === "number" ? d.revenue : 0)),
     0,
   );
 
-  const visitorTicks = calculateTicks(maxVisitors);
-
-  const calculateVisitorDomainMax = (dataMax: number) =>
-    calculateDomainMax(dataMax);
-
-  const visitorDomain:
-    | [number, number]
-    | [number, (dataMax: number) => number] =
-    maxVisitors <= 0
-      ? ([0, 5] as [number, number])
-      : [0, calculateVisitorDomainMax];
+  const maxVisitors = Math.max(...data.map((d) => d.visitors ?? 0), 0);
 
   const currentTimeIndex = getCurrentTimeIndex(data);
 
@@ -395,6 +336,9 @@ function AnalyticsChartComponent({
     data.length > 4 &&
     nonZeroBuckets <= Math.ceil(data.length / 4);
 
+  const xAxisInterval =
+    data.length <= 12 ? 0 : Math.max(0, Math.floor((data.length - 1) / 10));
+
   return (
     <div className={`flex flex-col gap-1 ${height}`}>
       {isSparse && (
@@ -440,9 +384,9 @@ function AnalyticsChartComponent({
               style={{
                 fontSize: "11px",
               }}
-              interval={1}
+              interval={xAxisInterval}
               tickMargin={10}
-              minTickGap={50}
+              minTickGap={56}
             />
             {showVisitors && (
               <YAxis
@@ -462,8 +406,11 @@ function AnalyticsChartComponent({
                   return value.toString();
                 }}
                 tickMargin={8}
-                domain={visitorDomain}
-                ticks={visitorTicks}
+                domain={
+                  maxVisitors <= 0
+                    ? [0, 5]
+                    : [0, (dataMax: number) => Math.max(dataMax * 1.3, 10)]
+                }
               />
             )}
             {showRevenue && (

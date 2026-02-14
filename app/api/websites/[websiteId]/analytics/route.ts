@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { formatInTimeZone, toZonedTime } from "date-fns-tz";
+import { formatInTimeZone, toZonedTime, fromZonedTime } from "date-fns-tz";
 import { add, differenceInMilliseconds } from "date-fns";
 import { getVisitorsOverTime } from "@/utils/analytics/aggregations/getVisitorsOverTime.aggregation";
 import { getRevenueOverTime } from "@/utils/analytics/aggregations/getRevenueOverTime.aggregation";
@@ -15,13 +15,40 @@ import { type TimeZone } from "timezones-list";
 /** Payment amounts are stored in cents; convert to dollars for API response. */
 const CENTS_TO_DOLLARS = 1 / 100;
 
+/** Truncate to start of hour in timezone so buckets align with $dateTrunc(unit: "hour", timezone). */
+function startOfHourInTimezone(date: Date, timezone: string): Date {
+  const zoned = toZonedTime(date, timezone);
+  zoned.setMinutes(0, 0, 0);
+  return fromZonedTime(zoned, timezone);
+}
+
+/** Start of month in timezone (aligns with $dateTrunc unit "month"). */
+function startOfMonthInTimezone(date: Date, timezone: string): Date {
+  const zoned = toZonedTime(date, timezone);
+  zoned.setDate(1);
+  zoned.setHours(0, 0, 0, 0);
+  return fromZonedTime(zoned, timezone);
+}
+
+/** Start of week (Monday) in timezone (aligns with $dateTrunc unit "week"). */
+function startOfWeekInTimezone(date: Date, timezone: string): Date {
+  const y = parseInt(formatInTimeZone(date, timezone, "yyyy"), 10);
+  const mo = parseInt(formatInTimeZone(date, timezone, "MM"), 10);
+  const day = parseInt(formatInTimeZone(date, timezone, "dd"), 10);
+  const e = parseInt(formatInTimeZone(date, timezone, "e"), 10);
+  const mondayDate = new Date(y, mo - 1, day, 0, 0, 0, 0);
+  mondayDate.setDate(mondayDate.getDate() - (e - 1));
+  return fromZonedTime(mondayDate, timezone);
+}
+
 function getBucketDates(
   startDate: Date,
   endDate: Date,
   granularity: Granularity,
+  timezone?: string,
 ): Date[] {
   const buckets: Date[] = [];
-  let cursor = new Date(startDate.getTime());
+  let cursor: Date;
   const step =
     granularity === "hourly"
       ? { hours: 1 }
@@ -30,6 +57,16 @@ function getBucketDates(
         : granularity === "weekly"
           ? { weeks: 1 }
           : { months: 1 };
+
+  if (granularity === "hourly" && timezone) {
+    cursor = startOfHourInTimezone(startDate, timezone);
+  } else if (granularity === "weekly" && timezone) {
+    cursor = startOfWeekInTimezone(startDate, timezone);
+  } else if (granularity === "monthly" && timezone) {
+    cursor = startOfMonthInTimezone(startDate, timezone);
+  } else {
+    cursor = new Date(startDate.getTime());
+  }
 
   while (cursor <= endDate) {
     buckets.push(new Date(cursor.getTime()));
@@ -69,14 +106,7 @@ function formatBucketLabel(
       );
     case "weekly": {
       const weekEnd = add(date, { days: 6 });
-      const weekEndZoned = toZonedTime(weekEnd, timezone);
-      const startStr = formatInTimeZone(date, timezone, "MMM d");
-      const endStr = formatInTimeZone(
-        weekEnd,
-        timezone,
-        weekEndZoned.getFullYear() !== currentYear ? "MMM d, yyyy" : "MMM d",
-      );
-      return `${startStr} – ${endStr}`;
+      return formatInTimeZone(weekEnd, timezone, "dd MMM");
     }
     case "monthly":
       return formatInTimeZone(date, timezone, "MMM yyyy");
@@ -162,7 +192,7 @@ function mergeTimeSeries(
     row.goal = r.goalCount;
   });
 
-  const bucketDates = getBucketDates(startDate, endDate, granularity);
+  const bucketDates = getBucketDates(startDate, endDate, granularity, timezone);
 
   return bucketDates.map((date) => {
     const key = date.toISOString();

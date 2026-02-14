@@ -112,10 +112,15 @@ export function useAnalytics(
         startDate.setDate(1);
         startDate.setHours(0, 0, 0, 0);
         break;
-      case "All time":
+      case "All time": {
         endDate = new Date();
-        startDate = new Date(0);
+        const maxYearsBack = 3;
+        startDate = new Date(
+          Date.now() - maxYearsBack * 365 * 24 * 60 * 60 * 1000,
+        );
+        startDate.setHours(0, 0, 0, 0);
         break;
+      }
       default:
         endDate = new Date();
         startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
